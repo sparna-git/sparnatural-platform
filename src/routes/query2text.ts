@@ -26,9 +26,6 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   }
 
   return res.json({
-    project: projectKey,
-    language: lang,
-    receivedQuery: query,
     text: summary,
   });
 });

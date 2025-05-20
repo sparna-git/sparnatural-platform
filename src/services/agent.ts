@@ -5,6 +5,13 @@ export async function getSummaryFromAgent(
   lang: string
 ): Promise<string> {
   try {
+    // Préparer le prompt avec la langue
+    const messageContent = `LANGUAGE: ${lang}\n\nQUERY:\n${JSON.stringify(
+      jsonQuery,
+      null,
+      2
+    )}`;
+
     const response = await axios.post(
       "https://api.mistral.ai/v1/agents/completions",
       {
@@ -12,7 +19,7 @@ export async function getSummaryFromAgent(
         messages: [
           {
             role: "user",
-            content: JSON.stringify(jsonQuery, null, 2),
+            content: messageContent,
           },
         ],
         response_format: { type: "text" },
