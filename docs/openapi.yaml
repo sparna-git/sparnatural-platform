@@ -2,27 +2,39 @@ openapi: 3.1.0
 info:
   title: Sparnatural Query2Text API
   version: 1.0.0
+  description: >
+    Cette API permet de convertir une requête JSON structurée (au format Sparnatural) 
+    en une phrase en langage naturel compréhensible par un utilisateur humain.
+    Elle peut être utilisée pour générer des résumés lisibles des requêtes sémantiques dans une interface utilisateur.
+
 paths:
   /{projectKey}/api/v1/query2text:
     get:
-      summary: Convert JSON query to natural language
+      summary: Convertit une requête JSON en texte en langage naturel
+      description: >
+        Fournit une version textuelle (langage naturel) d'une requête structurée Sparnatural. 
+        Cette conversion peut être adaptée selon le projet (`projectKey`) et la langue (`lang`).
       parameters:
         - in: path
           name: projectKey
           required: true
           schema:
             type: string
+            example: dbpedia-en
         - in: query
           name: query
           required: true
           schema:
             type: string
-        - in: query
-          name: lang
+        - name: lang
+          in: query
           required: false
+          description: Code de langue ISO 639-1 (par défaut "en"). Permet d'obtenir le texte dans une langue donnée.
           schema:
             type: string
             default: en
+            enum: [en, fr]
+            example: fr
       responses:
         "200":
           description: Summary response
@@ -37,3 +49,32 @@ paths:
                     type: string
                   text:
                     type: string
+              examples:
+                success:
+                  summary: Exemple de résumé
+                  value:
+                    project: theater-archive
+                    language: fr
+                    text: "Afficher toutes les œuvres d’art exposées dans un musée."
+
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid query parameter"
+
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
