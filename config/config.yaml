@@ -1,0 +1,3 @@
+projects:
+  dbpedia-en:
+    shaclFile: ./src/config/dbpedia/config.ttl

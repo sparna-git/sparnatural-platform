@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info:
+  title: Sparnatural Query2Text API
+  version: 1.0.0
+paths:
+  /{projectKey}/api/v1/query2text:
+    get:
+      summary: Convert JSON query to natural language
+      parameters:
+        - in: path
+          name: projectKey
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            default: en
+      responses:
+        "200":
+          description: Summary response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    type: string
+                  language:
+                    type: string
+                  text:
+                    type: string

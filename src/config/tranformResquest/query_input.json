@@ -1,0 +1,46 @@
+{
+  "distinct": true,
+  "variables": [
+    {
+      "termType": "Variable",
+      "value": "Person_1"
+    }
+  ],
+  "order": null,
+  "branches": [
+    {
+      "line": {
+        "s": "Person_1",
+        "p": "https://data.mydomain.com/ontologies/sparnatural-config/Person_bornIn",
+        "o": "Country_2",
+        "sType": "https://data.mydomain.com/ontologies/sparnatural-config/Person",
+        "oType": "https://data.mydomain.com/ontologies/sparnatural-config/Country",
+        "values": [
+          {
+            "label": "France",
+            "rdfTerm": {
+              "type": "uri",
+              "value": "http://dbpedia.org/resource/France"
+            }
+          },
+          {
+            "label": "Germany",
+            "rdfTerm": {
+              "type": "uri",
+              "value": "http://dbpedia.org/resource/Germany"
+            }
+          },
+          {
+            "label": "Italy",
+            "rdfTerm": {
+              "type": "uri",
+              "value": "http://dbpedia.org/resource/Italy"
+            }
+          }
+        ]
+      },
+      "children": [],
+      "notExists": true
+    }
+  ]
+}

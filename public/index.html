@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Résumé Sparnatural</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2em;
+        background: #f5f5f5;
+      }
+      h1 {
+        color: #333;
+      }
+      textarea,
+      input,
+      button {
+        font-size: 1em;
+        width: 100%;
+        margin-bottom: 1em;
+        padding: 0.5em;
+      }
+      #result {
+        background: #fff;
+        padding: 1em;
+        border: 1px solid #ccc;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tester un résumé de requête</h1>
+    <label for="query">Requête JSON :</label>
+    <textarea
+      id="query"
+      rows="10"
+      placeholder="Requête JSON ici ..."
+    ></textarea>
+    <label for="lang">Langue :</label>
+    <input type="text" id="lang" value="en" />
+    <button onclick="sendQuery()">Envoyer</button>
+    <h2>Résumé :</h2>
+    <div id="result"></div>
+
+    <script>
+      async function sendQuery() {
+        const query = encodeURIComponent(
+          document.getElementById("query").value
+        );
+        const lang = document.getElementById("lang").value;
+        const url = `/dbpedia-en/api/v1/query2text?query=${query}&lang=${lang}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        document.getElementById("result").textContent = json.text;
+      }
+    </script>
+  </body>
+</html>

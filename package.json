@@ -1,0 +1,24 @@
+{
+  "name": "sparnatural-services",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "js-yaml": "^4.1.0",
+    "swagger-ui-express": "^4.6.3",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.17.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}
