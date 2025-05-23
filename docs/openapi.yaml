@@ -43,18 +43,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  project:
-                    type: string
-                  language:
-                    type: string
                   text:
                     type: string
               examples:
                 success:
                   summary: Exemple de résumé
                   value:
-                    project: theater-archive
-                    language: fr
                     text: "Afficher toutes les œuvres d’art exposées dans un musée."
 
         "400":
