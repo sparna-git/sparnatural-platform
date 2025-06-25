@@ -1,3 +1,6 @@
 projects:
   dbpedia-en:
     shaclFile: ./src/config/dbpedia/config.ttl
+    sparqlEndpoint: https://dbpedia.org/sparql
+  wikidata:
+    sparqlEndpoint: https://query.wikidata.org/sparql
