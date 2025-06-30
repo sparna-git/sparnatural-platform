@@ -3,16 +3,32 @@ import axios from "axios";
 
 const router = express.Router();
 
-const SPARQL_ENDPOINT = "https://dbpedia.org/sparql"; // Adapter si besoin
+const SPARQL_ENDPOINT = "https://dbpedia.org/sparql";
+
+// Cache en mémoire : clé = label en minuscule, valeur = résultat
+const uriCache: { [key: string]: { results: { uri: string }[] } } = {};
 
 router.get("/", async (req, res) => {
-  const { label } = req.query;
+  let { label } = req.query;
 
   if (!label || typeof label !== "string") {
     return res
       .status(400)
       .json({ error: "Missing or invalid label parameter" });
   }
+
+  label = label.trim();
+  const labelKey = label.toLowerCase();
+
+  // Vérifie si la requête est déjà dans le cache
+  if (uriCache[labelKey]) {
+    console.log(`Cache hit pour label "${label}"`);
+    return res.json(uriCache[labelKey]);
+  }
+
+  console.log(
+    `Cache miss pour label "${label}", exécution de la requête SPARQL...`
+  );
 
   try {
     const escapedLabel = label.replace(/"/g, '\\"');
@@ -37,13 +53,14 @@ router.get("/", async (req, res) => {
 
     const response = await axios.get(url, { timeout: 60000, family: 4 });
 
-    if (!response.data.results.bindings.length) {
-      return res.json({ results: [] }); // Aucun résultat trouvé
-    }
+    const results = response.data.results.bindings.map(
+      (b: { x: { value: any } }) => ({
+        uri: b.x.value,
+      })
+    );
 
-    const results = response.data.results.bindings.map((b: any) => ({
-      uri: b.x.value,
-    }));
+    // Stocke dans le cache
+    uriCache[labelKey] = { results };
 
     return res.json({ results });
   } catch (error) {

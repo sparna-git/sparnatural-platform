@@ -72,20 +72,6 @@
       <div id="naturalResult" class="result"></div>
     </section>
 
-    <section>
-      <h1>3. Resolver un URI desde un label</h1>
-      <label for="label">Label:</label>
-      <input type="text" id="label" placeholder="Ej: Francia" />
-
-      <label for="type">Tipo:</label>
-      <input type="text" id="type" placeholder="Ej: País" />
-
-      <button onclick="resolveUri()">Resolver URI</button>
-
-      <h2>URI:</h2>
-      <div id="uriResult" class="result"></div>
-    </section>
-
     <script>
       async function resolveUri() {
         const label = encodeURIComponent(

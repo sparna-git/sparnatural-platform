@@ -1,4 +1,6 @@
 import axios from "axios";
+import { SparnaturalQuery } from "../zod/query";
+import { z } from "zod";
 
 /**
  * Génère un résumé textuel à partir d'une requête Sparnatural JSON.
@@ -67,16 +69,19 @@ export async function getJsonFromAgent(
   naturalLanguageQuery: string,
   lang: string,
   projectKey: string
-): Promise<object> {
+): Promise<z.infer<typeof SparnaturalQuery>> {
   const messageContent = `LANGUAGE: ${lang}\n\nlanguage:\n${naturalLanguageQuery}`;
   const userMessage = { role: "user", content: messageContent };
+
+  function extractJsonFromMarkdown(text: string): string {
+    return text.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+  }
 
   console.log("[getJsonFromAgent] Début de la fonction");
   console.log("[getJsonFromAgent] Message utilisateur :", messageContent);
 
   try {
-    // Premier appel à Mistral (agent)
-    console.log("[getJsonFromAgent] Envoi premier appel à Mistral avec tools");
+    console.log("[getJsonFromAgent] 🔁 Envoi de la 1re requête à Mistral");
     const firstResponse = await axios.post(
       "https://api.mistral.ai/v1/agents/completions",
       {
@@ -94,28 +99,28 @@ export async function getJsonFromAgent(
       }
     );
 
-    console.log(
-      "[getJsonFromAgent] Réponse Mistral reçue :",
-      JSON.stringify(firstResponse.data, null, 2)
-    );
-
     const firstChoice = firstResponse.data.choices?.[0];
     const toolCalls = firstChoice?.message?.tool_calls;
 
+    console.log(
+      "[getJsonFromAgent] 🧠 Reçu :",
+      JSON.stringify(firstChoice, null, 2)
+    );
+
     if (toolCalls && toolCalls.length > 0) {
       console.log(
-        `[getJsonFromAgent] L'agent demande un appel outil (${toolCalls.length} outil(s))`
+        `[getJsonFromAgent] 🛠️ ${toolCalls.length} outil(s) détecté(s)`
       );
 
       for (const toolCall of toolCalls) {
         console.log(
-          "[getJsonFromAgent] Traitement du toolCall :",
+          "[getJsonFromAgent] ➕ Traitement toolCall :",
           toolCall.function.name
         );
 
         if (toolCall.function.name === "uriLookup") {
           const args = JSON.parse(toolCall.function.arguments);
-          console.log("[getJsonFromAgent] Arguments pour uriLookup :", args);
+          console.log("[getJsonFromAgent] 📤 uriLookup args :", args);
 
           const uriRes = await axios.get(
             `http://localhost:3000/${projectKey}/api/v1/urilookup`,
@@ -123,18 +128,16 @@ export async function getJsonFromAgent(
           );
 
           console.log(
-            "[getJsonFromAgent] Résultat de l'API urilookup :",
+            "[getJsonFromAgent] ✅ Résultat uriLookup :",
             JSON.stringify(uriRes.data, null, 2)
           );
 
-          // Construire le message assistant avec tool_call
           const assistantMessage = {
             role: "assistant",
-            content: "", // obligatoire même si vide
+            content: "",
             tool_calls: [toolCall],
           };
 
-          // Message tool avec la réponse
           const toolResponse = {
             role: "tool",
             tool_call_id: toolCall.id,
@@ -142,9 +145,8 @@ export async function getJsonFromAgent(
             content: JSON.stringify(uriRes.data),
           };
 
-          // Deuxième appel à Mistral avec l'historique complet
           console.log(
-            "[getJsonFromAgent] Envoi deuxième appel à Mistral avec réponse outil"
+            "[getJsonFromAgent] 🔁 Envoi de la 2e requête à Mistral après uriLookup"
           );
 
           const secondResponse = await axios.post(
@@ -163,80 +165,50 @@ export async function getJsonFromAgent(
           );
 
           const raw = secondResponse.data.choices?.[0]?.message?.content;
-          console.log(
-            "[getJsonFromAgent] Réponse Mistral après appel outil :",
-            raw
-          );
+          console.log("[getJsonFromAgent] 📥 Réponse brute 2e appel :", raw);
 
           if (!raw || raw.trim() === "") {
-            console.warn(
-              "[getJsonFromAgent] Mistral a renvoyé une réponse vide après appel outil"
-            );
-            return {};
+            throw new Error("Réponse vide après appel outil");
           }
 
-          try {
-            const parsed = JSON.parse(raw);
-            console.log(
-              "[getJsonFromAgent] JSON parsé avec succès après outil :",
-              parsed
-            );
-            return parsed;
-          } catch (e) {
-            console.error(
-              "[getJsonFromAgent] ❌ Réponse brute non JSON après outil :",
-              raw
-            );
-            throw new Error(
-              "L'agent a répondu par un texte brut après appel outil. Un JSON était attendu."
-            );
-          }
+          const rawClean = extractJsonFromMarkdown(raw);
+          const parsed = JSON.parse(rawClean);
+          const validated = SparnaturalQuery.parse(parsed);
+          console.log(
+            "[getJsonFromAgent] ✅ JSON validé après outil :",
+            validated
+          );
+          return validated;
         }
       }
 
-      console.log("[getJsonFromAgent] Aucun outil reconnu dans toolCalls");
-      return {};
+      console.warn("[getJsonFromAgent] ❌ Aucun outil reconnu dans toolCalls");
+      throw new Error("Aucun outil reconnu dans toolCalls");
     } else {
-      // Pas d'appel outil, réponse directe
+      console.log("[getJsonFromAgent] ⚠️ Pas de toolCalls – réponse directe");
+
       const raw = firstChoice?.message?.content;
-      console.log("[getJsonFromAgent] Réponse Mistral sans appel outil :", raw);
+      console.log("[getJsonFromAgent] 📥 Réponse brute sans outil :", raw);
 
       if (!raw || raw.trim() === "") {
-        console.warn(
-          "[getJsonFromAgent] Mistral a renvoyé une réponse vide sans outil"
-        );
-        return {};
+        throw new Error("Réponse vide sans outil");
       }
 
-      try {
-        const parsed = JSON.parse(raw);
-        console.log(
-          "[getJsonFromAgent] JSON parsé avec succès sans outil :",
-          parsed
-        );
-        return parsed;
-      } catch (e) {
-        console.error(
-          "[getJsonFromAgent] Réponse brute non JSON sans outil :",
-          raw
-        );
-        throw new Error(
-          "L'agent a répondu par un texte brut. Un JSON était attendu."
-        );
-      }
+      const rawClean = extractJsonFromMarkdown(raw);
+      const parsed = JSON.parse(rawClean);
+      const validated = SparnaturalQuery.parse(parsed);
+      console.log("[getJsonFromAgent] ✅ JSON validé sans outil :", validated);
+      return validated;
     }
   } catch (error: any) {
     if (error?.response?.data) {
       console.error(
-        "[getJsonFromAgent] Erreur Mistral complète :",
+        "[getJsonFromAgent] ❌ Erreur axios :",
         JSON.stringify(error.response.data, null, 2)
       );
     } else {
-      console.error(
-        "[getJsonFromAgent] Erreur Mistral :",
-        error.message || error
-      );
+      console.error("[getJsonFromAgent] ❌ Erreur :", error.message || error);
     }
-    return {};
+    throw new Error("Erreur lors de la génération ou validation du JSON");
   }
 }
