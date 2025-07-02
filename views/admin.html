@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sparnatural Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="max-w-4xl mx-auto p-6 space-y-6">
+      <h1 class="text-3xl font-bold text-gray-800">
+        🔧 Interface d'administration Sparnatural
+      </h1>
+
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <label for="projectSelect" class="block font-semibold mb-2"
+          >Projet sélectionné :</label
+        >
+        <select
+          id="projectSelect"
+          onchange="updateProject()"
+          class="w-full p-2 border rounded-md"
+        ></select>
+        <div id="warning" class="text-red-600 text-sm font-medium mt-2"></div>
+      </div>
+
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Langage naturel → JSON</h2>
+        <textarea
+          id="naturalPrompt"
+          placeholder="Ex : Donne-moi tous les auteurs français"
+          class="w-full p-2 border rounded-md mb-2"
+        ></textarea>
+        <input
+          type="text"
+          id="lang1"
+          value="fr"
+          placeholder="Langue (ex: fr)"
+          class="w-full p-2 border rounded-md mb-2"
+        />
+        <button
+          id="btnText2Query"
+          onclick="sendText2Query()"
+          class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+        >
+          Envoyer
+        </button>
+
+        <pre
+          id="naturalResult"
+          class="bg-blue-50 p-4 mt-4 rounded text-sm whitespace-pre-wrap"
+        ></pre>
+        <button
+          onclick="copyToClipboard('naturalResult')"
+          class="mt-2 bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700"
+        >
+          Copier
+        </button>
+      </div>
+
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">JSON → Résumé</h2>
+        <textarea
+          id="jsonQuery"
+          placeholder="Collez ici une requête JSON..."
+          class="w-full p-2 border rounded-md mb-2"
+        ></textarea>
+        <input
+          type="text"
+          id="lang2"
+          value="fr"
+          placeholder="Langue (ex: fr)"
+          class="w-full p-2 border rounded-md mb-2"
+        />
+        <button
+          id="btnQuery2Text"
+          onclick="sendQuery2Text()"
+          class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+        >
+          Envoyer
+        </button>
+
+        <pre
+          id="jsonResult"
+          class="bg-blue-50 p-4 mt-4 rounded text-sm whitespace-pre-wrap"
+        ></pre>
+        <button
+          onclick="copyToClipboard('jsonResult')"
+          class="mt-2 bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700"
+        >
+          Copier
+        </button>
+      </div>
+    </div>
+
+    <!-- Popup de confirmation -->
+    <div
+      id="copyPopup"
+      class="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white py-2 px-4 rounded shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"
+    >
+      Copié dans le presse-papier !
+    </div>
+
+    <script>
+      let config = {};
+      let selectedProject = "";
+
+      async function loadProjectList() {
+        try {
+          const res = await fetch("/config");
+          const json = await res.json();
+          config = json.projects;
+
+          const select = document.getElementById("projectSelect");
+          select.innerHTML = "";
+
+          Object.keys(config).forEach((projectKey) => {
+            const opt = document.createElement("option");
+            opt.value = projectKey;
+            opt.text = projectKey;
+            select.appendChild(opt);
+          });
+
+          selectedProject = select.value;
+          updateProject();
+        } catch (err) {
+          console.error("Erreur chargement config.yaml :", err);
+          document.getElementById("warning").textContent =
+            "❌ Erreur de chargement de la configuration.";
+        }
+      }
+
+      function updateProject() {
+        selectedProject = document.getElementById("projectSelect").value;
+        const agents = config[selectedProject]["endpoints-agents"];
+
+        const disabled =
+          !agents ||
+          !agents.MISTRAL_AGENT_ID_query_2_text ||
+          !agents.MISTRAL_AGENT_ID_text_2_query ||
+          agents.MISTRAL_AGENT_ID_query_2_text === "coming-soon" ||
+          agents.MISTRAL_AGENT_ID_text_2_query === "coming-soon";
+
+        document.getElementById("btnText2Query").disabled = disabled;
+        document.getElementById("btnQuery2Text").disabled = disabled;
+
+        const warning = document.getElementById("warning");
+        if (disabled) {
+          warning.textContent =
+            "⚠️ Les agents pour ce projet ne sont pas encore configurés.";
+        } else {
+          warning.textContent = "";
+        }
+
+        document.getElementById("naturalResult").textContent = "";
+        document.getElementById("jsonResult").textContent = "";
+      }
+
+      async function sendText2Query() {
+        const prompt = document.getElementById("naturalPrompt").value.trim();
+        const lang = document.getElementById("lang1").value;
+        if (!prompt) return;
+
+        try {
+          const res = await fetch(
+            `/${selectedProject}/api/v1/text2query?prompt=${encodeURIComponent(
+              prompt
+            )}&lang=${lang}`
+          );
+          const json = await res.json();
+          document.getElementById("naturalResult").textContent = JSON.stringify(
+            json,
+            null,
+            2
+          );
+        } catch (err) {
+          document.getElementById("naturalResult").textContent =
+            "❌ Erreur lors de l'appel à l'API.";
+        }
+      }
+
+      async function sendQuery2Text() {
+        const query = document.getElementById("jsonQuery").value.trim();
+        const lang = document.getElementById("lang2").value;
+        if (!query) return;
+
+        try {
+          const res = await fetch(
+            `/${selectedProject}/api/v1/query2text?query=${encodeURIComponent(
+              query
+            )}&lang=${lang}`
+          );
+          const json = await res.json();
+          document.getElementById("jsonResult").textContent =
+            json.text || JSON.stringify(json, null, 2);
+        } catch (err) {
+          document.getElementById("jsonResult").textContent =
+            "❌ Erreur lors de l'appel à l'API.";
+        }
+      }
+
+      function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        if (!text) return;
+
+        navigator.clipboard.writeText(text).then(() => {
+          const popup = document.getElementById("copyPopup");
+          popup.classList.remove("opacity-0", "pointer-events-none");
+          // cacher après 2s
+          setTimeout(() => {
+            popup.classList.add("opacity-0", "pointer-events-none");
+          }, 2000);
+        });
+      }
+
+      loadProjectList();
+    </script>
+  </body>
+</html>

@@ -7,6 +7,10 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 import path from "path";
 import dotenv from "dotenv";
+import adminRoute from "./routes/admin";
+
+import configRoute from "./routes/config";
+
 dotenv.config();
 
 const app = express();
@@ -25,8 +29,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Servir les fichiers statiques depuis le dossier public
-app.use(express.static(path.join(__dirname, "../public")));
+// config.yaml
+app.use("/config", configRoute);
+
+// Route d'administration
+app.use("/admin", adminRoute);
 
 // API : Résumé texte d'une requête Sparnatural
 app.use("/:projectKey/api/v1/query2text", summarizeRoute);

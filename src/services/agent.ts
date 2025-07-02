@@ -13,9 +13,13 @@ const config = yaml.load(
 
 // Set Mistral agent IDs from config
 const agentIdQueryToText =
-  config["projects"]["endpoints-agents"]["MISTRAL_AGENT_ID_query_2_text"];
+  config["projects"]["dbpedia-en"]["endpoints-agents"][
+    "MISTRAL_AGENT_ID_query_2_text"
+  ];
 const agentIdTextToQuery =
-  config["projects"]["endpoints-agents"]["MISTRAL_AGENT_ID_text_2_query"];
+  config["projects"]["dbpedia-en"]["endpoints-agents"][
+    "MISTRAL_AGENT_ID_text_2_query"
+  ];
 
 /**
  * Génère un résumé textuel à partir d'une requête Sparnatural JSON.
