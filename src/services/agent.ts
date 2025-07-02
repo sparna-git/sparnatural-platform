@@ -1,6 +1,21 @@
 import axios from "axios";
 import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
+import path from "path";
+
+const fs = require("fs");
+const yaml = require("js-yaml");
+
+// import config.yaml to get the Mistral agent IDs
+const config = yaml.load(
+  fs.readFileSync(path.join(__dirname, "../../config/config.yaml"), "utf8")
+);
+
+// Set Mistral agent IDs from config
+const agentIdQueryToText =
+  config["projects"]["endpoints-agents"]["MISTRAL_AGENT_ID_query_2_text"];
+const agentIdTextToQuery =
+  config["projects"]["endpoints-agents"]["MISTRAL_AGENT_ID_text_2_query"];
 
 /**
  * Génère un résumé textuel à partir d'une requête Sparnatural JSON.
@@ -22,7 +37,7 @@ export async function getSummaryFromAgent(
     const response = await axios.post(
       "https://api.mistral.ai/v1/agents/completions",
       {
-        agent_id: process.env.MISTRAL_AGENT_ID_query_2_text,
+        agent_id: agentIdQueryToText,
         messages: [{ role: "user", content: messageContent }],
         response_format: { type: "text" },
       },
@@ -85,7 +100,7 @@ export async function getJsonFromAgent(
     const firstResponse = await axios.post(
       "https://api.mistral.ai/v1/agents/completions",
       {
-        agent_id: process.env.MISTRAL_AGENT_ID_text_2_query,
+        agent_id: agentIdTextToQuery,
         messages: [userMessage],
         tools,
         tool_choice: "auto",
@@ -152,7 +167,7 @@ export async function getJsonFromAgent(
           const secondResponse = await axios.post(
             "https://api.mistral.ai/v1/agents/completions",
             {
-              agent_id: process.env.MISTRAL_AGENT_ID_text_2_query,
+              agent_id: agentIdTextToQuery,
               messages: [userMessage, assistantMessage, toolResponse],
               response_format: { type: "text" },
             },
