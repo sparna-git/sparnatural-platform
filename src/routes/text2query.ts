@@ -18,11 +18,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   }
 
   try {
-    const jsonQuery = await getJsonFromAgent(
-      prompt as string,
-      lang as string,
-      projectKey
-    );
+    const jsonQuery = await getJsonFromAgent(prompt as string, projectKey);
     const parsed =
       typeof jsonQuery === "string" ? JSON.parse(jsonQuery) : jsonQuery;
 

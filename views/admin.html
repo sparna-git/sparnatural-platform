@@ -4,16 +4,30 @@
     <meta charset="UTF-8" />
     <title>Sparnatural Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body class="bg-gray-100 font-sans">
+    <header
+      class="bg-green-600 text-white p-4 flex justify-between items-center"
+    >
+      <h1 class="text-xl font-bold">Sparnatural Platform</h1>
+      <nav class="space-x-4">
+        <a href="/admin" class="hover:underline"
+          ><i class="fas fa-home"></i> Accueil</a
+        >
+        <a href="/docs" class="hover:underline" target="_blank"
+          ><i class="fas fa-file-code"></i> Swagger</a
+        >
+      </nav>
+    </header>
     <div class="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 class="text-3xl font-bold text-gray-800">
-        🔧 Interface d'administration Sparnatural
-      </h1>
-
       <div class="bg-white shadow-md rounded-lg p-6">
         <label for="projectSelect" class="block font-semibold mb-2"
-          >Projet sélectionné :</label
+          >Select a Project :</label
         >
         <select
           id="projectSelect"
@@ -23,45 +37,42 @@
         <div id="warning" class="text-red-600 text-sm font-medium mt-2"></div>
       </div>
 
-      <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Langage naturel → JSON</h2>
+      <!-- Bloc Langage naturel -> JSON -->
+      <div class="bg-white shadow-md rounded-lg p-6 relative">
+        <h2 class="text-xl font-semibold mb-4">Natural language to JSON</h2>
         <textarea
           id="naturalPrompt"
-          placeholder="Ex : Donne-moi tous les auteurs français"
           class="w-full p-2 border rounded-md mb-2"
+          placeholder="Enter your natural language query here"
         ></textarea>
-        <input
-          type="text"
-          id="lang1"
-          value="fr"
-          placeholder="Langue (ex: fr)"
-          class="w-full p-2 border rounded-md mb-2"
-        />
         <button
           id="btnText2Query"
           onclick="sendText2Query()"
-          class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+          class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
         >
-          Envoyer
+          Send
         </button>
 
-        <pre
-          id="naturalResult"
-          class="bg-blue-50 p-4 mt-4 rounded text-sm whitespace-pre-wrap"
-        ></pre>
-        <button
-          onclick="copyToClipboard('naturalResult')"
-          class="mt-2 bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700"
-        >
-          Copier
-        </button>
+        <div class="relative mt-4">
+          <pre
+            id="naturalResult"
+            class="bg-green-50 p-4 rounded text-sm whitespace-pre-wrap"
+          ></pre>
+          <button
+            onclick="copyToClipboard('naturalResult')"
+            class="absolute top-[2px] right-[5px] text-gray-600 hover:text-black text-l"
+          >
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
       </div>
 
-      <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">JSON → Résumé</h2>
+      <!-- Bloc JSON -> Résumé -->
+      <div class="bg-white shadow-md rounded-lg p-6 relative">
+        <h2 class="text-xl font-semibold mb-4">JSON to Summary</h2>
         <textarea
           id="jsonQuery"
-          placeholder="Collez ici une requête JSON..."
+          placeholder="Paste JSON query here"
           class="w-full p-2 border rounded-md mb-2"
         ></textarea>
         <input
@@ -74,21 +85,23 @@
         <button
           id="btnQuery2Text"
           onclick="sendQuery2Text()"
-          class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+          class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
         >
-          Envoyer
+          Send
         </button>
 
-        <pre
-          id="jsonResult"
-          class="bg-blue-50 p-4 mt-4 rounded text-sm whitespace-pre-wrap"
-        ></pre>
-        <button
-          onclick="copyToClipboard('jsonResult')"
-          class="mt-2 bg-green-600 text-white py-1 px-3 rounded hover:bg-green-700"
-        >
-          Copier
-        </button>
+        <div class="relative mt-4">
+          <pre
+            id="jsonResult"
+            class="bg-green-50 p-4 rounded text-sm whitespace-pre-wrap"
+          ></pre>
+          <button
+            onclick="copyToClipboard('jsonResult')"
+            class="absolute top-[2px] right-[5px] text-gray-600 hover:text-black text-l"
+          >
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -97,7 +110,7 @@
       id="copyPopup"
       class="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white py-2 px-4 rounded shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"
     >
-      Copié dans le presse-papier !
+      Copy to clipboard!
     </div>
 
     <script>
@@ -157,14 +170,13 @@
 
       async function sendText2Query() {
         const prompt = document.getElementById("naturalPrompt").value.trim();
-        const lang = document.getElementById("lang1").value;
         if (!prompt) return;
 
         try {
           const res = await fetch(
             `/${selectedProject}/api/v1/text2query?prompt=${encodeURIComponent(
               prompt
-            )}&lang=${lang}`
+            )}`
           );
           const json = await res.json();
           document.getElementById("naturalResult").textContent = JSON.stringify(
@@ -205,7 +217,6 @@
         navigator.clipboard.writeText(text).then(() => {
           const popup = document.getElementById("copyPopup");
           popup.classList.remove("opacity-0", "pointer-events-none");
-          // cacher après 2s
           setTimeout(() => {
             popup.classList.add("opacity-0", "pointer-events-none");
           }, 2000);

@@ -86,10 +86,9 @@ const tools = [
 
 export async function getJsonFromAgent(
   naturalLanguageQuery: string,
-  lang: string,
   projectKey: string
 ): Promise<z.infer<typeof SparnaturalQuery>> {
-  const messageContent = `LANGUAGE: ${lang}\n\nlanguage:\n${naturalLanguageQuery}`;
+  const messageContent = `language:\n${naturalLanguageQuery}`;
   const userMessage = { role: "user", content: messageContent };
 
   function extractJsonFromMarkdown(text: string): string {
