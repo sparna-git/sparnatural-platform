@@ -31,6 +31,12 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
+// config.yaml
+app.use("/config", configRoute);
+
+// Route d'administration
+//app.use("/admin", adminRoute);
+
 // API : Résumé texte d'une requête Sparnatural
 app.use("/:projectKey/api/v1/query2text", summarizeRoute);
 
@@ -41,7 +47,7 @@ app.use("/:projectKey/api/v1/text2query", generateRoute); // 🚀 nouvelle route
 app.use("/:projectKey/api/v1/urilookup", uriLookupRoute); // Nouvelle route pour URI lookup
 
 // Documentation Swagger
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Lancer le serveur
 app.listen(PORT, () => {
