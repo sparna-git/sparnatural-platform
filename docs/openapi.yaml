@@ -1,16 +1,28 @@
 openapi: 3.1.0
 info:
-  title: Sparnatural Query2Text API
+  title: Sparnatural Query2Text, Text2Query & URI Lookup API
   version: 1.0.0
-  description: >
-    Cette API permet de convertir une requête JSON structurée (au format Sparnatural) 
-    en une phrase en langage naturel compréhensible par un utilisateur humain.
-    Elle peut être utilisée pour générer des résumés lisibles des requêtes sémantiques dans une interface utilisateur.
+  description: |
+    Cette API fournit trois fonctionnalités principales pour interagir avec Sparnatural AI:
+
+    - **Query2Text** : Convertit une requête JSON structurée en une phrase lisible en langage naturel.
+    - **Text2Query** : Génère une requête JSON (au format Sparnatural) à partir d’une question ou d’une demande en langage naturel.
+    - **URI Lookup** : Rechercher des URI RDF pertinentes à partir d’un label (utile pour la réconciliation ou l’autocomplétion).
+
+    Chaque route peut être personnalisée par projet (`projectKey`) et supporte plusieurs langues.
+  tags:
+    - name: Query2Text
+      description: Génération de texte en langage naturel depuis une requête JSON
+    - name: Text2Query
+      description: Génération d'une requête JSON à partir d'une phrase
+    - name: URI Lookup
+      description: Recherche d'URI RDF pour un label donné
 
 paths:
   /{projectKey}/api/v1/query2text:
     get:
       summary: Convertit une requête JSON en texte en langage naturel
+      tags: [Query2Text]
       description: >
         Fournit une version textuelle (langage naturel) d'une requête structurée Sparnatural. 
         Cette conversion peut être adaptée selon le projet (`projectKey`) et la langue (`lang`).
@@ -37,7 +49,7 @@ paths:
             example: fr
       responses:
         "200":
-          description: Summary response
+          description: Résumé généré
           content:
             application/json:
               schema:
@@ -50,7 +62,6 @@ paths:
                   summary: Exemple de résumé
                   value:
                     text: "Afficher toutes les œuvres d’art exposées dans un musée."
-
         "400":
           description: Requête invalide
           content:
@@ -61,7 +72,117 @@ paths:
                   error:
                     type: string
                     example: "Invalid query parameter"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
 
+  /{projectKey}/api/v1/text2query:
+    get:
+      summary: Convertit une demande en langage naturel en requête JSON (Sparnatural)
+      tags: [Text2Query]
+      description: >
+        Fournit une requête structurée au format Sparnatural à partir d’une phrase écrite en langage naturel.
+      parameters:
+        - in: path
+          name: projectKey
+          required: true
+          schema:
+            type: string
+            example: dbpedia-en
+        - in: query
+          name: text
+          required: true
+          description: Demande ou requête en langage naturel.
+          schema:
+            type: string
+            example: "Donne-moi toutes les personnes nées en France"
+      responses:
+        "200":
+          description: Requête JSON générée
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                success:
+                  summary: Exemple de requête générée
+                  value:
+                    query: object
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid query parameter"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+  /{projectKey}/api/v1/urilookup:
+    get:
+      summary: Recherche d'URI à partir d'un terme
+      tags: [URI Lookup]
+      description: >
+        Permet de rechercher des URI en fonction d'un terme donné. 
+        Utile pour trouver des ressources liées à un concept ou une entité.
+      parameters:
+        - in: path
+          name: projectKey
+          required: true
+          schema:
+            type: string
+            example: dbpedia-en
+        - in: query
+          name: label
+          required: true
+          description: Terme à rechercher pour obtenir des URI associées.
+          schema:
+            type: string
+            example: "France"
+      responses:
+        "200":
+          description: Liste des URI trouvées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uris:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                success:
+                  summary: Exemple de réponse avec URI
+                  value:
+                    uris: ["http://dbpedia.org/resource/FRANCE"]
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid term parameter"
         "500":
           description: Erreur interne
           content:
