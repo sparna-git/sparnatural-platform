@@ -11,14 +11,14 @@ const config = yaml.load(fs.readFileSync(configPath, "utf8")) as any;
 
 router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
-  const { prompt, lang } = req.query;
+  const { text } = req.query;
 
   if (!config.projects[projectKey]) {
     return res.status(404).json({ error: "Unknown project key" });
   }
 
   try {
-    const jsonQuery = await getJsonFromAgent(prompt as string, projectKey);
+    const jsonQuery = await getJsonFromAgent(text as string, projectKey);
     const parsed =
       typeof jsonQuery === "string" ? JSON.parse(jsonQuery) : jsonQuery;
 
