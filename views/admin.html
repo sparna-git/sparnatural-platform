@@ -9,6 +9,40 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
     />
+    <style>
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.3);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+      }
+
+      .recording #micIcon {
+        animation: pulse 1s infinite;
+        color: #10b981; /* Tailwind green-500 */
+      }
+
+      .loading #micIcon {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body class="bg-gray-100 font-sans">
     <header
@@ -40,15 +74,28 @@
       <!-- Bloc Langage naturel -> JSON -->
       <div class="bg-white shadow-md rounded-lg p-6 relative">
         <h2 class="text-xl font-semibold mb-4">Natural language to JSON</h2>
-        <textarea
-          id="naturalPrompt"
-          class="w-full p-2 border rounded-md mb-2"
-          placeholder="Enter your natural language query here"
-        ></textarea>
+
+        <!-- Container relatif pour textarea + bouton -->
+        <div class="relative">
+          <textarea
+            id="naturalPrompt"
+            class="w-full p-2 border rounded-md mb-2 pr-12"
+            placeholder="Enter your natural language query here or use voice input"
+          ></textarea>
+
+          <button
+            id="btnVoice"
+            onclick="startVoiceToQuery()"
+            class="absolute top-2 right-0 text-black px-3 py-1 rounded-md hover:text-gray-600 flex items-center space-x-1"
+          >
+            <i id="micIcon" class="fas fa-microphone"></i>
+          </button>
+        </div>
+
         <button
           id="btnText2Query"
           onclick="sendText2Query()"
-          class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
+          class="w-full bg-green-600 text-white py-2 mt-2 rounded-md hover:bg-green-700"
         >
           Send
         </button>
@@ -155,6 +202,7 @@
 
         document.getElementById("btnText2Query").disabled = disabled;
         document.getElementById("btnQuery2Text").disabled = disabled;
+        document.getElementById("btnVoice").disabled = disabled; // ✅ <-- ligne ajoutée
 
         const warning = document.getElementById("warning");
         if (disabled) {
@@ -224,6 +272,88 @@
       }
 
       loadProjectList();
+    </script>
+    <script src="/voice.js"></script>
+    <script>
+      let recognition = null;
+      let isRecording = false;
+
+      async function startVoiceToQuery() {
+        const btn = document.getElementById("btnVoice");
+        const icon = document.getElementById("micIcon");
+        const resultBox = document.getElementById("naturalResult");
+
+        if (!("webkitSpeechRecognition" in window)) {
+          alert(
+            "🚫 La reconnaissance vocale n'est pas supportée sur ce navigateur."
+          );
+          return;
+        }
+
+        // Si déjà en cours d'enregistrement, stoppe
+        if (isRecording) {
+          recognition.stop();
+          return;
+        }
+
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = "fr-FR";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        isRecording = true;
+        btn.classList.add("recording");
+
+        recognition.start();
+
+        recognition.onresult = async (event) => {
+          const transcript = event.results[0][0].transcript;
+          document.getElementById("naturalPrompt").value = transcript;
+
+          btn.classList.remove("recording");
+          btn.classList.add("loading");
+          icon.className = "fas fa-spinner";
+          isRecording = false;
+
+          try {
+            const lang = document.getElementById("lang2").value;
+            const url = `https://services.sparnatural.eu/dbpedia-en/api/v1/text2query?prompt=${encodeURIComponent(
+              transcript
+            )}&lang=${encodeURIComponent(lang)}`;
+
+            const res = await fetch(url);
+            const json = await res.json();
+
+            resultBox.textContent = JSON.stringify(json, null, 2);
+
+            const sparnaturalEl = document.querySelector("spar-natural");
+            if (sparnaturalEl?.loadQuery) sparnaturalEl.loadQuery(json);
+          } catch (err) {
+            resultBox.textContent = "❌ Erreur lors de l'appel à l'API.";
+            console.error(err);
+          } finally {
+            resetVoiceButtonUI();
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Erreur de reconnaissance vocale :", event);
+          alert("Erreur pendant la reconnaissance vocale.");
+          resetVoiceButtonUI();
+        };
+
+        recognition.onend = () => {
+          if (isRecording) {
+            resetVoiceButtonUI();
+          }
+        };
+
+        function resetVoiceButtonUI() {
+          isRecording = false;
+          btn.classList.remove("recording", "loading");
+          icon.className = "fas fa-microphone";
+        }
+      }
     </script>
   </body>
 </html>

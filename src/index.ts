@@ -29,11 +29,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// config.yaml
-app.use("/config", configRoute);
-
-// Route d'administration
-app.use("/admin", adminRoute);
+app.use(express.static("public"));
 
 // API : Résumé texte d'une requête Sparnatural
 app.use("/:projectKey/api/v1/query2text", summarizeRoute);
