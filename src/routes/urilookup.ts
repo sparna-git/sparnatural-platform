@@ -5,33 +5,31 @@ const router = express.Router();
 
 const SPARQL_ENDPOINT = "https://dbpedia.org/sparql";
 
-// Cache en mémoire : clé = label en minuscule, valeur = résultat
+// Cache en mémoire : clé = name en minuscule, valeur = résultat
 const uriCache: { [key: string]: { results: { uri: string }[] } } = {};
 
 router.get("/", async (req, res) => {
-  let { label } = req.query;
+  let { name } = req.query;
 
-  if (!label || typeof label !== "string") {
-    return res
-      .status(400)
-      .json({ error: "Missing or invalid label parameter" });
+  if (!name || typeof name !== "string") {
+    return res.status(400).json({ error: "Missing or invalid name parameter" });
   }
 
-  label = label.trim();
-  const labelKey = label.toLowerCase();
+  name = name.trim();
+  const nameKey = name.toLowerCase();
 
   // Vérifie si la requête est déjà dans le cache
-  if (uriCache[labelKey]) {
-    console.log(`Cache hit pour label "${label}"`);
-    return res.json(uriCache[labelKey]);
+  if (uriCache[nameKey]) {
+    console.log(`Cache hit pour name "${name}"`);
+    return res.json(uriCache[nameKey]);
   }
 
   console.log(
-    `Cache miss pour label "${label}", exécution de la requête SPARQL...`
+    `Cache miss pour name "${name}", exécution de la requête SPARQL...`
   );
 
   try {
-    const escapedLabel = label.replace(/"/g, '\\"');
+    const escapedname = name.replace(/"/g, '\\"');
 
     const sparqlQuery = `
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -41,8 +39,8 @@ router.get("/", async (req, res) => {
       PREFIX dc: <http://purl.org/dc/elements/1.1/>
       PREFIX schema: <http://schema.org/>
       SELECT ?x WHERE {
-        ?x rdfs:label|skos:prefLabel|skos:altLabel|skos:notation|foaf:name|dct:title ?literal .
-        FILTER(LCASE(STR(?literal)) = LCASE("${escapedLabel}"))
+        ?x rdfs:name|skos:prefname|skos:altname|skos:notation|foaf:name|dct:title ?literal .
+        FILTER(LCASE(STR(?literal)) = LCASE("${escapedname}"))
       }
       LIMIT 10
     `;
@@ -60,7 +58,7 @@ router.get("/", async (req, res) => {
     );
 
     // Stocke dans le cache
-    uriCache[labelKey] = { results };
+    uriCache[nameKey] = { results };
 
     return res.json({ results });
   } catch (error) {

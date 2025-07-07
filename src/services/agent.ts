@@ -73,12 +73,12 @@ const tools = [
       parameters: {
         type: "object",
         properties: {
-          label: {
+          name: {
             type: "string",
             description: "The label to look up (e.g., 'France')",
           },
         },
-        required: ["label"],
+        required: ["name"],
       },
     },
   },
