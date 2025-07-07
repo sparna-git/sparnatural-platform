@@ -150,28 +150,52 @@ export async function getJsonFromAgent(
             JSON.stringify(uriRes.data, null, 2)
           );
 
+          const toolResponses = [];
+
+          for (const toolCall of toolCalls) {
+            console.log(
+              "[getJsonFromAgent] ➕ Traitement toolCall :",
+              toolCall.function.name
+            );
+
+            if (toolCall.function.name === "uriLookup") {
+              const args = JSON.parse(toolCall.function.arguments);
+              console.log("[getJsonFromAgent] 📤 uriLookup args :", args);
+
+              const uriRes = await axios.get(
+                `http://localhost:3000/${projectKey}/api/v1/urilookup`,
+                { params: args }
+              );
+
+              console.log(
+                "[getJsonFromAgent] ✅ Résultat uriLookup :",
+                JSON.stringify(uriRes.data, null, 2)
+              );
+
+              toolResponses.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                name: "uriLookup",
+                content: JSON.stringify(uriRes.data),
+              });
+            }
+          }
+
           const assistantMessage = {
             role: "assistant",
-            content: "",
-            tool_calls: [toolCall],
-          };
-
-          const toolResponse = {
-            role: "tool",
-            tool_call_id: toolCall.id,
-            name: "uriLookup",
-            content: JSON.stringify(uriRes.data),
+            content: "Résultats des tool calls résolus.",
+            tool_calls: toolCalls,
           };
 
           console.log(
-            "[getJsonFromAgent] 🔁 Envoi de la 2e requête à Mistral après uriLookup"
+            "[getJsonFromAgent] 🔁 Envoi de la 2e requête à Mistral après tous les uriLookup"
           );
 
           const secondResponse = await axios.post(
             "https://api.mistral.ai/v1/agents/completions",
             {
               agent_id: agentIdTextToQuery,
-              messages: [userMessage, assistantMessage, toolResponse],
+              messages: [userMessage, assistantMessage, ...toolResponses],
               response_format: { type: "text" },
             },
             {
@@ -214,6 +238,7 @@ export async function getJsonFromAgent(
 
       const rawClean = extractJsonFromMarkdown(raw);
       const parsed = JSON.parse(rawClean);
+      console.log("[getJsonFromAgent] 📦 JSON extrait :", parsed);
       const validated = SparnaturalQuery.parse(parsed);
       console.log("[getJsonFromAgent] ✅ JSON validé sans outil :", validated);
       return validated;
