@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
         ?x rdfs:name|skos:prefname|skos:altname|skos:notation|foaf:name|dct:title ?literal .
         FILTER(LCASE(STR(?literal)) = LCASE("${escapedname}"))
       }
-      LIMIT 10
+      LIMIT 15
     `;
 
     const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(
