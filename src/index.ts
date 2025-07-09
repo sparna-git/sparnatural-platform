@@ -47,7 +47,9 @@ app.use("/api/v1/:projectKey/text2query", generateRoute); // 🚀 nouvelle route
 app.use("/api/v1/:projectKey/urilookup", uriLookupRoute); // Nouvelle route pour URI lookup
 
 // Documentation Swagger
-app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.use("/", adminRoute);
 
 // Lancer le serveur
 app.listen(PORT, () => {
