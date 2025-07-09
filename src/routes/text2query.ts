@@ -2,6 +2,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { getJsonFromAgent } from "../services/agent";
+import { BadRequestError } from "../errors/BadRequestError";
 const yaml = require("js-yaml");
 
 const router = express.Router({ mergeParams: true });
@@ -25,6 +26,11 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     return res.json(parsed);
   } catch (error: any) {
     console.error("Erreur dans text2query:", error?.message);
+
+    if (error instanceof BadRequestError) {
+      return res.status(400).json({ error: error.message });
+    }
+
     return res
       .status(500)
       .json({ error: "Erreur de génération de la requête JSON" });

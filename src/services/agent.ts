@@ -2,6 +2,7 @@ import axios from "axios";
 import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
 import path from "path";
+import { BadRequestError } from "../errors/BadRequestError"; // crée ce fichier si pas encore
 
 const fs = require("fs");
 const yaml = require("js-yaml");
@@ -215,7 +216,26 @@ export async function getJsonFromAgent(
 
           const rawClean = extractJsonFromMarkdown(raw);
           const parsed = JSON.parse(rawClean);
+
+          if (
+            "error" in parsed &&
+            (typeof parsed.error === "string" ||
+              typeof parsed.error === "object")
+          ) {
+            console.warn(
+              "[getJsonFromAgent] ⚠️ Erreur retournée par l'agent :",
+              parsed.error
+            );
+            throw new BadRequestError(
+              typeof parsed.error === "string"
+                ? parsed.error
+                : parsed.error.message ||
+                  "Erreur de génération de la requête JSON"
+            );
+          }
+
           const validated = SparnaturalQuery.parse(parsed);
+
           console.log(
             "[getJsonFromAgent] ✅ JSON validé après outil :",
             validated
@@ -238,12 +258,33 @@ export async function getJsonFromAgent(
 
       const rawClean = extractJsonFromMarkdown(raw);
       const parsed = JSON.parse(rawClean);
+
+      if (
+        "error" in parsed &&
+        (typeof parsed.error === "string" || typeof parsed.error === "object")
+      ) {
+        console.warn(
+          "[getJsonFromAgent] ⚠️ Erreur retournée par l'agent :",
+          parsed.error
+        );
+        throw new BadRequestError(
+          typeof parsed.error === "string"
+            ? parsed.error
+            : parsed.error.message || "Erreur de génération de la requête JSON"
+        );
+      }
+
       console.log("[getJsonFromAgent] 📦 JSON extrait :", parsed);
       const validated = SparnaturalQuery.parse(parsed);
       console.log("[getJsonFromAgent] ✅ JSON validé sans outil :", validated);
       return validated;
     }
   } catch (error: any) {
+    if (error instanceof BadRequestError) {
+      // on relaie l'erreur avec le bon code
+      throw error;
+    }
+
     if (error?.response?.data) {
       console.error(
         "[getJsonFromAgent] ❌ Erreur axios :",
@@ -252,6 +293,7 @@ export async function getJsonFromAgent(
     } else {
       console.error("[getJsonFromAgent] ❌ Erreur :", error.message || error);
     }
+
     throw new Error("Erreur lors de la génération ou validation du JSON");
   }
 }

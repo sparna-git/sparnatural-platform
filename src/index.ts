@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import summarizeRoute from "./routes/query2text";
-import generateRoute from "./routes/text2query"; // 🚀 nouvelle route
+import generateRoute from "./routes/text2query";
 import uriLookupRoute from "./routes/urilookup"; // Import de la nouvelle route
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
