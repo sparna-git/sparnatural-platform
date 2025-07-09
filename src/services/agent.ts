@@ -142,7 +142,7 @@ export async function getJsonFromAgent(
           console.log("[getJsonFromAgent] 📤 uriLookup args :", args);
 
           const uriRes = await axios.get(
-            `http://localhost:3000/${projectKey}/api/v1/urilookup`,
+            `http://localhost:3000/api/v1/${projectKey}/urilookup`,
             { params: args }
           );
 
@@ -164,7 +164,7 @@ export async function getJsonFromAgent(
               console.log("[getJsonFromAgent] 📤 uriLookup args :", args);
 
               const uriRes = await axios.get(
-                `http://localhost:3000/${projectKey}/api/v1/urilookup`,
+                `http://localhost:3000/api/v1/${projectKey}/urilookup`,
                 { params: args }
               );
 

@@ -19,7 +19,7 @@ info:
       description: Recherche d'URI RDF pour un label donné
 
 paths:
-  /{projectKey}/api/v1/query2text:
+  /api/v1/{projectKey}/query2text:
     get:
       summary: Convertit une requête JSON en texte en langage naturel
       tags: [Query2Text]
@@ -83,7 +83,7 @@ paths:
                     type: string
                     example: "Internal server error"
 
-  /{projectKey}/api/v1/text2query:
+  /api/v1/{projectKey}/text2query:
     get:
       summary: Convertit une demande en langage naturel en requête JSON (Sparnatural)
       tags: [Text2Query]
@@ -135,7 +135,7 @@ paths:
                   error:
                     type: string
                     example: "Internal server error"
-  /{projectKey}/api/v1/urilookup:
+  /api/v1/{projectKey}/urilookup:
     get:
       summary: Recherche d'URI à partir d'un terme
       tags: [URI Lookup]

@@ -38,13 +38,13 @@ app.use(express.static("public"));
 //app.use("/admin", adminRoute);
 
 // API : Résumé texte d'une requête Sparnatural
-app.use("/:projectKey/api/v1/query2text", summarizeRoute);
+app.use("/api/v1/:projectKey/query2text", summarizeRoute);
 
 // API : Génération d'une requête Sparnatural depuis du texte
-app.use("/:projectKey/api/v1/text2query", generateRoute); // 🚀 nouvelle route
+app.use("/api/v1/:projectKey/text2query", generateRoute); // 🚀 nouvelle route
 
 // API : Recherche d'URI à partir d'un label
-app.use("/:projectKey/api/v1/urilookup", uriLookupRoute); // Nouvelle route pour URI lookup
+app.use("/api/v1/:projectKey/urilookup", uriLookupRoute); // Nouvelle route pour URI lookup
 
 // Documentation Swagger
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
