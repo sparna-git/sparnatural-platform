@@ -39,7 +39,7 @@ router.get("/", async (req, res) => {
       PREFIX dc: <http://purl.org/dc/elements/1.1/>
       PREFIX schema: <http://schema.org/>
       SELECT ?x WHERE {
-        ?x rdfs:name|skos:prefname|skos:altname|skos:notation|foaf:name|dct:title ?literal .
+        ?x rdfs:label|skos:prefLabel|skos:altLabel|skos:notation|foaf:name|dct:title ?literal .
         FILTER(LCASE(STR(?literal)) = LCASE("${escapedname}"))
       }
       LIMIT 15
