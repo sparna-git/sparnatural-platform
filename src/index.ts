@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // config.yaml
-app.use("/config", configRoute);
+//app.use("/config", configRoute);
 
 // Route d'administration
 //app.use("/admin", adminRoute);
