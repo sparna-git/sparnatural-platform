@@ -9,13 +9,28 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
     />
+    <style>
+      .head {
+        height: 70px;
+        transition: all 0.5s;
+        z-index: 997;
+        background: linear-gradient(45deg, #1de099, #1dc8cd);
+      }
+      .title {
+        font-family: "Montserrat", sans-serif;
+        font-size: 26px;
+        font-weight: 300;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+    </style>
   </head>
   <body class="bg-gray-100 font-sans">
-    <header class="bg-green-600 text-white px-6 py-4">
+    <header class="head text-white px-6 py-4">
       <div class="max-w-screen-xl mx-auto flex justify-between items-center">
-        <h1 class="text-xl font-bold">Sparnatural Platform</h1>
+        <h1 class="title">Sparnatural Platform</h1>
         <nav class="pr-20">
-          <a href="/api/v1" class="hover:underline" target="_blank">
+          <a href="/api/v1" class="title hover:underline" target="_blank">
             <i class="fas fa-file-code mr-1"></i> API
           </a>
         </nav>
