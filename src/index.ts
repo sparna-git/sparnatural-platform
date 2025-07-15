@@ -8,6 +8,10 @@ const YAML = require("yamljs");
 import path from "path";
 import dotenv from "dotenv";
 import adminRoute from "./routes/admin";
+import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
+
+const fs = require("fs");
+const yaml = require("js-yaml");
 
 import configRoute from "./routes/config";
 
@@ -25,6 +29,14 @@ const corsOptions = {
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
+
+// import config.yaml to get the Mistral agent IDs
+const config = yaml.load(
+  fs.readFileSync(path.join(__dirname, "../config/config.yaml"), "utf8")
+);
+
+// Middleware de vérification du domaine
+app.use("/api/v1/:projectKey", checkDomainMiddleware);
 
 app.use(cors(corsOptions));
 app.use(express.json());
