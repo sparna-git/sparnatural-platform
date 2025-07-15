@@ -35,9 +35,6 @@ const config = yaml.load(
   fs.readFileSync(path.join(__dirname, "../config/config.yaml"), "utf8")
 );
 
-// Middleware de vérification du domaine
-app.use("/api/v1/:projectKey", checkDomainMiddleware);
-
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -50,13 +47,17 @@ app.use(express.static("public"));
 //app.use("/admin", adminRoute);
 
 // API : Résumé texte d'une requête Sparnatural
-app.use("/api/v1/:projectKey/query2text", summarizeRoute);
+app.use(
+  "/api/v1/:projectKey/query2text",
+  checkDomainMiddleware,
+  summarizeRoute
+);
 
 // API : Génération d'une requête Sparnatural depuis du texte
-app.use("/api/v1/:projectKey/text2query", generateRoute); // 🚀 nouvelle route
+app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
 
 // API : Recherche d'URI à partir d'un label
-app.use("/api/v1/:projectKey/urilookup", uriLookupRoute); // Nouvelle route pour URI lookup
+app.use("/api/v1/:projectKey/urilookup", checkDomainMiddleware, uriLookupRoute);
 
 // Documentation Swagger
 app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
