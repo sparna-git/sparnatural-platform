@@ -13,32 +13,40 @@ router.get("/", async (req, res) => {
   let { query, endpoint, method, format } = req.query;
   const accept = req.headers.accept;
 
+  console.log("=== Nouvelle requête SPARQL ===");
+  console.log("Query param:", query);
+  console.log("Endpoint param:", endpoint);
+  console.log("Method param:", method);
+  console.log("Format param:", format);
+  console.log("Accept header:", accept);
+
   if (!query || !endpoint) {
+    console.error("Missing 'query' or 'endpoint' parameters");
     return res.status(400).json({ error: "Missing 'query' or 'endpoint'" });
   }
 
   query = String(query);
   endpoint = String(endpoint);
 
-  // Ajouter PREFIX bif: si nécessaire
   if (query.includes("bif:") && !query.includes("PREFIX bif:")) {
     query = "PREFIX bif: <bif:>\n" + query;
+    console.log("Added PREFIX bif: to query");
   }
 
-  // Déterminer le type de requête SPARQL
   let queryType = "SELECT";
   try {
     const parsed = sparqlParser.parse(query);
     if (parsed && typeof parsed === "object" && "queryType" in parsed) {
       queryType = parsed.queryType.toUpperCase();
     }
+    console.log("Parsed query type:", queryType);
   } catch (e) {
+    console.error("Error parsing query:", e);
     return res
       .status(400)
       .json({ error: "Invalid SPARQL query", details: (e as Error).message });
   }
 
-  // Choisir Content-Type à retourner
   let contentType = "application/sparql-results+xml";
   if (format) {
     if (format === "json") contentType = "application/sparql-results+json";
@@ -62,10 +70,12 @@ router.get("/", async (req, res) => {
         break;
     }
   }
+  console.log("Content-Type to return:", contentType);
 
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const forcePost = method?.toString().toUpperCase() === "POST";
+
   const lookupIPv4 = (
     hostname: string,
     options: dns.LookupOptions,
@@ -79,6 +89,11 @@ router.get("/", async (req, res) => {
   };
 
   try {
+    console.log(
+      `Calling SPARQL endpoint: ${endpoint} with method ${
+        forcePost ? "POST" : "GET"
+      }`
+    );
     const response = await axios({
       method: forcePost ? "POST" : "GET",
       url: endpoint,
@@ -91,9 +106,11 @@ router.get("/", async (req, res) => {
       httpsAgent: new https.Agent({ lookup: lookupIPv4 }),
     });
 
+    console.log("SPARQL request succeeded, streaming response");
     res.setHeader("Content-Type", contentType);
     response.data.pipe(res);
   } catch (error: any) {
+    console.error("SPARQL request failed:", error);
     res
       .status(500)
       .json({ error: "SPARQL request failed", details: error.message });

@@ -53,15 +53,14 @@ app.use(
 );
 app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
 app.use("/api/v1/:projectKey/urilookup", checkDomainMiddleware, uriLookupRoute);
+// sparql endpoint
+app.use("/api/v1/:projectKey/sparql", sparqlRouter);
 
 // Swagger
 app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Acceuil de la plateforme
 app.use("/", platform);
-
-// sparql endpoint
-app.use("/api/v1/:projectKey/sparql", sparqlRouter);
 
 // Start server
 app.listen(PORT, () => {
