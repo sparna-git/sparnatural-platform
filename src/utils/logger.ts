@@ -13,9 +13,9 @@ export async function logQuery({
   query: string;
 }) {
   const timestamp = new Date().toISOString();
-  const logLine = `${timestamp} | ${
+  const logLine = `${timestamp} , ${
     ip ?? "unknown"
-  } | ${endpoint} | ${query.replace(/\n/g, " ")}\n`;
+  } , ${endpoint} , ${query.replace(/\n/g, " ")}\n`;
   fs.appendFile(logFile, logLine, (err) => {
     if (err) console.error("Error logging query:", err);
   });
