@@ -10,8 +10,9 @@ const YAML = require("yamljs");
 import summarizeRoute from "./routes/query2text";
 import generateRoute from "./routes/text2query";
 import uriLookupRoute from "./routes/urilookup";
-import adminRoute from "./routes/admin";
-import configRoute from "./routes/config";
+import platform from "./routes/platform";
+import sparqlRouter from "./routes/sparql";
+
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
 
 dotenv.config();
@@ -56,8 +57,11 @@ app.use("/api/v1/:projectKey/urilookup", checkDomainMiddleware, uriLookupRoute);
 // Swagger
 app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Admin
-app.use("/", adminRoute);
+// Acceuil de la plateforme
+app.use("/", platform);
+
+// sparql endpoint
+app.use("/api/v1/:projectKey/sparql", sparqlRouter);
 
 // Start server
 app.listen(PORT, () => {
