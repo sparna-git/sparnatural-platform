@@ -206,48 +206,58 @@ export function checkDomainMiddleware(
   const referer = req.get("referer");
   const userAgent = req.get("user-agent") || "";
   const projectKey = req.params.projectKey;
+  const apiKey = req.query.key;
 
-  console.log(`[SECURITY] 🔍 Incoming UA: "${userAgent}"`);
+  console.log(`[SECURITY] 🔍 Incoming request to ${req.originalUrl}`);
 
-  // Autoriser tous les navigateurs (liste étendue)
-  if (browserUserAgents.some((ua) => userAgent.includes(ua))) {
-    console.log("[SECURITY] ✅ User-Agent is a browser → allowed");
-    return next();
-  }
-
-  // Autoriser explicitement services.sparnatural.eu
-  if (referer && referer.includes("services.sparnatural.eu")) {
-    console.log("[SECURITY] ✅ Referer is services.sparnatural.eu → allowed");
-    return next();
-  }
-
-  // Vérifier que le projet existe
+  // Vérifie si le projet existe dans le fichier de config
   const project = config.projects?.[projectKey];
   if (!project) {
     console.warn(`[SECURITY] ❌ Project '${projectKey}' not found`);
     return res.status(500).send("Invalid project");
   }
 
+  // 🔐 Vérification par clé API
+  const expectedApiKey = project.apiKey;
+  if (apiKey && expectedApiKey && apiKey === expectedApiKey) {
+    console.log("[SECURITY] ✅ Request allowed by valid API key");
+    return next();
+  }
+
+  // ✅ Exception : domaine sparnatural.eu
+  if (referer?.includes("services.sparnatural.eu")) {
+    console.log(
+      "[SECURITY] ✅ Allowed: referer contains services.sparnatural.eu"
+    );
+    return next();
+  }
+
+  // ✅ Exception : navigateur reconnu
+  if (browserUserAgents.some((ua) => userAgent.includes(ua))) {
+    console.log("[SECURITY] ✅ Allowed: user-agent identified as browser");
+    return next();
+  }
+
+  // ❌ Vérifie si le referer appartient à la liste des domaines autorisés
   const allowedDomains: string[] = project.domains || [];
   if (!referer) {
-    console.warn("[SECURITY] ❌ Missing Referer");
+    console.warn("[SECURITY] ❌ Missing Referer header");
     return res.status(500).send("Invalid incoming domain");
   }
 
   try {
     const refererDomain = new URL(referer).hostname;
-    console.log(`[SECURITY] 🌐 Referer domain: ${refererDomain}`);
     if (!allowedDomains.includes(refererDomain)) {
       console.warn(
-        `[SECURITY] ❌ '${refererDomain}' not allowed for '${projectKey}'`
+        `[SECURITY] ❌ Unauthorized referer domain: '${refererDomain}'`
       );
       return res.status(500).send("Invalid incoming domain");
     }
   } catch (err) {
-    console.error(`[SECURITY] ❌ Error parsing referer '${referer}'`, err);
-    return res.status(500).send("Invalid incoming domain");
+    console.error(`[SECURITY] ❌ Error parsing referer '${referer}':`, err);
+    return res.status(500).send("Invalid referer");
   }
 
-  console.log("[SECURITY] ✅ Referer domain is allowed");
+  console.log("[SECURITY] ✅ Request accepted by domain check");
   next();
 }
