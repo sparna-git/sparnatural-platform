@@ -55,10 +55,21 @@ export const Branch: z.ZodType<any> = z.lazy(() =>
   })
 );
 
+// Nouveau schéma pour `metadata`
+export const Metadata = z
+  .object({
+    id: z.string().optional(),
+    lang: z.string().optional(),
+    label: z.record(z.string()).optional(), // { "en": "label", "fr": "libellé" }
+    description: z.record(z.string()).optional(), // { "en": "desc", "fr": "description" }
+  })
+  .catchall(z.any()); // pour permettre tout autre champ
+
 export const SparnaturalQuery = z.object({
   distinct: z.boolean().optional(),
   variables: z.array(z.union([VariableTerm, VariableExpression])),
   order: Order.optional(),
   branches: z.array(Branch),
   limit: z.number().optional(),
+  metadata: Metadata.optional(),
 });
