@@ -12,8 +12,8 @@ import config from "./config"; // chemin relatif vers ton fichier config.ts
 const router = express.Router();
 const sparqlParser = new Parser();
 
-router.get("/:projectId/sparql", async (req, res) => {
-  const { projectId } = req.params;
+router.get("/", async (req, res) => {
+  const projectId = req.baseUrl.split("/")[3];
   let { query, method, format } = req.query;
   const accept = req.headers.accept;
 
