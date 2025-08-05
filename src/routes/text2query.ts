@@ -4,6 +4,7 @@ import path from "path";
 import { getJsonFromAgent } from "../services/agent";
 import { BadRequestError } from "../errors/BadRequestError";
 import config from "./config";
+import { logTextToQuery } from "../utils/logger";
 const yaml = require("js-yaml");
 
 const router = express.Router({ mergeParams: true });
@@ -20,6 +21,12 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     const jsonQuery = await getJsonFromAgent(text as string, projectKey);
     const parsed =
       typeof jsonQuery === "string" ? JSON.parse(jsonQuery) : jsonQuery;
+
+    await logTextToQuery({
+      projectKey,
+      text: text as string,
+      query: parsed,
+    });
 
     return res.json(parsed);
   } catch (error: any) {

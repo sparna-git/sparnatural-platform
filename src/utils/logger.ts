@@ -52,3 +52,60 @@ export async function logQuery({
     console.error("❌ Unexpected error in logger:", err);
   }
 }
+
+// Log pour text2query
+export async function logTextToQuery({
+  projectKey,
+  text,
+  query,
+}: {
+  projectKey: string;
+  text: string;
+  query: string;
+}) {
+  try {
+    const projectLogDir = path.join(baseLogDir, projectKey);
+    if (!fs.existsSync(projectLogDir)) {
+      fs.mkdirSync(projectLogDir, { recursive: true });
+    }
+
+    const logFile = path.join(projectLogDir, "text2query.csv");
+    const timestamp = new Date().toISOString();
+    const logLine =
+      [timestamp, text, JSON.stringify(query)].map(escapeCSV).join(",") + "\n";
+
+    fs.appendFile(logFile, logLine, (err) => {
+      if (err) console.error("❌ Error logging text2query:", err);
+    });
+  } catch (err) {
+    console.error("❌ Unexpected error in text2query logger:", err);
+  }
+}
+
+// Log pour query2text
+export async function logQueryToText({
+  projectKey,
+  query,
+  text,
+}: {
+  projectKey: string;
+  query: string;
+  text: string;
+}) {
+  try {
+    const projectLogDir = path.join(baseLogDir, projectKey);
+    if (!fs.existsSync(projectLogDir)) {
+      fs.mkdirSync(projectLogDir, { recursive: true });
+    }
+
+    const logFile = path.join(projectLogDir, "query2text.csv");
+    const timestamp = new Date().toISOString();
+    const logLine = [timestamp, query, text].map(escapeCSV).join(",") + "\n";
+
+    fs.appendFile(logFile, logLine, (err) => {
+      if (err) console.error("❌ Error logging query2text:", err);
+    });
+  } catch (err) {
+    console.error("❌ Unexpected error in query2text logger:", err);
+  }
+}
