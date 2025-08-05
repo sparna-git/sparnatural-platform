@@ -58,6 +58,7 @@ app.use("/api/v1/:projectKey/sparql", sparqlRouter);
 
 // Swagger
 app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+//app.use("/api/monitoring", monitoringStatsRoute);
 
 // Acceuil de la plateforme
 app.use("/", platform);

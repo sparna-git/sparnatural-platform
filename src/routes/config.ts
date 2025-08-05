@@ -1,15 +1,18 @@
-import express from "express";
+// src/config/config.ts
 import fs from "fs";
-import path from "path";
 import yaml from "js-yaml";
+import path from "path";
 
-const router = express.Router();
+// Lire le chemin du fichier de config depuis les arguments CLI
+const configPathFromArg = process.argv.find((arg) =>
+  arg.startsWith("--config=")
+);
+const configPath = configPathFromArg
+  ? configPathFromArg.split("=")[1]
+  : path.join(__dirname, "../../config/config.yaml"); // chemin par défaut
 
-router.get("/", (req, res) => {
-  const filePath = path.resolve(__dirname, "../../config/config.yaml");
-  const fileContents = fs.readFileSync(filePath, "utf8");
-  const data = yaml.load(fileContents);
-  res.json(data);
-});
+console.log("📥 Lecture du fichier de config:", configPath);
+// Charger le fichier une seule fois
+const config = yaml.load(fs.readFileSync(configPath, "utf8")) as any;
 
-export default router;
+export default config;

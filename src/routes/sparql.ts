@@ -6,27 +6,45 @@ import dns from "dns";
 import http from "http";
 import https from "https";
 
+// Import ta config chargée dynamiquement via ton fichier config.ts
+import config from "./config"; // chemin relatif vers ton fichier config.ts
+
 const router = express.Router();
 const sparqlParser = new Parser();
 
-router.get("/", async (req, res) => {
-  let { query, endpoint, method, format } = req.query;
+router.get("/:projectId/sparql", async (req, res) => {
+  const { projectId } = req.params;
+  let { query, method, format } = req.query;
   const accept = req.headers.accept;
 
+  // Récupérer la config du projet depuis la config importée
+  const projectConfig = config.projects?.[projectId];
+  if (!projectConfig) {
+    return res.status(400).json({ error: `Unknown project ID: ${projectId}` });
+  }
+
+  // Récupérer le endpoint SPARQL à partir de la config du projet
+  const endpoint = projectConfig.sparqlEndpoint;
+  if (!endpoint) {
+    return res.status(500).json({
+      error: `No SPARQL endpoint configured for project ${projectId}`,
+    });
+  }
+
   console.log("=== Nouvelle requête SPARQL ===");
+  console.log("Project ID:", projectId);
   console.log("Query param:", query);
-  console.log("Endpoint param:", endpoint);
   console.log("Method param:", method);
   console.log("Format param:", format);
   console.log("Accept header:", accept);
+  console.log("Using endpoint from config:", endpoint);
 
-  if (!query || !endpoint) {
-    console.error("Missing 'query' or 'endpoint' parameters");
-    return res.status(400).json({ error: "Missing 'query' or 'endpoint'" });
+  if (!query) {
+    console.error("Missing 'query' parameter");
+    return res.status(400).json({ error: "Missing 'query'" });
   }
 
   query = String(query);
-  endpoint = String(endpoint);
 
   if (query.includes("bif:") && !query.includes("PREFIX bif:")) {
     query = "PREFIX bif: <bif:>\n" + query;

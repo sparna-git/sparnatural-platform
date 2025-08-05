@@ -9,16 +9,17 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
       .head {
-        height: 70px;
+        height: 90px;
         transition: all 0.5s;
         z-index: 997;
         background: linear-gradient(45deg, #1de099, #1dc8cd);
       }
       .title {
-        font-family: "Montserrat", sans-serif;
-        font-size: 26px;
+        font-size: 36px;
         font-weight: 300;
         letter-spacing: 3px;
         text-transform: uppercase;
@@ -36,5 +37,120 @@
         </nav>
       </div>
     </header>
+    <!--
+    <section class="p-6">
+      <h2 class="text-2xl font-bold mb-4">Query Monitoring</h2>
+      <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="text-left px-4 py-2">Date</th>
+            <th class="text-left px-4 py-2">Endpoint</th>
+            <th class="text-left px-4 py-2">Requêtes</th>
+          </tr>
+        </thead>
+        <tbody id="monitoring-table" class="text-gray-700">
+
+        </tbody>
+      </table>
+    </section>
+    <section class="p-6 mt-10">
+      <h2 class="text-2xl font-bold mb-4">Query Monitoring - Graphique</h2>
+      <canvas
+        id="monitoring-chart"
+        class="bg-white shadow rounded-lg p-4"
+      ></canvas>
+    </section>-->
+
+    <script>
+      async function fetchStats() {
+        const res = await fetch("/api/monitoring/stats");
+        if (!res.ok) throw new Error("Erreur fetch stats");
+        return await res.json();
+      }
+
+      function transformDataForChart(raw) {
+        const dates = Object.keys(raw).sort();
+        const endpointsSet = new Set();
+        Object.values(raw).forEach((epMap) =>
+          Object.keys(epMap).forEach((ep) => endpointsSet.add(ep))
+        );
+        const endpoints = Array.from(endpointsSet);
+
+        const datasets = endpoints.map((ep, i) => {
+          const color = `hsl(${(i * 60) % 360}, 70%, 50%)`;
+          return {
+            label: ep,
+            data: dates.map((date) => raw[date][ep] || 0),
+            borderColor: color,
+            backgroundColor: color,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+          };
+        });
+
+        return { labels: dates, datasets };
+      }
+
+      function renderTable(data) {
+        const tbody = document.getElementById("monitoring-table");
+        tbody.innerHTML = ""; // reset table
+        Object.entries(data).forEach(([date, endpoints]) => {
+          Object.entries(endpoints).forEach(([ep, count]) => {
+            const row = `<tr>
+          <td class="px-4 py-2">${date}</td>
+          <td class="px-4 py-2">${ep}</td>
+          <td class="px-4 py-2">${count}</td>
+        </tr>`;
+            tbody.innerHTML += row;
+          });
+        });
+      }
+
+      let chartInstance = null;
+
+      async function draw() {
+        try {
+          const data = await fetchStats();
+          renderTable(data);
+
+          const chartData = transformDataForChart(data);
+          const ctx = document
+            .getElementById("monitoring-chart")
+            .getContext("2d");
+
+          if (chartInstance) {
+            chartInstance.data = chartData;
+            chartInstance.update();
+          } else {
+            chartInstance = new Chart(ctx, {
+              type: "line",
+              data: chartData,
+              options: {
+                responsive: true,
+                interaction: { mode: "nearest", intersect: false },
+                plugins: {
+                  legend: { position: "bottom" },
+                  tooltip: { enabled: true },
+                },
+                scales: {
+                  x: { title: { display: true, text: "Date" } },
+                  y: {
+                    title: { display: true, text: "Nombre de requêtes" },
+                    beginAtZero: true,
+                    precision: 0,
+                  },
+                },
+              },
+            });
+          }
+        } catch (e) {
+          console.error("Erreur lors du chargement des stats:", e);
+        }
+      }
+
+      draw();
+      setInterval(draw, 30000); // refresh toutes les 30 secondes
+    </script>
   </body>
 </html>

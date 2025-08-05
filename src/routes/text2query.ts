@@ -3,12 +3,10 @@ import fs from "fs";
 import path from "path";
 import { getJsonFromAgent } from "../services/agent";
 import { BadRequestError } from "../errors/BadRequestError";
+import config from "./config";
 const yaml = require("js-yaml");
 
 const router = express.Router({ mergeParams: true });
-
-const configPath = path.join(__dirname, "../../config/config.yaml");
-const config = yaml.load(fs.readFileSync(configPath, "utf8")) as any;
 
 router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
