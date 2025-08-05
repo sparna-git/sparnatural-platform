@@ -134,7 +134,7 @@ router.get("/", async (req, res) => {
       .json({ error: "SPARQL request failed", details: error.message });
   }
 
-  await logQuery({ ip: req.ip, endpoint, query });
+  await logQuery({ projectKey: projectId, ip: req.ip, endpoint, query });
 });
 
 export default router;
