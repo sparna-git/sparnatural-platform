@@ -1,9 +1,18 @@
 import fs from "fs";
 import path from "path";
+import config from "../routes/config"; // adapte le chemin selon ton arborescence
 
-const logFile = path.join(__dirname, "../../queries.csv");
+// Récupérer le dossier de logs depuis la config (avec fallback)
+const logDir = config.log?.directory || "./logs";
+// S'assurer que le dossier existe
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 
-// Helper to safely escape CSV fields
+// Chemin complet du fichier de log
+const logFile = path.join(logDir, "queries.csv");
+
+// Helper pour échapper les champs CSV
 function escapeCSV(value: string): string {
   if (value.includes(",") || value.includes('"') || value.includes("\n")) {
     return `"${value.replace(/"/g, '""')}"`;

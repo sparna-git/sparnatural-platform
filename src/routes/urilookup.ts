@@ -1,25 +1,39 @@
 import express from "express";
 import axios from "axios";
+import config from "./config"; // ton fichier config.ts exportant la config YAML
 
 const router = express.Router();
 
-const SPARQL_ENDPOINT = "https://dbpedia.org/sparql";
 const MAX_RESULTS = 10;
 
 router.get("/", async (req, res) => {
+  const projectKey = req.baseUrl.split("/")[3];
   let { name } = req.query;
 
   if (!name || typeof name !== "string") {
     return res.status(400).json({ error: "Missing or invalid name parameter" });
   }
 
+  // Vérifier que le projectKey existe dans la config
+  if (!config.projects || !config.projects[projectKey]) {
+    return res.status(400).json({ error: `Unknown projectKey: ${projectKey}` });
+  }
+
+  // Récupérer dynamiquement le endpoint SPARQL
+  const SPARQL_ENDPOINT = config.projects[projectKey].sparqlEndpoint;
+  if (!SPARQL_ENDPOINT) {
+    return res.status(500).json({ error: "SPARQL endpoint not configured" });
+  }
+
   name = name.trim();
   const escapedName = name.replace(/"/g, '\\"');
 
-  console.log(`🔎 Recherche pour le nom : "${name}"`);
+  console.log(
+    `🔎 Recherche pour le nom : "${name}" sur endpoint ${SPARQL_ENDPOINT}`
+  );
 
   try {
-    // 1️⃣ Requête rdfs:label uniquement
+    // Première requête
     const query1 = `
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
       SELECT ?x WHERE {
@@ -33,7 +47,6 @@ router.get("/", async (req, res) => {
       query1
     )}&format=json`;
     const response1 = await axios.get(url1, { timeout: 60000, family: 4 });
-
     const bindings1 = response1.data.results.bindings;
 
     if (bindings1.length > 0) {
@@ -44,7 +57,7 @@ router.get("/", async (req, res) => {
       return res.json({ results });
     }
 
-    // 2️⃣ Si aucun résultat, deuxième requête sans rdfs:label
+    // Deuxième requête si pas de résultats
     console.log(
       `🔁 Aucun résultat avec rdfs:label, tentative avec autres prédicats...`
     );
@@ -66,8 +79,8 @@ router.get("/", async (req, res) => {
       query2
     )}&format=json`;
     const response2 = await axios.get(url2, { timeout: 60000, family: 4 });
-
     const bindings2 = response2.data.results.bindings;
+
     const results = bindings2.map((b: { x: { value: string } }) => ({
       uri: b.x.value,
     }));
