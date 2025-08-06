@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import config from "../routes/config"; // adapte le chemin selon ton arborescence
+import config from "../config/config"; // adapte le chemin selon ton arborescence
 
 // Récupérer le dossier de logs depuis la config (avec fallback)
 const baseLogDir = config.log?.directory || "./logs";

@@ -1,16 +1,9 @@
 import axios from "axios";
 import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
-import path from "path";
+
 import { BadRequestError } from "../errors/BadRequestError"; // crée ce fichier si pas encore
-
-const fs = require("fs");
-const yaml = require("js-yaml");
-
-// import config.yaml to get the Mistral agent IDs
-const config = yaml.load(
-  fs.readFileSync(path.join(__dirname, "../../config/config.yaml"), "utf8")
-);
+import config from "../config/config";
 
 // Set Mistral agent IDs from config
 const agentIdQueryToText =

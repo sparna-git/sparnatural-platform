@@ -1,11 +1,8 @@
 import express from "express";
-import fs from "fs";
-import path from "path";
 import { getJsonFromAgent } from "../services/agent";
 import { BadRequestError } from "../errors/BadRequestError";
-import config from "./config";
+import config from "../config/config";
 import { logTextToQuery } from "../utils/logger";
-const yaml = require("js-yaml");
 
 const router = express.Router({ mergeParams: true });
 

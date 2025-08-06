@@ -9,3 +9,5 @@ projects:
       MISTRAL_AGENT_ID_text_2_query: ag:33fd9714:20250624:text2query:a7d9abe6
     domains:
       - sparna-git.github.io
+    cache:
+      urilookup: ./cache/dbpedia-en/urilookup_cache.json

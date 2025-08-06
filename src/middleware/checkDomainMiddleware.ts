@@ -1,11 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import path from "path";
-const fs = require("fs");
-const yaml = require("js-yaml");
 
-const config = yaml.load(
-  fs.readFileSync(path.join(__dirname, "../../config/config.yaml"), "utf8")
-);
+import config from "../config/config";
 
 const browserUserAgents = [
   "ABrowse",
@@ -208,40 +203,38 @@ export function checkDomainMiddleware(
   const projectKey = req.params.projectKey;
   const apiKey = req.query.key;
 
-  console.log(`[SECURITY] 🔍 Incoming request to ${req.originalUrl}`);
+  console.log(`[SECURITY] Incoming request to ${req.originalUrl}`);
 
   // Vérifie si le projet existe dans le fichier de config
   const project = config.projects?.[projectKey];
   if (!project) {
-    console.warn(`[SECURITY] ❌ Project '${projectKey}' not found`);
+    console.warn(`[SECURITY] Project '${projectKey}' not found`);
     return res.status(500).send("Invalid project");
   }
 
   // 🔐 Vérification par clé API
   const expectedApiKey = project.apiKey;
   if (apiKey && expectedApiKey && apiKey === expectedApiKey) {
-    console.log("[SECURITY] ✅ Request allowed by valid API key");
+    console.log("[SECURITY] Request allowed by valid API key");
     return next();
   }
 
-  // ✅ Exception : domaine sparnatural.eu
+  // Exception : domaine sparnatural.eu
   if (referer?.includes("services.sparnatural.eu")) {
-    console.log(
-      "[SECURITY] ✅ Allowed: referer contains services.sparnatural.eu"
-    );
+    console.log("[SECURITY] Allowed: referer contains services.sparnatural.eu");
     return next();
   }
 
-  // ✅ Exception : navigateur reconnu
+  // Exception : navigateur reconnu
   if (browserUserAgents.some((ua) => userAgent.includes(ua))) {
-    console.log("[SECURITY] ✅ Allowed: user-agent identified as browser");
+    console.log("[SECURITY] Allowed: user-agent identified as browser");
     return next();
   }
 
-  // ❌ Vérifie si le referer appartient à la liste des domaines autorisés
+  // Vérifie si le referer appartient à la liste des domaines autorisés
   const allowedDomains: string[] = project.domains || [];
   if (!referer) {
-    console.warn("[SECURITY] ❌ Missing Referer header");
+    console.warn("[SECURITY] Missing Referer header");
     return res.status(500).send("Invalid incoming domain");
   }
 
@@ -249,15 +242,15 @@ export function checkDomainMiddleware(
     const refererDomain = new URL(referer).hostname;
     if (!allowedDomains.includes(refererDomain)) {
       console.warn(
-        `[SECURITY] ❌ Unauthorized referer domain: '${refererDomain}'`
+        `[SECURITY] Unauthorized referer domain: '${refererDomain}'`
       );
       return res.status(500).send("Invalid incoming domain");
     }
   } catch (err) {
-    console.error(`[SECURITY] ❌ Error parsing referer '${referer}':`, err);
+    console.error(`[SECURITY] Error parsing referer '${referer}':`, err);
     return res.status(500).send("Invalid referer");
   }
 
-  console.log("[SECURITY] ✅ Request accepted by domain check");
+  console.log("[SECURITY] Request accepted by domain check");
   next();
 }

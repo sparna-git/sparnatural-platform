@@ -136,12 +136,12 @@ paths:
                     type: string
                     example: "Internal server error"
   /api/v1/{projectKey}/urilookup:
-    get:
-      summary: Recherche d'URI à partir d'un terme
+    post:
+      summary: Recherche d'URI à partir de plusieurs termes (format Reconciliation W3C)
       tags: [URI Lookup]
       description: >
-        Permet de rechercher des URI en fonction d'un terme donné. 
-        Utile pour trouver des ressources liées à un concept ou une entité.
+        Permet de rechercher des URI pour plusieurs termes en une seule requête,
+        selon la spécification W3C Reconciliation (https://www.w3.org/community/reports/reconciliation/).
       parameters:
         - in: path
           name: projectKey
@@ -149,30 +149,70 @@ paths:
           schema:
             type: string
             example: dbpedia-en
-        - in: query
-          name: name
-          required: true
-          description: Terme à rechercher pour obtenir des URI associées.
-          schema:
-            type: string
-            example: "France"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: object
+                required:
+                  - query
+                properties:
+                  query:
+                    type: string
+                    description: Terme à rechercher
+                    example: "France"
+            example:
+              q1:
+                query: "France"
+              q2:
+                query: "Algeria"
+
       responses:
         "200":
-          description: Liste des URI trouvées
+          description: Résultats de recherche URI pour chaque requête
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  uris:
-                    type: array
-                    items:
-                      type: string
+                additionalProperties:
+                  type: object
+                  properties:
+                    result:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: URI trouvée
+                          name:
+                            type: string
+                            description: Terme recherché
+                          score:
+                            type: integer
+                            description: Score de correspondance (100 = parfait)
+                          match:
+                            type: boolean
+                            description: Indique si c’est un match certain
               examples:
                 success:
-                  summary: Exemple de réponse avec URI
+                  summary: Exemple de réponse
                   value:
-                    uris: ["http://dbpedia.org/resource/FRANCE"]
+                    q1:
+                      result:
+                        - id: "http://dbpedia.org/resource/France"
+                          name: "France"
+                          score: 100
+                          match: true
+                    q2:
+                      result:
+                        - id: "http://dbpedia.org/resource/Algeria"
+                          name: "Algeria"
+                          score: 100
+                          match: true
         "400":
           description: Requête invalide
           content:
@@ -182,9 +222,9 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Invalid term parameter"
+                    example: "Invalid input JSON format"
         "500":
-          description: Erreur interne
+          description: Erreur interne du serveur
           content:
             application/json:
               schema:

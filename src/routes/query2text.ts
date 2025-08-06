@@ -1,10 +1,7 @@
 import express from "express";
-import fs from "fs";
-import path from "path";
 import { getSummaryFromAgent } from "../services/agent";
-import config from "./config";
+import config from "../config/config";
 import { logQueryToText } from "../utils/logger";
-const yaml = require("js-yaml");
 
 const router = express.Router({ mergeParams: true });
 

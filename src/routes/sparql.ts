@@ -6,8 +6,7 @@ import dns from "dns";
 import http from "http";
 import https from "https";
 
-// Import ta config chargée dynamiquement via ton fichier config.ts
-import config from "./config"; // chemin relatif vers ton fichier config.ts
+import config from "../config/config"; // chemin relatif vers ton fichier config.ts
 
 const router = express.Router();
 const sparqlParser = new Parser();
