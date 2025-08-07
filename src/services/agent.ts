@@ -1,9 +1,8 @@
 import axios from "axios";
 import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
-
-import { BadRequestError } from "../errors/BadRequestError"; // crée ce fichier si pas encore
 import config from "../config/config";
+import { EmptyRequestError } from "../errors/emptyRequestError";
 
 // Set Mistral agent IDs from config
 const agentIdQueryToText =
@@ -57,7 +56,6 @@ export async function getSummaryFromAgent(
     return "Erreur lors de la génération du résumé avec Mistral.";
   }
 }
-
 const tools = [
   {
     type: "function",
@@ -124,36 +122,35 @@ export async function getJsonFromAgent(
         `[getJsonFromAgent] 🛠️ ${toolCalls.length} outil(s) détecté(s)`
       );
 
-      const toolResponses = [];
+      // Regrouper tous les appels uriLookup
+      const uriLookupBody: Record<string, { query: string }> = {};
 
       for (const toolCall of toolCalls) {
-        console.log(
-          "[getJsonFromAgent] ➕ Traitement toolCall :",
-          toolCall.function.name
-        );
-
         if (toolCall.function.name === "uriLookup") {
           const args = JSON.parse(toolCall.function.arguments);
           console.log("[getJsonFromAgent] 📤 uriLookup args :", args);
-
-          const uriRes = await axios.get(
-            `http://localhost:3000/api/v1/${projectKey}/urilookup`,
-            { params: args }
-          );
-
-          console.log(
-            "[getJsonFromAgent] ✅ Résultat uriLookup :",
-            JSON.stringify(uriRes.data, null, 2)
-          );
-
-          toolResponses.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            name: "uriLookup",
-            content: JSON.stringify(uriRes.data),
-          });
+          uriLookupBody[toolCall.id] = { query: args.name };
         }
       }
+
+      const uriRes = await axios.post(
+        `http://localhost:3000/api/v1/${projectKey}/urilookup`,
+        uriLookupBody
+      );
+
+      console.log(
+        "[getJsonFromAgent] ✅ Résultat uriLookup :",
+        JSON.stringify(uriRes.data, null, 2)
+      );
+
+      const toolResponses = Object.entries(uriRes.data).map(
+        ([toolCallId, result]) => ({
+          role: "tool",
+          tool_call_id: toolCallId,
+          name: "uriLookup",
+          content: JSON.stringify(result),
+        })
+      );
 
       const assistantMessage = {
         role: "assistant",
@@ -198,7 +195,7 @@ export async function getJsonFromAgent(
           "[getJsonFromAgent] ⚠️ Erreur retournée par l'agent :",
           parsed.error
         );
-        throw new BadRequestError(
+        throw new EmptyRequestError(
           typeof parsed.error === "string"
             ? parsed.error
             : parsed.error.message || "Erreur de génération de la requête JSON"
@@ -206,7 +203,6 @@ export async function getJsonFromAgent(
       }
 
       const validated = SparnaturalQuery.parse(parsed);
-
       console.log("[getJsonFromAgent] ✅ JSON validé après outil :", validated);
       return validated;
     } else {
@@ -230,7 +226,7 @@ export async function getJsonFromAgent(
           "[getJsonFromAgent] ⚠️ Erreur retournée par l'agent :",
           parsed.error
         );
-        throw new BadRequestError(
+        throw new EmptyRequestError(
           typeof parsed.error === "string"
             ? parsed.error
             : parsed.error.message || "Erreur de génération de la requête JSON"
@@ -243,7 +239,7 @@ export async function getJsonFromAgent(
       return validated;
     }
   } catch (error: any) {
-    if (error instanceof BadRequestError) {
+    if (error instanceof EmptyRequestError) {
       throw error;
     }
 

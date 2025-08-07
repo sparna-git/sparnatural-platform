@@ -100,6 +100,7 @@ router.post("/", async (req, res) => {
     const escapedName = name.replace(/"/g, '\\"');
 
     if (uriCache[name]) {
+      console.log(`[uriLookup] ✅ "${name}" récupéré depuis le cache`);
       uriCache[name].lastAccessed = new Date().toISOString();
       saveCache(cacheFilePath, uriCache);
 
@@ -114,16 +115,20 @@ router.post("/", async (req, res) => {
       continue;
     }
 
+    console.log(
+      `[uriLookup] 🔍 "${name}" introuvable en cache – requête SPARQL...`
+    );
+
     try {
       // Première requête SPARQL
       const query1 = `
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        SELECT ?x WHERE {
-          ?x rdfs:label ?literal .
-          FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
-        }
-        LIMIT ${MAX_RESULTS}
-      `;
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      SELECT ?x WHERE {
+        ?x rdfs:label ?literal .
+        FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+      }
+      LIMIT ${MAX_RESULTS}
+    `;
 
       const url1 = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(
         query1
@@ -134,15 +139,15 @@ router.post("/", async (req, res) => {
       // Si pas de résultats, deuxième requête SPARQL
       if (bindings.length === 0) {
         const query2 = `
-          PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-          PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-          PREFIX dct: <http://purl.org/dc/terms/>
-          SELECT ?x WHERE {
-            ?x skos:prefLabel|skos:altLabel|skos:notation|foaf:name|dct:title ?literal .
-            FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
-          }
-          LIMIT ${MAX_RESULTS}
-        `;
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+        SELECT ?x WHERE {
+          ?x skos:prefLabel|skos:altLabel|skos:notation|foaf:name|dct:title ?literal .
+          FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+        }
+        LIMIT ${MAX_RESULTS}
+      `;
 
         const url2 = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(
           query2
@@ -156,6 +161,10 @@ router.post("/", async (req, res) => {
       }));
 
       updateCache(name, results);
+
+      console.log(
+        `[uriLookup] 🆕 "${name}" ajouté au cache avec ${results.length} résultat(s)`
+      );
 
       responsePayload[key] = {
         result: results.map((r: any) => ({
