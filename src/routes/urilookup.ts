@@ -1,41 +1,61 @@
 import express from "express";
 import axios from "axios";
 import config from "../config/config";
-import fs from "fs";
-import path from "path";
 
 const router = express.Router();
 const MAX_RESULTS = 10;
 const CACHE_SIZE = 1000;
 
 type QueryInput = { query: string };
-type CacheEntry = { results: any[]; lastAccessed: string };
+type CacheEntry = { results: any[]; lastAccessed: Date };
 
-function loadCache(cacheFilePath: string): Record<string, CacheEntry> {
-  if (fs.existsSync(cacheFilePath)) {
-    try {
-      const raw = fs.readFileSync(cacheFilePath, "utf-8").trim();
-      if (!raw) {
-        // Fichier vide => retourne cache vide
-        return {};
-      }
-      return JSON.parse(raw);
-    } catch (err) {
-      console.error("❌ Erreur lecture cache:", err);
-      // Si erreur JSON, on réinitialise le cache (évite crash)
-      return {};
-    }
+// Cache en mémoire par projet
+const memoryCache: Record<string, Record<string, CacheEntry>> = {};
+
+function getProjectCache(projectKey: string): Record<string, CacheEntry> {
+  if (!memoryCache[projectKey]) {
+    memoryCache[projectKey] = {};
   }
-  return {};
+  return memoryCache[projectKey];
 }
 
-// Sauvegarde du cache dans fichier dynamique
-function saveCache(
-  cacheFilePath: string,
-  cacheData: Record<string, CacheEntry>
-) {
-  fs.mkdirSync(path.dirname(cacheFilePath), { recursive: true });
-  fs.writeFileSync(cacheFilePath, JSON.stringify(cacheData, null, 2), "utf-8");
+async function getEntityTypes(
+  uri: string,
+  sparqlEndpoint: string
+): Promise<Array<{ id: string; name: string }>> {
+  try {
+    const typesQuery = `
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      SELECT DISTINCT ?type ?label WHERE {
+        <${uri}> rdf:type ?type .
+        OPTIONAL { ?type rdfs:label ?label . FILTER(LANG(?label) = "en") }
+        FILTER(STRSTARTS(STR(?type), "http://dbpedia.org/ontology/"))
+      }
+      LIMIT 5
+    `;
+
+    const url = `${sparqlEndpoint}?query=${encodeURIComponent(
+      typesQuery
+    )}&format=json`;
+    const response = await axios.get(url, {
+      timeout: 10000,
+      family: 4, // Force IPv4
+    });
+    const bindings = response.data.results.bindings;
+
+    if (bindings.length === 0) {
+      return [{ id: "http://www.w3.org/2002/07/owl#Thing", name: "Thing" }];
+    }
+
+    return bindings.map((b: any) => ({
+      id: b.type.value,
+      name: b.label?.value || b.type.value.split("/").pop() || "Unknown",
+    }));
+  } catch (error: any) {
+    console.error(`Error fetching types for ${uri}:`, error.message || error);
+    return [{ id: "http://www.w3.org/2002/07/owl#Thing", name: "Thing" }];
+  }
 }
 
 router.post("/", async (req, res) => {
@@ -50,16 +70,24 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ error: "SPARQL endpoint not configured" });
   }
 
-  // Construction chemin cache (absolu)
-  const cacheRelativePath = config.projects[projectKey].cache?.urilookup;
-  const cacheFilePath = path.isAbsolute(cacheRelativePath)
-    ? cacheRelativePath
-    : path.join(process.cwd(), cacheRelativePath);
+  // Récupérer le cache en mémoire pour ce projet
+  const uriCache = getProjectCache(projectKey);
 
-  // Charger cache projet spécifique
-  let uriCache = loadCache(cacheFilePath);
-
-  const queries: Record<string, QueryInput> = req.body;
+  // Gérer les deux formats : OpenRefine et format direct
+  let queries: Record<string, QueryInput>;
+  try {
+    if (req.body.queries && typeof req.body.queries === "string") {
+      // Format OpenRefine
+      queries = JSON.parse(req.body.queries);
+    } else if (req.body && typeof req.body === "object") {
+      // Format direct (Swagger/API)
+      queries = req.body;
+    } else {
+      throw new Error("Invalid format");
+    }
+  } catch (error) {
+    return res.status(400).json({ error: "Invalid queries JSON format" });
+  }
 
   if (
     !queries ||
@@ -74,25 +102,22 @@ router.post("/", async (req, res) => {
 
   const responsePayload: Record<string, { result: any[] }> = {};
 
-  // Fonction updateCache locale avec sauvegarde dans fichier projet
+  // Fonction updateCache locale en mémoire
   function updateCache(name: string, results: any[]) {
     uriCache[name] = {
       results,
-      lastAccessed: new Date().toISOString(),
+      lastAccessed: new Date(),
     };
 
     // Nettoyage cache LRU
     const keys = Object.keys(uriCache);
     if (keys.length > CACHE_SIZE) {
       const oldestKey = keys.reduce((a, b) =>
-        new Date(uriCache[a].lastAccessed) < new Date(uriCache[b].lastAccessed)
-          ? a
-          : b
+        uriCache[a].lastAccessed < uriCache[b].lastAccessed ? a : b
       );
       delete uriCache[oldestKey];
+      console.log(`[uriLookup] 🧹 Cache LRU: suppression de "${oldestKey}"`);
     }
-
-    saveCache(cacheFilePath, uriCache);
   }
 
   for (const [key, qobj] of Object.entries(queries)) {
@@ -100,14 +125,16 @@ router.post("/", async (req, res) => {
     const escapedName = name.replace(/"/g, '\\"');
 
     if (uriCache[name]) {
-      console.log(`[uriLookup] ✅ "${name}" récupéré depuis le cache`);
-      uriCache[name].lastAccessed = new Date().toISOString();
-      saveCache(cacheFilePath, uriCache);
+      console.log(`[uriLookup] ✅ "${name}" récupéré depuis le cache mémoire`);
+      uriCache[name].lastAccessed = new Date();
 
       responsePayload[key] = {
         result: uriCache[name].results.map((r) => ({
           id: r.uri,
-          name,
+          name: name,
+          type: r.types || [
+            { id: "http://www.w3.org/2002/07/owl#Thing", name: "Thing" },
+          ],
           score: 100,
           match: true,
         })),
@@ -160,16 +187,28 @@ router.post("/", async (req, res) => {
         uri: b.x.value,
       }));
 
-      updateCache(name, results);
+      // Récupérer les types pour chaque résultat
+      const resultsWithTypes = await Promise.all(
+        results.map(async (r: any) => {
+          const types = await getEntityTypes(r.uri, SPARQL_ENDPOINT);
+          return {
+            ...r,
+            types: types,
+          };
+        })
+      );
+
+      updateCache(name, resultsWithTypes);
 
       console.log(
-        `[uriLookup] 🆕 "${name}" ajouté au cache avec ${results.length} résultat(s)`
+        `[uriLookup] 🆕 "${name}" ajouté au cache mémoire avec ${resultsWithTypes.length} résultat(s)`
       );
 
       responsePayload[key] = {
-        result: results.map((r: any) => ({
+        result: resultsWithTypes.map((r: any) => ({
           id: r.uri,
-          name,
+          name: name,
+          type: r.types,
           score: 100,
           match: true,
         })),
@@ -181,6 +220,19 @@ router.post("/", async (req, res) => {
   }
 
   return res.json(responsePayload);
+});
+
+router.get("/", (req, res) => {
+  const manifest = {
+    versions: ["0.2"],
+    name: "Reconciliation dbpedia-en",
+    identifierSpace: "https://services.sparnatural.eu/projects/dbpedia-en",
+    schemaSpace: "https://services.sparnatural.eu/projects/dbpedia-en",
+    view: {
+      url: "{{id}}",
+    },
+  };
+  res.json(manifest);
 });
 
 export default router;

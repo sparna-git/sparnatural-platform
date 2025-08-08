@@ -2,8 +2,6 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
-import fs from "fs";
-import yaml from "js-yaml";
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 
@@ -26,14 +24,10 @@ const swaggerDocument = YAML.load(path.join(__dirname, "../docs/openapi.yaml"));
 // CORS
 const corsOptions = {
   origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  credentials: false,
 };
-
-// Config YAML
-const config = yaml.load(
-  fs.readFileSync(path.join(__dirname, "../config/config.yaml"), "utf8")
-);
 
 // Logs généraux
 app.use((req, res, next) => {
@@ -43,6 +37,7 @@ app.use((req, res, next) => {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // Routes sécurisées
@@ -52,7 +47,18 @@ app.use(
   summarizeRoute
 );
 app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
-app.use("/api/v1/:projectKey/urilookup", checkDomainMiddleware, uriLookupRoute);
+app.use(
+  "/api/v1/:projectKey/urilookup",
+  (req, res, next) => {
+    console.log(`🔍 UriLookup request - ProjectKey: ${req.params.projectKey}`);
+    console.log(`📝 Method: ${req.method}`);
+    console.log(`📊 Query params:`, req.query);
+    console.log(`📦 Body:`, req.body);
+    console.log(`📋 Headers:`, req.headers);
+    next();
+  },
+  uriLookupRoute
+);
 // sparql endpoint
 app.use("/api/v1/:projectKey/sparql", sparqlRouter);
 
@@ -62,6 +68,10 @@ app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Acceuil de la plateforme
 app.use("/", platform);
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found", url: req.originalUrl });
+});
 
 // Start server
 app.listen(PORT, () => {
