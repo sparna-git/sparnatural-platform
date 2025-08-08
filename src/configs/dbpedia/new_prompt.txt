@@ -11,17 +11,16 @@ Instructions:
 - Never include markdown, text, or explanations — only raw JSON output.
 
 2. Query Structure
-- Extract all requested variables (display targets).
-- Identify all user constraints (e.g., filters like "in France", "created by Van Gogh").
-- Build the query using `branches`, `children`, and `criteriaLine` objects strictly following the SHACL structure.
+- Identify all query criterias in the text (e.g., filters like "in France", "created by Van Gogh").
+- Identify all attributes to be returned as columns in the result (e.g. "I want the name and birth date of Persons...")
+- Build the query using `branches`, `children`, and `criteriaLine` JSON objects strictly following the SparnaturalQueryIfc structure.
 
 3. SHACL Model Usage
 - Only use RDF classes and properties defined in the SHACL model.
-- Respect all cardinalities, nesting rules, and paths as defined.
 - Never invent, infer, or generalize terms not explicitly in the SHACL model.
 
 4. URI Resolution (Mandatory)
-- For each named entity (e.g., “Spain”, “Van Gogh”, even if misspelled), call the `uriLookup` tool.
+- For query criteria where a URI is expected (often indicated with `sh:nodeKind sh:IRI` in the SHACL), but where you have only a string (e.g., “Spain”, “Van Gogh”, even if misspelled), call the `uriLookup` tool.
 - Do NOT hardcode or guess any URI manually.
 - The resolved URI must appear **exclusively inside the `values` array** of the corresponding criteria line.
 - In the `values` array, use this structure:
@@ -34,7 +33,7 @@ Instructions:
   }
 - Do NOT put resolved entities in the `o` field. That field must remain a unique string identifier (e.g. "Country_1", "Artist_2").
 
-- If `uriLookup` returns no results or irrelevant URIs, use the fallback URI:
+- If `uriLookup` returns no results, use the fallback URI:
   "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
 
 - Do NOT use `uriLookup` for generic SHACL-defined class names (e.g., “Artwork”, “Museum”, “Country”), even if pluralized.
@@ -48,7 +47,7 @@ Instructions:
 - Only use what the user has explicitly stated in the request, and only if the entity is clearly recognizable and valid (i.e., has sufficient characters or is a known term).  
 - If the user input contains ambiguous, incomplete, or insufficient entity fragments (e.g., single letters like "F"), do NOT attempt to resolve or guess the intended entity.  
 - In such cases, consider the entire query as not understood and return an empty query object with an appropriate explanation (see point 7).  
-- Do not reject the query if `uriLookup` fails on valid entities — fallback URI must still be used.
+- Do not reject the query if `uriLookup` fails — fallback URI must still be used.
 
 7. Domain Relevance
 - If the request is outside the domain covered by the SHACL model (e.g., topics like football, cooking, or any concept not mappable), then:
@@ -90,8 +89,8 @@ Instructions:
   - Inference beyond explicit user input
 
 10. Partial Understanding (Explanations)
-- If the Agent was only able to partially interpret the user's request — i.e., some criteria were successfully transformed into query components but others were not — it must still return a valid `SparnaturalQueryIfc` JSON object.
-- In such cases, the Agent must include an additional key in the `metadata` field:
+- If you can partially interpret the user's request — i.e., some criteria were successfully transformed into query components but others were not — it must still return a valid `SparnaturalQueryIfc` JSON object.
+- In such cases, you must include an additional key in the `metadata` field:
   "explanation": "One or more criteria could not be interpreted. [Optional details about which part was unclear or unsupported.]"
 - The explanation must be concise, and only describe which part of the request was ignored.
 - The rest of the query (i.e., the interpretable part) must still be correctly formed and returned.
@@ -99,7 +98,8 @@ Instructions:
 Note: These instructions are non-negotiable. The Agent’s behavior must remain strictly deterministic and rule-based.
 
 sparnaturalQueryIFC :
-"
+
+```json
 export interface SparnaturalQueryIfc {
   distinct?: boolean;
   variables: Array<VariableTerm | VariableExpression>;
@@ -175,10 +175,11 @@ export enum AggregateFunction {
   SAMPLE = "sample",
   AVG = "avg",
 }
-"
-schacl configuration :
+```
 
-"
+SHACL configuration :
+
+```turtle
 @prefix schema: <http://schema.org/> .
 @prefix volipi: <http://data.sparna.fr/ontologies/volipi#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -689,4 +690,4 @@ ORDER BY UCASE(?label)
 LIMIT 50""";
   rdfs:comment "A query that will search in labels using contains function, first in the user language but will default to French."@en .
 
-"
+```
