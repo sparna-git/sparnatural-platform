@@ -7,7 +7,7 @@ const YAML = require("yamljs");
 
 import summarizeRoute from "./routes/query2text";
 import generateRoute from "./routes/text2query";
-import uriLookupRoute from "./routes/urilookup";
+import reconciliationRoute from "./routes/urilookup";
 import platform from "./routes/platform";
 import sparqlRouter from "./routes/sparql";
 
@@ -48,16 +48,18 @@ app.use(
 );
 app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
 app.use(
-  "/api/v1/:projectKey/urilookup",
+  "/api/v1/:projectKey/reconciliation",
   (req, res, next) => {
-    console.log(`🔍 UriLookup request - ProjectKey: ${req.params.projectKey}`);
+    console.log(
+      `🔍 reconciliation request - ProjectKey: ${req.params.projectKey}`
+    );
     console.log(`📝 Method: ${req.method}`);
     console.log(`📊 Query params:`, req.query);
     console.log(`📦 Body:`, req.body);
     console.log(`📋 Headers:`, req.headers);
     next();
   },
-  uriLookupRoute
+  reconciliationRoute
 );
 // sparql endpoint
 app.use("/api/v1/:projectKey/sparql", sparqlRouter);

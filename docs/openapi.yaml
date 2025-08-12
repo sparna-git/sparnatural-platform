@@ -135,10 +135,10 @@ paths:
                   error:
                     type: string
                     example: "Internal server error"
-  /api/v1/{projectKey}/urilookup:
+  /api/v1/{projectKey}/reconciliation:
     post:
       summary: Recherche d'URI à partir de plusieurs termes (format Reconciliation W3C)
-      tags: [URI Lookup]
+      tags: [Reconciliation]
       description: >
         Permet de rechercher des URI pour plusieurs termes en une seule requête,
         selon la spécification W3C Reconciliation (https://www.w3.org/community/reports/reconciliation/).

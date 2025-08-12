@@ -116,7 +116,9 @@ router.post("/", async (req, res) => {
         uriCache[a].lastAccessed < uriCache[b].lastAccessed ? a : b
       );
       delete uriCache[oldestKey];
-      console.log(`[uriLookup] 🧹 Cache LRU: suppression de "${oldestKey}"`);
+      console.log(
+        `[reconciliation] 🧹 Cache LRU: suppression de "${oldestKey}"`
+      );
     }
   }
 
@@ -125,7 +127,9 @@ router.post("/", async (req, res) => {
     const escapedName = name.replace(/"/g, '\\"');
 
     if (uriCache[name]) {
-      console.log(`[uriLookup] ✅ "${name}" récupéré depuis le cache mémoire`);
+      console.log(
+        `[reconciliation] ✅ "${name}" récupéré depuis le cache mémoire`
+      );
       uriCache[name].lastAccessed = new Date();
 
       responsePayload[key] = {
@@ -143,7 +147,7 @@ router.post("/", async (req, res) => {
     }
 
     console.log(
-      `[uriLookup] 🔍 "${name}" introuvable en cache – requête SPARQL...`
+      `[reconciliation] 🔍 "${name}" introuvable en cache – requête SPARQL...`
     );
 
     try {
@@ -201,7 +205,7 @@ router.post("/", async (req, res) => {
       updateCache(name, resultsWithTypes);
 
       console.log(
-        `[uriLookup] 🆕 "${name}" ajouté au cache mémoire avec ${resultsWithTypes.length} résultat(s)`
+        `[reconciliation] 🆕 "${name}" ajouté au cache mémoire avec ${resultsWithTypes.length} résultat(s)`
       );
 
       responsePayload[key] = {
