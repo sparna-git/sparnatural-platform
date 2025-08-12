@@ -8,7 +8,7 @@ const YAML = require("yamljs");
 import summarizeRoute from "./routes/query2text";
 import generateRoute from "./routes/text2query";
 import reconciliationRoute from "./routes/urilookup";
-import platform from "./routes/platform";
+import home from "./routes/home";
 import sparqlRouter from "./routes/sparql";
 
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
@@ -69,7 +69,7 @@ app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 //app.use("/api/monitoring", monitoringStatsRoute);
 
 // Acceuil de la plateforme
-app.use("/", platform);
+app.use("/", home);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found", url: req.originalUrl });

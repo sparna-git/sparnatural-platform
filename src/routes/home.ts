@@ -4,7 +4,7 @@ import path from "path";
 const router = express.Router();
 
 router.get("/", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../../views/platform.html"));
+  res.sendFile(path.resolve(__dirname, "../../views/home.html"));
 });
 
 export default router;
