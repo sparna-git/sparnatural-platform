@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Sparnatural Query2Text, Text2Query & URI Lookup API
+  title: Sparnatural Query2Text, Text2Query & Reconciliation API
   version: 1.0.0
   description: |
     Cette API fournit trois fonctionnalités principales pour interagir avec Sparnatural AI:
 
     - **Query2Text** : Convertit une requête JSON structurée en une phrase lisible en langage naturel.
     - **Text2Query** : Génère une requête JSON (au format Sparnatural) à partir d’une question ou d’une demande en langage naturel.
-    - **URI Lookup** : Rechercher des URI RDF pertinentes à partir d’un label (utile pour la réconciliation ou l’autocomplétion).
+    - **Reconciliation** : Rechercher des URI RDF pertinentes à partir d’un label (utile pour la réconciliation ou l’autocomplétion).
 
     Chaque route peut être personnalisée par projet (`projectKey`) et supporte plusieurs langues.
   tags:
@@ -15,7 +15,7 @@ info:
       description: Génération de texte en langage naturel depuis une requête JSON
     - name: Text2Query
       description: Génération d'une requête JSON à partir d'une phrase
-    - name: URI Lookup
+    - name: Reconciliation
       description: Recherche d'URI RDF pour un label donné
 
 paths:

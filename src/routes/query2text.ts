@@ -1,7 +1,7 @@
 import express from "express";
 import { getSummaryFromAgent } from "../services/agent";
 import config from "../config/config";
-import { logQueryToText } from "../utils/logger";
+import { logQueryToText } from "../utils/logBusiness"; // <-- on utilise la nouvelle fonction unifiée
 
 const router = express.Router({ mergeParams: true });
 

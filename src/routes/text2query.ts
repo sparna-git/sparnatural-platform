@@ -1,9 +1,8 @@
 import express from "express";
 import { getJsonFromAgent } from "../services/agent";
 import config from "../config/config";
-import { logTextToQuery } from "../utils/logger";
+import { logTextToQuery } from "../utils/logBusiness"; // <-- on utilise la nouvelle fonction unifiée
 import { EmptyRequestError } from "../errors/emptyRequestError";
-import e from "express";
 
 const router = express.Router({ mergeParams: true });
 
@@ -25,7 +24,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
       parsed.branches?.length === 0 &&
       parsed.metadata?.explanation
     ) {
-      return res.status(204).end(); // <-- ici 204 avec corps
+      return res.status(204).json(parsed); // <-- ici 204 avec corps
     } else {
       await logTextToQuery({
         projectKey,

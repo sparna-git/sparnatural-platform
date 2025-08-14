@@ -1,7 +1,7 @@
 import express from "express";
 import { Parser } from "sparqljs";
 import axios from "axios";
-import { logQuery } from "../utils/logger";
+import { logQuery } from "../utils/logBusiness"; // <-- changement ici
 import dns from "dns";
 import http from "http";
 import https from "https";
@@ -50,11 +50,9 @@ router.all("/", async (req, res) => {
   const endpoint = projectConfig.sparqlEndpoint;
   if (!endpoint) {
     console.error(`❌ No SPARQL endpoint configured for ${projectId}`);
-    return res
-      .status(500)
-      .json({
-        error: `No SPARQL endpoint configured for project ${projectId}`,
-      });
+    return res.status(500).json({
+      error: `No SPARQL endpoint configured for project ${projectId}`,
+    });
   }
 
   console.log("Using endpoint from config:", endpoint);
@@ -156,7 +154,7 @@ router.all("/", async (req, res) => {
       .json({ error: "SPARQL request failed", details: error.message });
   }
 
-  // Log final
+  // Log final (CSV + JSON rotatif)
   await logQuery({ projectKey: projectId, ip: req.ip, endpoint, query });
 });
 
