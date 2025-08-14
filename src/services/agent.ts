@@ -60,7 +60,7 @@ const tools = [
   {
     type: "function",
     function: {
-      name: "uriLookup",
+      name: "reconciliation",
       description: "Resolve a label and type into an RDF URI",
       parameters: {
         type: "object",
@@ -126,20 +126,20 @@ export async function getJsonFromAgent(
       const uriLookupBody: Record<string, { query: string }> = {};
 
       for (const toolCall of toolCalls) {
-        if (toolCall.function.name === "uriLookup") {
+        if (toolCall.function.name === "reconciliation") {
           const args = JSON.parse(toolCall.function.arguments);
-          console.log("[getJsonFromAgent] 📤 uriLookup args :", args);
+          console.log("[getJsonFromAgent] 📤 reconciliation args :", args);
           uriLookupBody[toolCall.id] = { query: args.name };
         }
       }
 
       const uriRes = await axios.post(
-        `http://localhost:3000/api/v1/${projectKey}/urilookup`,
+        `http://localhost:3000/api/v1/${projectKey}/reconciliation`,
         uriLookupBody
       );
 
       console.log(
-        "[getJsonFromAgent] ✅ Résultat uriLookup :",
+        "[getJsonFromAgent] ✅ Résultat reconciliation :",
         JSON.stringify(uriRes.data, null, 2)
       );
 
@@ -147,7 +147,7 @@ export async function getJsonFromAgent(
         ([toolCallId, result]) => ({
           role: "tool",
           tool_call_id: toolCallId,
-          name: "uriLookup",
+          name: "reconciliation",
           content: JSON.stringify(result),
         })
       );
@@ -159,7 +159,7 @@ export async function getJsonFromAgent(
       };
 
       console.log(
-        "[getJsonFromAgent] 🔁 Envoi de la 2e requête à Mistral après tous les uriLookup"
+        "[getJsonFromAgent] 🔁 Envoi de la 2e requête à Mistral après tous les reconciliation"
       );
 
       const secondResponse = await axios.post(
