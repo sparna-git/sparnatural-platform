@@ -1,11 +1,11 @@
 import express from "express";
 import { Parser } from "sparqljs";
 import axios from "axios";
-import { logQuery } from "../utils/logBusiness"; // <-- changement ici
 import dns from "dns";
 import http from "http";
 import https from "https";
 import config from "../config/config";
+import logger from "../utils/logger";
 
 const router = express.Router();
 const sparqlParser = new Parser();
@@ -155,7 +155,13 @@ router.all("/", async (req, res) => {
   }
 
   // Log final (CSV + JSON rotatif)
-  await logQuery({ projectKey: projectId, ip: req.ip, endpoint, query });
+  const projectKey = projectId;
+  const ip = req.ip;
+
+  await logger.info(
+    { projectKey, ip, endpoint, query },
+    "SPARQL query executed"
+  );
 });
 
 export default router;

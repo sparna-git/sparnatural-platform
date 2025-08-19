@@ -1,8 +1,8 @@
 import express from "express";
 import { getJsonFromAgent } from "../services/agent";
 import config from "../config/config";
-import { logTextToQuery } from "../utils/logBusiness"; // <-- on utilise la nouvelle fonction unifiée
 import { EmptyRequestError } from "../errors/emptyRequestError";
+import logger from "../utils/logger";
 
 const router = express.Router({ mergeParams: true });
 
@@ -26,11 +26,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     ) {
       return res.status(204).json(parsed); // <-- ici 204 avec corps
     } else {
-      await logTextToQuery({
-        projectKey,
-        text: text as string,
-        query: parsed,
-      });
+      logger.info({ projectKey, text, parsed }, "Text converted to SPARQL");
 
       return res.json(parsed);
     }
