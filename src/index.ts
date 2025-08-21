@@ -30,11 +30,12 @@ const corsOptions = {
 };
 
 // Logs généraux
+/*
 app.use((req, res, next) => {
   console.log(`🔍 ${req.method} ${req.originalUrl}`);
   next();
 });
-
+*/
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -47,6 +48,7 @@ app.use(
   summarizeRoute
 );
 app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
+
 app.use(
   "/api/v1/:projectKey/reconciliation",
   (req, res, next) => {
