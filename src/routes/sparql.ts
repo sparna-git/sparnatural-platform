@@ -27,7 +27,7 @@ router.all("/", async (req, res) => {
   // Support GET (query dans URL) et POST (query dans body)
   let query = req.method === "POST" ? req.body.query : req.query.query;
   let method = req.query.method;
-  let format = req.query.format;
+  let format = req.method === "POST" ? req.body.format : req.query.format;
 
   console.log("=== Nouvelle requête SPARQL ===");
   console.log("Project ID:", projectId);
@@ -78,29 +78,38 @@ router.all("/", async (req, res) => {
       .json({ error: "Invalid SPARQL query", details: (e as Error).message });
   }
 
-  // Déterminer le type de retour
-  let contentType = "application/sparql-results+xml";
+  // Déterminer le type de retour avec Express accepts()
+  let contentType: string;
   if (format) {
-    if (format === "json") contentType = "application/sparql-results+json";
-  } else if (accept) {
-    switch (accept) {
-      case "application/json":
-      case "application/sparql-results+json":
+    switch (format) {
+      case "json":
         contentType = "application/sparql-results+json";
         break;
-      case "text/csv":
+      case "xml":
+        contentType = "application/sparql-results+xml";
+        break;
+      case "csv":
         contentType = "text/csv";
         break;
-      case "text/tab-separated-values":
+      case "tsv":
         contentType = "text/tab-separated-values";
         break;
-      case "text/turtle":
+      case "turtle":
         contentType = "text/turtle";
         break;
       default:
         contentType = "application/sparql-results+xml";
         break;
     }
+  } else {
+    const preferred = req.accepts([
+      "application/sparql-results+json",
+      "application/sparql-results+xml",
+      "text/csv",
+      "text/tab-separated-values",
+      "text/turtle",
+    ]);
+    contentType = preferred || "application/sparql-results+xml";
   }
 
   console.log("🧾 Content-Type to return:", contentType);
