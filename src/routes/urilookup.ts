@@ -71,8 +71,9 @@ async function runSparqlSearch(
 
   const query1 = `
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
     SELECT ?x WHERE {
-      ?x rdfs:label ?literal .
+      ?x rdfs:label|foaf:name ?literal .
       FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
     }
     LIMIT ${MAX_RESULTS}
@@ -91,8 +92,10 @@ async function runSparqlSearch(
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
         PREFIX dct: <http://purl.org/dc/terms/>
+        PREFIX dc: <http://purl.org/dc/elements/1.1/>
+        PREFIX schema: <http://schema.org/>
         SELECT ?x WHERE {
-          ?x skos:prefLabel|skos:altLabel|skos:notation|foaf:name|dct:title ?literal .
+          ?x skos:prefLabel|skos:altLabel|skos:notation|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
           FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
         }
         LIMIT ${MAX_RESULTS}
@@ -204,6 +207,14 @@ async function reconcileQueries(
     ) {
       uriCache[cacheKey].lastAccessed = new Date();
       responsePayload[key] = { result: uriCache[cacheKey].results };
+      // Affiche la valeur choisie depuis le cache
+      if (uriCache[cacheKey].results.length > 0) {
+        console.log(
+          `[reconciliation] 🔎 "${name}" → "${uriCache[cacheKey].results[0].id}"`
+        );
+      } else {
+        console.log(`[reconciliation] 🔎 "${name}" → aucun résultat`);
+      }
       continue;
     }
 
@@ -218,6 +229,13 @@ async function reconcileQueries(
 
     updateCache(uriCache, cacheKey, results);
     responsePayload[key] = { result: results };
+
+    // Affiche la valeur choisie par la reconciliation
+    if (results.length > 0) {
+      console.log(`[reconciliation] 🔎 "${name}" → "${results[0].id}"`);
+    } else {
+      console.log(`[reconciliation] 🔎 "${name}" → aucun résultat`);
+    }
   }
 
   return responsePayload;
