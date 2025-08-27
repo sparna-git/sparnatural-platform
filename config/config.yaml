@@ -2,7 +2,7 @@ log:
   directory: ./logs
 projects:
   dbpedia-en:
-    shaclFile: ./src/config/dbpedia/config.ttl
+    shaclFile: ./config/dbpedia-en/config.ttl
     sparqlEndpoint: https://dbpedia.org/sparql
     endpoints-agents:
       MISTRAL_AGENT_ID_query_2_text: ag:33fd9714:20250507:untitled-agent:d1fc8155
