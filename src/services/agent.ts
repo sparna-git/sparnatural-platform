@@ -93,13 +93,16 @@ export async function getJsonFromAgent(
     const parsed = JSON.parse(rawClean);
 
     // 2. Chercher les labels avec URI_NOT_FOUND
-    const labelsToResolve: Record<string, { query: string }> = {};
+    const labelsToResolve: Record<string, { query: string; type?: string }> =
+      {};
     let idx = 0;
 
-    function collectLabels(obj: any) {
+    // Récupérer les labels
+    function collectLabels(obj: any, parentType?: string) {
       if (Array.isArray(obj)) {
-        obj.forEach(collectLabels);
+        obj.forEach((item) => collectLabels(item, parentType));
       } else if (obj && typeof obj === "object") {
+        // Si on est dans un "values" avec URI_NOT_FOUND
         if (
           obj.label &&
           obj.rdfTerm &&
@@ -107,13 +110,30 @@ export async function getJsonFromAgent(
           obj.rdfTerm.value ===
             "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
         ) {
-          labelsToResolve[`label_${idx++}`] = { query: obj.label };
+          labelsToResolve[`label_${idx++}`] = {
+            query: obj.label,
+            type: parentType || undefined,
+          };
         }
-        Object.values(obj).forEach(collectLabels);
+
+        // Si c'est un "line", passer le type aux enfants et NE PAS reparcourir "line.values" dans Object.values()
+        if (obj.line && obj.line.values) {
+          obj.line.values.forEach((v: any) =>
+            collectLabels(v, obj.line.oType || obj.line.sType)
+          );
+        }
+
+        // Parcours récursif des autres clés sauf "values" (qu’on a déjà traitées)
+        Object.entries(obj).forEach(([key, v]) => {
+          if (key !== "values") {
+            collectLabels(v, parentType);
+          }
+        });
       }
     }
-    collectLabels(parsed);
 
+    collectLabels(parsed);
+    console.log(`[getJsonFromAgent] 🏷️ Labels à résoudre :`, labelsToResolve);
     // 3. Appeler la reconciliation si besoin
     if (Object.keys(labelsToResolve).length > 0) {
       console.log(
