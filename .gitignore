@@ -3,4 +3,5 @@ node_modules/
 package-lock.json
 deploy.sh
 cache/
-src/logs/
+logs/
+
