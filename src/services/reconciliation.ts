@@ -59,28 +59,52 @@ export function formatResults(uriList: string[], name: string) {
   }));
 }
 
+export async function formatResultsWithTypes(
+  uriList: string[],
+  name: string,
+  sparqlEndpoint: string
+) {
+  const results = [];
+  for (const uri of uriList) {
+    const types = await getEntityTypes(uri, sparqlEndpoint);
+    results.push({
+      id: uri,
+      name,
+      type: types,
+      score: 100,
+      match: true,
+    });
+  }
+  return results;
+}
+
 export async function runSparqlSearch(
   name: string,
   sparqlEndpoint: string,
-  typeUri?: string
+  typeUri?: string,
+  includeTypes: boolean = false
 ): Promise<string[]> {
   const escapedName = name.replace(/"/g, '\\"');
-
-  const nodeShape = typeUri ? SCHACLconfig[typeUri] : undefined;
-
-  if (!nodeShape) {
-    throw new Error(`NodeShape non trouvé pour typeUri=${typeUri}`);
-  }
-
-  // Récupérer le sh:targetClass
-  const targetClass = nodeShape["http://www.w3.org/ns/shacl#targetClass"];
-
-  console.log("Target class:", targetClass);
-
-  // Construire le filtre SPARQL
   let typeFilter = "";
-  if (targetClass) {
-    typeFilter = `?x a <${targetClass}> .`;
+
+  if (typeUri) {
+    if (includeTypes) {
+      // Mode OpenRefine → pas de SHACL, on prend le typeUri tel quel
+      typeFilter = `?x a <${typeUri}> .`;
+    } else {
+      // Mode simple reconciliation → on passe par SCHACLconfig
+      const nodeShape = SCHACLconfig[typeUri];
+      if (!nodeShape) {
+        throw new Error(`NodeShape non trouvé pour typeUri=${typeUri}`);
+      }
+
+      const targetClass = nodeShape["http://www.w3.org/ns/shacl#targetClass"];
+      console.log("Target class:", targetClass);
+
+      if (targetClass) {
+        typeFilter = `?x a <${targetClass}> .`;
+      }
+    }
   }
 
   const query1 = `
@@ -130,6 +154,27 @@ export async function runSparqlSearch(
   return bindings.map((b) => b.x.value);
 }
 
+export async function buildManifest(
+  projectKey: string,
+  sparqlEndpoint: string
+) {
+  return {
+    versions: ["0.2"],
+    name: `Reconciliation ${projectKey}`,
+    identifierSpace: `https://services.sparnatural.eu/projects/${projectKey}`,
+    schemaSpace: `https://services.sparnatural.eu/projects/${projectKey}`,
+    view: { url: "{{id}}" },
+    defaultTypes: [],
+    types: [],
+    features: {
+      "property-search": false,
+      "type-search": false,
+      preview: false,
+      suggest: false,
+    },
+  };
+}
+
 export async function getEntityTypes(
   uri: string,
   sparqlEndpoint: string
@@ -162,25 +207,6 @@ export async function getEntityTypes(
   }
 }
 
-export async function formatResultsWithTypes(
-  uriList: string[],
-  name: string,
-  sparqlEndpoint: string
-) {
-  const results = [];
-  for (const uri of uriList) {
-    const types = await getEntityTypes(uri, sparqlEndpoint);
-    results.push({
-      id: uri,
-      name,
-      type: types,
-      score: 100,
-      match: true,
-    });
-  }
-  return results;
-}
-
 export async function reconcileQueries(
   queries: Record<string, QueryInput>,
   sparqlEndpoint: string,
@@ -193,7 +219,9 @@ export async function reconcileQueries(
   for (const [key, qobj] of Object.entries(queries)) {
     const name = qobj.query.trim();
     const cacheKey = encodeURIComponent(
-      name.toLowerCase() + (qobj.type ? `|${qobj.type}` : "")
+      name.toLowerCase() +
+        (qobj.type ? `|${qobj.type}` : "") +
+        (includeTypes ? "|openrefine" : "|simple")
     );
 
     if (
@@ -212,7 +240,12 @@ export async function reconcileQueries(
       continue;
     }
 
-    const uris = await runSparqlSearch(name, sparqlEndpoint, qobj.type);
+    const uris = await runSparqlSearch(
+      name,
+      sparqlEndpoint,
+      qobj.type,
+      includeTypes
+    );
 
     let results;
     if (includeTypes) {
@@ -232,25 +265,4 @@ export async function reconcileQueries(
   }
 
   return responsePayload;
-}
-
-export async function buildManifest(
-  projectKey: string,
-  sparqlEndpoint: string
-) {
-  return {
-    versions: ["0.2"],
-    name: `Reconciliation ${projectKey}`,
-    identifierSpace: `https://services.sparnatural.eu/projects/${projectKey}`,
-    schemaSpace: `https://services.sparnatural.eu/projects/${projectKey}`,
-    view: { url: "{{id}}" },
-    defaultTypes: [],
-    types: [],
-    features: {
-      "property-search": false,
-      "type-search": false,
-      preview: false,
-      suggest: false,
-    },
-  };
 }
