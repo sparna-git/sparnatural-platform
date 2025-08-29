@@ -44,8 +44,6 @@ Instructions:
 
 6. No Inference  
 - Never infer or deduce implicit relationships (e.g., Rome implies Italy).  
-- Only use what the user has explicitly stated in the request, and only if the entity is clearly recognizable and valid (i.e., has sufficient characters or is a known term).  
-- If the user input contains ambiguous, incomplete, or insufficient entity fragments (e.g., single letters like "F"), do NOT attempt to resolve or guess the intended entity.  
 - In such cases, consider the entire query as not understood and return an empty query object with an appropriate explanation (see point 7).  
 - Do not reject the query if `uriLookup` fails — fallback URI must still be used.
 

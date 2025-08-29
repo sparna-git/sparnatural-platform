@@ -2,11 +2,12 @@ log:
   directory: ./logs
 projects:
   dbpedia-en:
-    shaclFile: ./src/config/dbpedia/config.ttl
+    shaclFile: ./config/dbpedia-en/config.ttl
     sparqlEndpoint: https://dbpedia.org/sparql
     endpoints-agents:
       MISTRAL_AGENT_ID_query_2_text: ag:33fd9714:20250507:untitled-agent:d1fc8155
       MISTRAL_AGENT_ID_text_2_query: ag:33fd9714:20250624:text2query:a7d9abe6
+      MISTRAL_AGENT_ID_text_2_query_TEST: ag:33fd9714:20250822:t2q-post-process:a046f692
     domains:
       - sparna-git.github.io
     cache:

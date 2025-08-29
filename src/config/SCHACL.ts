@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { Parser } from "n3";
 
-const SCHACLPath = path.join(__dirname, "../../config/dbpedia/config.ttl"); // chemin par défaut
+const SCHACLPath = path.join(__dirname, "../../config/dbpedia-en/config.ttl"); // chemin par défaut
 
 console.log("Lecture du fichier de config:", SCHACLPath);
 
