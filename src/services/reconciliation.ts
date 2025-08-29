@@ -1,5 +1,5 @@
 import axios from "axios";
-import SCHACLconfig from "../config/SCHACL";
+import { getSHACLConfig } from "../config/SCHACL";
 
 const MAX_RESULTS = 10;
 const CACHE_SIZE = 1000;
@@ -82,8 +82,17 @@ export async function runSparqlSearch(
   name: string,
   sparqlEndpoint: string,
   typeUri?: string,
-  includeTypes: boolean = false
+  includeTypes: boolean = false,
+  projectKey?: string | undefined
 ): Promise<string[]> {
+  if (!projectKey) {
+    throw new Error("projectKey is required for SHACL config loading.");
+  }
+  console.log(
+    `Chargement de la configuration SHACL pour le projet ${projectKey}`
+  );
+  // Récupérer la config SHACL (mise en cache automatiquement)
+  const SCHACLconfig = getSHACLConfig(projectKey);
   const escapedName = name.replace(/"/g, '\\"');
   let typeFilter = "";
 
@@ -244,7 +253,8 @@ export async function reconcileQueries(
       name,
       sparqlEndpoint,
       qobj.type,
-      includeTypes
+      includeTypes,
+      projectKey
     );
 
     let results;

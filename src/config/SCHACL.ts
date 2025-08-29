@@ -1,29 +1,50 @@
-// src/config/config.ts
+// src/config/SHACL.ts
 import fs from "fs";
 import path from "path";
 import { Parser } from "n3";
+import config from "./config";
 
-const SCHACLPath = path.join(__dirname, "../../config/dbpedia-en/config.ttl"); // chemin par défaut
+// Cache en mémoire pour les configurations SHACL
+const SHACL_CACHE: Record<string, Record<string, any>> = {};
 
-console.log("Lecture du fichier de config:", SCHACLPath);
+export function getSHACLConfig(projectKey: string): Record<string, any> {
+  // Si la config est déjà en cache
+  if (SHACL_CACHE[projectKey]) {
+    console.log(
+      `[SHACL] ✅ Configuration chargée depuis le cache pour ${projectKey}`
+    );
+    return SHACL_CACHE[projectKey];
+  }
 
-// Lire le fichier Turtle
-const ttl = fs.readFileSync(SCHACLPath, "utf8");
+  // Sinon, on la charge depuis le fichier
+  const shaclFilePath = config.projects[projectKey]?.shaclFile;
+  if (!shaclFilePath) {
+    throw new Error(
+      `Aucun fichier SHACL configuré pour le projet ${projectKey}`
+    );
+  }
 
-// Parser le Turtle avec n3
-const parser = new Parser();
-const quads = parser.parse(ttl);
+  const absolutePath = path.join(__dirname, "../../", shaclFilePath);
+  console.log(
+    `[SHACL] 📖 Lecture du fichier pour ${projectKey}: ${absolutePath}`
+  );
 
-// Transformer les triples en un objet par NodeShape
-const SCHACLconfig: Record<string, any> = {};
+  // Lire et parser le fichier Turtle
+  const ttl = fs.readFileSync(absolutePath, "utf8");
+  const parser = new Parser();
+  const quads = parser.parse(ttl);
 
-for (const quad of quads) {
-  const subject = quad.subject.value;
-  const predicate = quad.predicate.value;
-  const object = quad.object.value;
+  // Transformer les triples en objet
+  const SCHACLconfig: Record<string, any> = {};
+  for (const quad of quads) {
+    const subject = quad.subject.value;
+    const predicate = quad.predicate.value;
+    const object = quad.object.value;
+    if (!SCHACLconfig[subject]) SCHACLconfig[subject] = {};
+    SCHACLconfig[subject][predicate] = object;
+  }
 
-  if (!SCHACLconfig[subject]) SCHACLconfig[subject] = {};
-  SCHACLconfig[subject][predicate] = object;
+  // Stocker en cache
+  SHACL_CACHE[projectKey] = SCHACLconfig;
+  return SCHACLconfig;
 }
-
-export default SCHACLconfig;
