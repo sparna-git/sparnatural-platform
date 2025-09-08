@@ -7,7 +7,7 @@ const YAML = require("yamljs");
 
 import summarizeRoute from "./routes/query2text";
 import generateRoute from "./routes/text2query";
-import reconciliationRoute from "./routes/urilookup";
+import reconciliationRoute from "./routes/reconcile";
 import home from "./routes/home";
 import sparqlRouter from "./routes/sparql";
 
