@@ -77,7 +77,13 @@ app.use((req, res) => {
   res.status(404).json({ error: "Route not found", url: req.originalUrl });
 });
 
-// Start server
+// === Vérification de la clé Mistral avant lancement ===
+if (!process.env.MISTRAL_API_KEY) {
+  console.error("❌ Erreur critique : MISTRAL_API_KEY non définie.");
+  process.exit(1); // Arrêt immédiat du serveur
+}
+
+// === Démarrage du serveur ===
 app.listen(PORT, () => {
   console.log(`✅ Sparnatural service API listening on port ${PORT}`);
 });
