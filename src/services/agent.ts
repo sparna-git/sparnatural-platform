@@ -3,6 +3,7 @@ import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
 import config from "../config/config";
 import { EmptyRequestError } from "../errors/emptyRequestError";
+import { reconcileQueries, parseQueries } from "../services/reconciliation";
 
 // Set Mistral agent IDs from config
 const agentIdQueryToText =
@@ -98,34 +99,35 @@ export async function getJsonFromAgent(
     let idx = 0;
 
     // Récupérer les labels
+    // --- collectLabels adapté au nouveau modèle ---
     function collectLabels(obj: any, parentType?: string) {
       if (Array.isArray(obj)) {
         obj.forEach((item) => collectLabels(item, parentType));
       } else if (obj && typeof obj === "object") {
-        // Si on est dans un "values" avec URI_NOT_FOUND
+        // Cas spécifique : LabelledCriteria<RdfTermCriteria>
         if (
-          obj.label &&
-          obj.rdfTerm &&
-          obj.rdfTerm.type === "uri" &&
-          obj.rdfTerm.value ===
+          obj.criteria &&
+          obj.criteria.rdfTerm &&
+          obj.criteria.rdfTerm.type === "uri" &&
+          obj.criteria.rdfTerm.value ===
             "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
         ) {
           labelsToResolve[`label_${idx++}`] = {
-            query: obj.label,
+            query: obj.label, // label vient du LabelledCriteria
             type: parentType || undefined,
           };
         }
 
-        // Si c'est un "line", passer le type aux enfants et NE PAS reparcourir "line.values" dans Object.values()
-        if (obj.line && obj.line.values) {
-          obj.line.values.forEach((v: any) =>
-            collectLabels(v, obj.line.oType || obj.line.sType)
+        // Si c'est un line avec criterias, on les parcourt
+        if (obj.line && obj.line.criterias) {
+          obj.line.criterias.forEach((c: any) =>
+            collectLabels(c, obj.line.oType || obj.line.sType)
           );
         }
 
-        // Parcours récursif des autres clés sauf "values" (qu’on a déjà traitées)
+        // Parcours récursif des autres champs
         Object.entries(obj).forEach(([key, v]) => {
-          if (key !== "values") {
+          if (key !== "criterias") {
             collectLabels(v, parentType);
           }
         });
@@ -142,33 +144,51 @@ export async function getJsonFromAgent(
         } label(s):`,
         Object.values(labelsToResolve).map((l) => l.query)
       );
-      const uriRes = await axios.post(
-        `http://localhost:3000/api/v1/${projectKey}/reconciliation`,
-        labelsToResolve
+
+      // 🔄 Direct call au lieu d'un POST HTTP
+      const SPARQL_ENDPOINT = config.projects[projectKey]?.sparqlEndpoint;
+      if (!SPARQL_ENDPOINT) {
+        throw new Error(
+          "SPARQL endpoint not configured for project " + projectKey
+        );
+      }
+
+      const queries = parseQueries(labelsToResolve);
+      const uriRes = await reconcileQueries(
+        queries,
+        SPARQL_ENDPOINT,
+        projectKey,
+        false // includeTypes si besoin
       );
 
       // 4. Remplacer les URI_NOT_FOUND par les URI trouvées
       let resolvedIdx = 0;
+
+      // fonction récursive pour injecter les URIs
       function injectUris(obj: any) {
         if (Array.isArray(obj)) {
           obj.forEach(injectUris);
         } else if (obj && typeof obj === "object") {
+          // Cas spécifique : LabelledCriteria<RdfTermCriteria>
           if (
-            obj.label &&
-            obj.rdfTerm &&
-            obj.rdfTerm.type === "uri" &&
-            obj.rdfTerm.value ===
+            obj.criteria &&
+            obj.criteria.rdfTerm &&
+            obj.criteria.rdfTerm.type === "uri" &&
+            obj.criteria.rdfTerm.value ===
               "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
           ) {
             const key = `label_${resolvedIdx++}`;
-            const foundUri = uriRes.data[key]?.result?.[0]?.id;
+            const foundUri = uriRes[key]?.result?.[0]?.id; // ⚠️ plus de `.data`
             if (foundUri) {
-              obj.rdfTerm.value = foundUri;
+              obj.criteria.rdfTerm.value = foundUri;
             }
           }
+
           Object.values(obj).forEach(injectUris);
         }
       }
+
+      // Injection des URIs
       injectUris(parsed);
 
       // Supprimer metadata si présent
