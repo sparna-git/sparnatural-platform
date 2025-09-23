@@ -3,6 +3,7 @@ import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
 import config from "../config/config";
 import { EmptyRequestError } from "../errors/emptyRequestError";
+import { reconcileQueries, parseQueries } from "../services/reconciliation";
 
 // Set Mistral agent IDs from config
 const agentIdQueryToText =
@@ -11,7 +12,7 @@ const agentIdQueryToText =
   ];
 const agentIdTextToQuery =
   config["projects"]["dbpedia-en"]["endpoints-agents"][
-    "MISTRAL_AGENT_ID_text_2_query"
+    "MISTRAL_AGENT_ID_text_2_query_TEST"
   ];
 
 /**
@@ -56,49 +57,24 @@ export async function getSummaryFromAgent(
     return "Erreur lors de la génération du résumé avec Mistral.";
   }
 }
-const tools = [
-  {
-    type: "function",
-    function: {
-      name: "reconciliation",
-      description: "Resolve a label and type into an RDF URI",
-      parameters: {
-        type: "object",
-        properties: {
-          name: {
-            type: "string",
-            description: "The label to look up (e.g., 'France')",
-          },
-        },
-        required: ["name"],
-      },
-    },
-  },
-];
 
 export async function getJsonFromAgent(
   naturalLanguageQuery: string,
   projectKey: string
 ): Promise<z.infer<typeof SparnaturalQuery>> {
-  const messageContent = naturalLanguageQuery;
-  const userMessage = { role: "user", content: messageContent };
+  const userMessage = { role: "user", content: naturalLanguageQuery };
 
   function extractJsonFromMarkdown(text: string): string {
     return text.replace(/^```json\s*/, "").replace(/\s*```$/, "");
   }
 
-  console.log("[getJsonFromAgent] Début de la fonction");
-  console.log("[getJsonFromAgent] Message utilisateur :", messageContent);
-
   try {
-    console.log("[getJsonFromAgent] 🔁 Envoi de la 1re requête à Mistral");
-    const firstResponse = await axios.post(
+    // 1. Appel à l'agent IA (sans tools)
+    const response = await axios.post(
       "https://api.mistral.ai/v1/agents/completions",
       {
         agent_id: agentIdTextToQuery,
         messages: [userMessage],
-        tools,
-        tool_choice: "auto",
         response_format: { type: "text" },
       },
       {
@@ -109,149 +85,129 @@ export async function getJsonFromAgent(
       }
     );
 
-    const firstChoice = firstResponse.data.choices?.[0];
-    const toolCalls = firstChoice?.message?.tool_calls;
-
-    console.log(
-      "[getJsonFromAgent] 🧠 Reçu :",
-      JSON.stringify(firstChoice, null, 2)
-    );
-
-    if (toolCalls && toolCalls.length > 0) {
-      console.log(
-        `[getJsonFromAgent] 🛠️ ${toolCalls.length} outil(s) détecté(s)`
-      );
-
-      // Regrouper tous les appels uriLookup
-      const uriLookupBody: Record<string, { query: string }> = {};
-
-      for (const toolCall of toolCalls) {
-        if (toolCall.function.name === "reconciliation") {
-          const args = JSON.parse(toolCall.function.arguments);
-          console.log("[getJsonFromAgent] 📤 reconciliation args :", args);
-          uriLookupBody[toolCall.id] = { query: args.name };
-        }
-      }
-
-      const uriRes = await axios.post(
-        `http://localhost:3000/api/v1/${projectKey}/reconciliation`,
-        uriLookupBody
-      );
-
-      console.log(
-        "[getJsonFromAgent] ✅ Résultat reconciliation :",
-        JSON.stringify(uriRes.data, null, 2)
-      );
-
-      const toolResponses = Object.entries(uriRes.data).map(
-        ([toolCallId, result]) => ({
-          role: "tool",
-          tool_call_id: toolCallId,
-          name: "reconciliation",
-          content: JSON.stringify(result),
-        })
-      );
-
-      const assistantMessage = {
-        role: "assistant",
-        content: "Résultats des tool calls résolus.",
-        tool_calls: toolCalls,
-      };
-
-      console.log(
-        "[getJsonFromAgent] 🔁 Envoi de la 2e requête à Mistral après tous les reconciliation"
-      );
-
-      const secondResponse = await axios.post(
-        "https://api.mistral.ai/v1/agents/completions",
-        {
-          agent_id: agentIdTextToQuery,
-          messages: [userMessage, assistantMessage, ...toolResponses],
-          response_format: { type: "text" },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const raw = secondResponse.data.choices?.[0]?.message?.content;
-      console.log("[getJsonFromAgent] 📥 Réponse brute 2e appel :", raw);
-
-      if (!raw || raw.trim() === "") {
-        throw new Error("Réponse vide après appel outil");
-      }
-
-      const rawClean = extractJsonFromMarkdown(raw);
-      const parsed = JSON.parse(rawClean);
-
-      if (
-        "error" in parsed &&
-        (typeof parsed.error === "string" || typeof parsed.error === "object")
-      ) {
-        console.warn(
-          "[getJsonFromAgent] ⚠️ Erreur retournée par l'agent :",
-          parsed.error
-        );
-        throw new EmptyRequestError(
-          typeof parsed.error === "string"
-            ? parsed.error
-            : parsed.error.message || "Erreur de génération de la requête JSON"
-        );
-      }
-
-      const validated = SparnaturalQuery.parse(parsed);
-      console.log("[getJsonFromAgent] ✅ JSON validé après outil :", validated);
-      return validated;
-    } else {
-      console.log("[getJsonFromAgent] ⚠️ Pas de toolCalls – réponse directe");
-
-      const raw = firstChoice?.message?.content;
-      console.log("[getJsonFromAgent] 📥 Réponse brute sans outil :", raw);
-
-      if (!raw || raw.trim() === "") {
-        throw new Error("Réponse vide sans outil");
-      }
-
-      const rawClean = extractJsonFromMarkdown(raw);
-      const parsed = JSON.parse(rawClean);
-
-      if (
-        "error" in parsed &&
-        (typeof parsed.error === "string" || typeof parsed.error === "object")
-      ) {
-        console.warn(
-          "[getJsonFromAgent] ⚠️ Erreur retournée par l'agent :",
-          parsed.error
-        );
-        throw new EmptyRequestError(
-          typeof parsed.error === "string"
-            ? parsed.error
-            : parsed.error.message || "Erreur de génération de la requête JSON"
-        );
-      }
-
-      console.log("[getJsonFromAgent] 📦 JSON extrait :", parsed);
-      const validated = SparnaturalQuery.parse(parsed);
-      console.log("[getJsonFromAgent] ✅ JSON validé sans outil :", validated);
-      return validated;
+    const raw = response.data.choices?.[0]?.message?.content;
+    if (!raw || raw.trim() === "") {
+      throw new Error("Réponse vide de l'agent IA");
     }
+
+    const rawClean = extractJsonFromMarkdown(raw);
+    const parsed = JSON.parse(rawClean);
+
+    // 2. Chercher les labels avec URI_NOT_FOUND
+    const labelsToResolve: Record<string, { query: string; type?: string }> =
+      {};
+    let idx = 0;
+
+    // Récupérer les labels
+    // --- collectLabels adapté au nouveau modèle ---
+    function collectLabels(obj: any, parentType?: string) {
+      if (Array.isArray(obj)) {
+        obj.forEach((item) => collectLabels(item, parentType));
+      } else if (obj && typeof obj === "object") {
+        // Cas spécifique : LabelledCriteria<RdfTermCriteria>
+        if (
+          obj.criteria &&
+          obj.criteria.rdfTerm &&
+          obj.criteria.rdfTerm.type === "uri" &&
+          obj.criteria.rdfTerm.value ===
+            "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
+        ) {
+          labelsToResolve[`label_${idx++}`] = {
+            query: obj.label, // label vient du LabelledCriteria
+            type: parentType || undefined,
+          };
+        }
+
+        // Si c'est un line avec criterias, on les parcourt
+        if (obj.line && obj.line.criterias) {
+          obj.line.criterias.forEach((c: any) =>
+            collectLabels(c, obj.line.oType || obj.line.sType)
+          );
+        }
+
+        // Parcours récursif des autres champs
+        Object.entries(obj).forEach(([key, v]) => {
+          if (key !== "criterias") {
+            collectLabels(v, parentType);
+          }
+        });
+      }
+    }
+
+    collectLabels(parsed);
+    console.log(`[getJsonFromAgent] 🏷️ Labels à résoudre :`, labelsToResolve);
+    // 3. Appeler la reconciliation si besoin
+    if (Object.keys(labelsToResolve).length > 0) {
+      console.log(
+        `[getJsonFromAgent] 🔎 Reconciliation utilisée pour ${
+          Object.keys(labelsToResolve).length
+        } label(s):`,
+        Object.values(labelsToResolve).map((l) => l.query)
+      );
+
+      // 🔄 Direct call au lieu d'un POST HTTP
+      const SPARQL_ENDPOINT = config.projects[projectKey]?.sparqlEndpoint;
+      if (!SPARQL_ENDPOINT) {
+        throw new Error(
+          "SPARQL endpoint not configured for project " + projectKey
+        );
+      }
+
+      const queries = parseQueries(labelsToResolve);
+      const uriRes = await reconcileQueries(
+        queries,
+        SPARQL_ENDPOINT,
+        projectKey,
+        false // includeTypes si besoin
+      );
+
+      // 4. Remplacer les URI_NOT_FOUND par les URI trouvées
+      let resolvedIdx = 0;
+
+      // fonction récursive pour injecter les URIs
+      function injectUris(obj: any) {
+        if (Array.isArray(obj)) {
+          obj.forEach(injectUris);
+        } else if (obj && typeof obj === "object") {
+          // Cas spécifique : LabelledCriteria<RdfTermCriteria>
+          if (
+            obj.criteria &&
+            obj.criteria.rdfTerm &&
+            obj.criteria.rdfTerm.type === "uri" &&
+            obj.criteria.rdfTerm.value ===
+              "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
+          ) {
+            const key = `label_${resolvedIdx++}`;
+            const foundUri = uriRes[key]?.result?.[0]?.id; // ⚠️ plus de `.data`
+            if (foundUri) {
+              obj.criteria.rdfTerm.value = foundUri;
+            }
+          }
+
+          Object.values(obj).forEach(injectUris);
+        }
+      }
+
+      // Injection des URIs
+      injectUris(parsed);
+
+      // Supprimer metadata si présent
+      if ("metadata" in parsed) {
+        delete parsed.metadata;
+        console.log(
+          "[getJsonFromAgent] 🧹 Clé 'metadata' supprimée après reconciliation."
+        );
+      }
+    } else {
+      console.log("[getJsonFromAgent] ✅ Pas de reconciliation nécessaire.");
+    }
+
+    // 5. Valider et retourner
+    const validated = SparnaturalQuery.parse(parsed);
+    return validated;
   } catch (error: any) {
-    if (error instanceof EmptyRequestError) {
-      throw error;
-    }
-
-    if (error?.response?.data) {
-      console.error(
-        "[getJsonFromAgent] ❌ Erreur axios :",
-        JSON.stringify(error.response.data, null, 2)
-      );
-    } else {
-      console.error("[getJsonFromAgent] ❌ Erreur :", error.message || error);
-    }
-
+    if (error instanceof EmptyRequestError) throw error;
+    console.error("[getJsonFromAgent] ❌ Erreur :", error.message || error);
     throw new Error("Erreur lors de la génération ou validation du JSON");
   }
 }
