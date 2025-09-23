@@ -118,10 +118,9 @@ export async function runSparqlSearch(
 
   const query1 = `
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
     SELECT ?x WHERE {
       ${typeFilter}
-      ?x rdfs:label|foaf:name ?literal .
+      ?x rdfs:label ?literal .
       FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
     }
     LIMIT ${MAX_RESULTS}
@@ -144,7 +143,7 @@ export async function runSparqlSearch(
         PREFIX schema: <http://schema.org/>
         SELECT ?x WHERE {
           ${typeFilter}
-          ?x skos:prefLabel|skos:altLabel|skos:notation|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
+          ?x foaf:name|skos:prefLabel|skos:altLabel|skos:notation|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
           FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
         }
         LIMIT ${MAX_RESULTS}
