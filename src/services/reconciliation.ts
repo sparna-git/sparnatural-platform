@@ -51,10 +51,13 @@ export function parseQueries(body: any): Record<string, QueryInput> {
 }
 
 export function formatResults(uriList: string[], name: string) {
-  return uriList.map((uri) => ({
+  // Sort URIs by length (shortest first)
+  const sortedUris = [...uriList].sort((a, b) => a.length - b.length);
+
+  return sortedUris.map((uri, index) => ({
     id: uri,
     name,
-    score: 100,
+    score: index === 0 ? 100 : 99, // 100 for shortest URI, 99 for others
     match: true,
   }));
 }
@@ -64,14 +67,18 @@ export async function formatResultsWithTypes(
   name: string,
   sparqlEndpoint: string
 ) {
+  // Sort URIs by length (shortest first)
+  const sortedUris = [...uriList].sort((a, b) => a.length - b.length);
+
   const results = [];
-  for (const uri of uriList) {
+  for (let i = 0; i < sortedUris.length; i++) {
+    const uri = sortedUris[i];
     const types = await getEntityTypes(uri, sparqlEndpoint);
     results.push({
       id: uri,
       name,
       type: types,
-      score: 100,
+      score: i === 0 ? 100 : 99, // 100 for shortest URI, 99 for others
       match: true,
     });
   }
@@ -116,13 +123,15 @@ export async function runSparqlSearch(
     }
   }
 
+  // Updated query with language-specific UNION pattern
   const query1 = `
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
     SELECT ?x WHERE {
-      ${typeFilter}
-      ?x rdfs:label|foaf:name ?literal .
-      FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+      {
+        { ?x rdfs:label "${escapedName}"@en . }
+        UNION
+        { ?x rdfs:label "${escapedName}"@fr . }
+      }
     }
     LIMIT ${MAX_RESULTS}
   `;
@@ -144,7 +153,7 @@ export async function runSparqlSearch(
         PREFIX schema: <http://schema.org/>
         SELECT ?x WHERE {
           ${typeFilter}
-          ?x skos:prefLabel|skos:altLabel|skos:notation|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
+          ?x foaf:name|skos:prefLabel|skos:altLabel|skos:notation|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
           FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
         }
         LIMIT ${MAX_RESULTS}

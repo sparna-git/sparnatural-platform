@@ -178,9 +178,19 @@ export async function getJsonFromAgent(
               "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
           ) {
             const key = `label_${resolvedIdx++}`;
-            const foundUri = uriRes[key]?.result?.[0]?.id; // ⚠️ plus de `.data`
-            if (foundUri) {
-              obj.criteria.rdfTerm.value = foundUri;
+            const results = uriRes[key]?.result;
+
+            // Find the result with the highest score
+            const bestResult = results?.reduce((best, current) =>
+              current.score > best.score ? current : best
+            );
+            console.log(
+              `[getJsonFromAgent] 🔗 Résolution du label "${obj.label}" vers`,
+              bestResult || "Aucune URI trouvée"
+            );
+
+            if (bestResult?.id) {
+              obj.criteria.rdfTerm.value = bestResult.id;
             }
           }
 
