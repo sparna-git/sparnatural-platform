@@ -24,6 +24,17 @@ router.all("/", async (req, res) => {
   const projectId = req.baseUrl.split("/")[3];
   const accept = req.headers.accept;
 
+  logger.info(
+    {
+      endpoint: "sparql",
+      method: req.method,
+      projectId,
+      query: req.method === "POST" ? req.body.query : req.query.query,
+      headers: req.headers,
+    },
+    "API call started: SPARQL"
+  );
+
   // Support GET (query dans URL) et POST (query dans body)
   let query = req.method === "POST" ? req.body.query : req.query.query;
   let method = req.query.method;

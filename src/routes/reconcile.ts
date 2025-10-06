@@ -5,12 +5,25 @@ import {
   buildManifest,
   parseQueries,
 } from "../services/reconciliation";
+import logger from "../utils/logger";
 
 const router = express.Router();
 
 // --- POST / ---
 router.post("/", async (req, res) => {
   let projectKey: string;
+
+  logger.info(
+    {
+      endpoint: "reconcile",
+      method: req.method,
+      projectKey: req.baseUrl.split("/")[3],
+      query: req.query,
+      body: req.body,
+      headers: req.headers,
+    },
+    "API call started: reconciliation"
+  );
   try {
     projectKey = req.baseUrl.split("/")[3];
     if (!projectKey || !config.projects[projectKey]) {

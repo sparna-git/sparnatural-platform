@@ -9,6 +9,17 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
   const { query, lang } = req.query;
 
+  logger.info(
+    {
+      endpoint: "query2text",
+      method: req.method,
+      projectKey,
+      query,
+      headers: req.headers,
+    },
+    "API call started: query2text"
+  );
+
   if (!config.projects[projectKey]) {
     return res.status(404).json({ error: "Unknown project key" });
   }
