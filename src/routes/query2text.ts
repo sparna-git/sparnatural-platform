@@ -16,7 +16,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   let summary = "Résumé simulé pour développement.";
   try {
     const jsonQuery = JSON.parse(query as string);
-    summary = await getSummaryFromAgent(jsonQuery, lang as string);
+    summary = await getSummaryFromAgent(jsonQuery, lang as string, projectKey);
     logger.info({ projectKey, query, summary }, "SPARQL converted to text");
   } catch (e) {
     summary = "Erreur de parsing ou d’appel à l’agent.";

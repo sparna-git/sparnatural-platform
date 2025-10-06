@@ -9,7 +9,7 @@ const configPathFromArg = process.argv.find((arg) =>
 );
 const configPath = configPathFromArg
   ? configPathFromArg.split("=")[1]
-  : path.join(__dirname, "../../config/config.yaml"); // chemin par défaut
+  : path.join(__dirname, "../../config.yaml"); // chemin par défaut
 
 console.log("Lecture du fichier de config:", configPath);
 // Charger le fichier une seule fois
