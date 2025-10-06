@@ -123,7 +123,7 @@ export async function runSparqlSearch(
     }
   }
 
-  // Updated query with language-specific UNION pattern
+  // Query 1: rdfs:label with language tags
   const query1 = `
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     SELECT ?x WHERE {
@@ -144,17 +144,16 @@ export async function runSparqlSearch(
     const response1 = await axios.get(url1, { timeout: 60000, family: 4 });
     bindings = response1.data.results.bindings;
 
+    // Query 2: SKOS properties with language tags (nouvelle requête)
     if (bindings.length === 0) {
       const query2 = `
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-        PREFIX dct: <http://purl.org/dc/terms/>
-        PREFIX dc: <http://purl.org/dc/elements/1.1/>
-        PREFIX schema: <http://schema.org/>
         SELECT ?x WHERE {
-          ${typeFilter}
-          ?x foaf:name|skos:prefLabel|skos:altLabel|skos:notation|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
-          FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+          {
+            { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@en . }
+            UNION
+            { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@fr . }
+          }
         }
         LIMIT ${MAX_RESULTS}
       `;
@@ -163,6 +162,27 @@ export async function runSparqlSearch(
       )}&format=json`;
       const response2 = await axios.get(url2, { timeout: 60000, family: 4 });
       bindings = response2.data.results.bindings;
+    }
+
+    // Query 3: Other properties without language tags (ancienne query2 sans SKOS)
+    if (bindings.length === 0) {
+      const query3 = `
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+        PREFIX dc: <http://purl.org/dc/elements/1.1/>
+        PREFIX schema: <http://schema.org/>
+        SELECT ?x WHERE {
+          ${typeFilter}
+          ?x foaf:name|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
+          FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+        }
+        LIMIT ${MAX_RESULTS}
+      `;
+      const url3 = `${sparqlEndpoint}?query=${encodeURIComponent(
+        query3
+      )}&format=json`;
+      const response3 = await axios.get(url3, { timeout: 60000, family: 4 });
+      bindings = response3.data.results.bindings;
     }
   } catch (err) {
     console.error(`SPARQL request error for "${name}":`, err);
