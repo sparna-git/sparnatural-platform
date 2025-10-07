@@ -5,27 +5,46 @@ import config from "../config/config";
 import { EmptyRequestError } from "../errors/emptyRequestError";
 import { reconcileQueries, parseQueries } from "../services/reconciliation";
 
-// Set Mistral agent IDs from config
-const agentIdQueryToText =
-  config["projects"]["dbpedia-en"]["endpoints-agents"][
-    "MISTRAL_AGENT_ID_query_2_text"
-  ];
-const agentIdTextToQuery =
-  config["projects"]["dbpedia-en"]["endpoints-agents"][
-    "MISTRAL_AGENT_ID_text_2_query_TEST"
-  ];
+/**
+ * Récupère les agent IDs Mistral pour un projet donné
+ * @param projectKey - La clé du projet
+ * @returns Les agent IDs ou undefined si non trouvés
+ */
+function getAgentIds(projectKey: string) {
+  const projectConfig = config["projects"]?.[projectKey];
+  if (!projectConfig?.["endpoints-agents"]) {
+    return { agentIdQueryToText: undefined, agentIdTextToQuery: undefined };
+  }
+
+  return {
+    agentIdQueryToText:
+      projectConfig["endpoints-agents"]["MISTRAL_AGENT_ID_query_2_text"],
+    agentIdTextToQuery:
+      projectConfig["endpoints-agents"]["MISTRAL_AGENT_ID_text_2_query"],
+  };
+}
 
 /**
  * Génère un résumé textuel à partir d'une requête Sparnatural JSON.
  * @param jsonQuery - La requête JSON au format SparnaturalQueryIfc
  * @param lang - La langue du résumé attendu (ex : "fr", "en")
+ * @param projectKey - La clé du projet
  * @returns Un texte résumé généré par l'agent
  */
 export async function getSummaryFromAgent(
   jsonQuery: object,
-  lang: string
+  lang: string,
+  projectKey: string
 ): Promise<string> {
   try {
+    const { agentIdQueryToText } = getAgentIds(projectKey);
+
+    if (!agentIdQueryToText) {
+      throw new Error(
+        `Agent ID query_2_text non configuré pour le projet ${projectKey}`
+      );
+    }
+
     const messageContent = `LANGUAGE: ${lang}\n\nQUERY:\n${JSON.stringify(
       jsonQuery,
       null,
@@ -62,6 +81,14 @@ export async function getJsonFromAgent(
   naturalLanguageQuery: string,
   projectKey: string
 ): Promise<z.infer<typeof SparnaturalQuery>> {
+  const { agentIdTextToQuery } = getAgentIds(projectKey);
+
+  if (!agentIdTextToQuery) {
+    throw new Error(
+      `Agent ID text_2_query non configuré pour le projet ${projectKey}`
+    );
+  }
+
   const userMessage = { role: "user", content: naturalLanguageQuery };
 
   function extractJsonFromMarkdown(text: string): string {

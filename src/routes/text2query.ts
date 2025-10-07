@@ -10,6 +10,19 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
   const { text } = req.query;
 
+  // Log au début de l'appel API
+  logger.info(
+    {
+      endpoint: "text2query",
+      method: req.method,
+      projectKey,
+      text,
+      headers: req.headers,
+      ip: req.ip,
+    },
+    "API call started: text2query"
+  );
+
   if (!config.projects[projectKey]) {
     return res.status(404).json({ error: "Unknown project key" });
   }
