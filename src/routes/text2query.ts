@@ -49,7 +49,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
 
     return res
       .status(500)
-      .json({ error: "Erreur de génération de la requête" });
+      .json({ message: "Erreur de génération de la requête ("+error?.message+")", error: error });
   }
 });
 
