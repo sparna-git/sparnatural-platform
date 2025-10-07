@@ -240,11 +240,12 @@ export async function getJsonFromAgent(
     }
 
     // 5. Valider et retourner
+    console.log("[getJsonFromAgent] ✅ JSON final généré :", parsed);
     const validated = SparnaturalQuery.parse(parsed);
     return validated;
   } catch (error: any) {
     if (error instanceof EmptyRequestError) throw error;
     console.error("[getJsonFromAgent] ❌ Erreur :", error.message || error);
-    throw new Error("Erreur lors de la génération ou validation du JSON");
+    throw new Error("Erreur lors de la génération ou validation du JSON : "+(error.message || error));
   }
 }
