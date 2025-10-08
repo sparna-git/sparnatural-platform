@@ -204,13 +204,19 @@ export async function getJsonFromAgent(
             obj.criteria.rdfTerm.value ===
               "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
           ) {
+            // we don't necessarily have a best result
+            let bestResult = undefined;
+
             const key = `label_${resolvedIdx++}`;
             const results = uriRes[key]?.result;
+            
+            if(results) {
+              // Find the result with the highest score
+              bestResult = results?.reduce((best, current) =>
+                current.score > best.score ? current : best
+              );
+            }            
 
-            // Find the result with the highest score
-            const bestResult = results?.reduce((best, current) =>
-              current.score > best.score ? current : best
-            );
             console.log(
               `[getJsonFromAgent] 🔗 Résolution du label "${obj.label}" vers`,
               bestResult || "Aucune URI trouvée"
