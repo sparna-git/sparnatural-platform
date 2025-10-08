@@ -210,7 +210,7 @@ export async function getJsonFromAgent(
             const key = `label_${resolvedIdx++}`;
             const results = uriRes[key]?.result;
             
-            if(results) {
+            if(results && results.length > 0) {
               // Find the result with the highest score
               bestResult = results?.reduce((best, current) =>
                 current.score > best.score ? current : best
