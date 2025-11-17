@@ -4,8 +4,8 @@ import axios from "axios";
 import dns from "dns";
 import http from "http";
 import https from "https";
-import config from "../config/config";
 import logger from "../utils/logger";
+import { ConfigProvider } from "../config/ConfigProvider";
 
 const router = express.Router();
 const sparqlParser = new Parser();
@@ -34,6 +34,8 @@ router.all("/", async (req, res) => {
     },
     "API call started: SPARQL"
   );
+
+  let config = ConfigProvider.getInstance().getConfig();
 
   // Support GET (query dans URL) et POST (query dans body)
   let query = req.method === "POST" ? req.body.query : req.query.query;

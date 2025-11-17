@@ -1,11 +1,11 @@
 import express from "express";
-import config from "../config/config";
 import {
   reconcileQueries,
   buildManifest,
   parseQueries,
 } from "../services/reconciliation";
 import logger from "../utils/logger";
+import { ConfigProvider } from "../config/ConfigProvider";
 
 const router = express.Router();
 
@@ -24,6 +24,10 @@ router.post("/", async (req, res) => {
     },
     "API call started: reconciliation"
   );
+
+  let config = ConfigProvider.getInstance().getConfig();
+  
+
   try {
     projectKey = req.baseUrl.split("/")[3];
     if (!projectKey || !config.projects[projectKey]) {
@@ -65,6 +69,9 @@ router.post("/", async (req, res) => {
 // --- GET / --- retourne le manifest
 router.get("/", async (req, res) => {
   let projectKey: string;
+
+  let config = ConfigProvider.getInstance().getConfig();
+
   try {
     projectKey = req.baseUrl.split("/")[3];
     if (!projectKey || !config.projects[projectKey]) {

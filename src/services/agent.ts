@@ -1,9 +1,9 @@
 import axios from "axios";
 import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
-import config from "../config/config";
 import { EmptyRequestError } from "../errors/emptyRequestError";
 import { reconcileQueries, parseQueries } from "../services/reconciliation";
+import { ConfigProvider } from "../config/ConfigProvider";
 
 /**
  * Récupère les agent IDs Mistral pour un projet donné
@@ -11,6 +11,7 @@ import { reconcileQueries, parseQueries } from "../services/reconciliation";
  * @returns Les agent IDs ou undefined si non trouvés
  */
 function getAgentIds(projectKey: string) {
+  let config = ConfigProvider.getInstance().getConfig();
   const projectConfig = config["projects"]?.[projectKey];
   if (!projectConfig?.["endpoints-agents"]) {
     return { agentIdQueryToText: undefined, agentIdTextToQuery: undefined };
@@ -173,7 +174,7 @@ export async function getJsonFromAgent(
       );
 
       // 🔄 Direct call au lieu d'un POST HTTP
-      const SPARQL_ENDPOINT = config.projects[projectKey]?.sparqlEndpoint;
+      const SPARQL_ENDPOINT = ConfigProvider.getInstance().getConfig().projects[projectKey]?.sparqlEndpoint;
       if (!SPARQL_ENDPOINT) {
         throw new Error(
           "SPARQL endpoint not configured for project " + projectKey

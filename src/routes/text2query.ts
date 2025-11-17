@@ -1,8 +1,8 @@
 import express from "express";
 import { getJsonFromAgent } from "../services/agent";
-import config from "../config/config";
 import { EmptyRequestError } from "../errors/emptyRequestError";
 import logger from "../utils/logger";
+import { ConfigProvider } from "../config/ConfigProvider";
 
 const router = express.Router({ mergeParams: true });
 
@@ -22,6 +22,8 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     },
     "API call started: text2query"
   );
+
+  let config = ConfigProvider.getInstance().getConfig();
 
   if (!config.projects[projectKey]) {
     return res.status(404).json({ error: "Unknown project key" });
