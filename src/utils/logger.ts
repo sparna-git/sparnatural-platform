@@ -1,13 +1,13 @@
 import pino from "pino";
 import path from "path";
 import fs from "fs";
-import config from "../config/config";
+import { ConfigProvider } from "../config/ConfigProvider";
 
 // Types d'API supportés
 type ApiType = "text2query" | "query2text" | "sparql" | "other";
 
 // Répertoire de base pour les logs
-const baseLogDir = config.log?.directory || path.join(process.cwd(), "logs");
+const baseLogDir = ConfigProvider.getInstance().getConfig().log?.directory || path.join(process.cwd(), "logs");
 
 // Créer le répertoire de base s'il n'existe pas
 if (!fs.existsSync(baseLogDir)) {
@@ -16,7 +16,7 @@ if (!fs.existsSync(baseLogDir)) {
 
 // Logger principal pour la console
 const consoleLogger = pino({
-  level: config.log?.level || "info",
+  level: ConfigProvider.getInstance().getConfig().log?.level || "info",
   transport: {
     target: "pino-pretty",
     options: {
@@ -135,7 +135,7 @@ function getApiLogger(projectKey: string, apiType: ApiType): pino.Logger {
   // Créer un nouveau logger pour ce projet et ce type d'API
   const apiLogger = pino(
     {
-      level: config.log?.level || "info",
+      level: ConfigProvider.getInstance().getConfig().log?.level || "info",
       base: {
         pid: false,
         hostname: false,

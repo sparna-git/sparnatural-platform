@@ -2,7 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { Parser } from "n3";
-import config from "./config";
+import { ConfigProvider } from "./ConfigProvider";
 
 // Cache en mémoire pour les configurations SHACL
 const SHACL_CACHE: Record<string, Record<string, any>> = {};
@@ -17,7 +17,7 @@ export function getSHACLConfig(projectKey: string): Record<string, any> {
   }
 
   // Sinon, on la charge depuis le fichier
-  const shaclFilePath = config.projects[projectKey]?.shaclFile;
+  const shaclFilePath = ConfigProvider.getInstance().getConfig().projects[projectKey]?.shaclFile;
   if (!shaclFilePath) {
     throw new Error(
       `Aucun fichier SHACL configuré pour le projet ${projectKey}`

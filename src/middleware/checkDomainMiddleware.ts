@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 
-import config from "../config/config";
+import { ConfigProvider } from "../config/ConfigProvider";
 
 const browserUserAgents = [
   "ABrowse",
@@ -206,7 +206,7 @@ export function checkDomainMiddleware(
   console.log(`[SECURITY] Incoming request to ${req.originalUrl}`);
 
   // Vérifie si le projet existe dans le fichier de config
-  const project = config.projects?.[projectKey];
+  const project = ConfigProvider.getInstance().getConfig().projects?.[projectKey];
   if (!project) {
     console.warn(`[SECURITY] Project '${projectKey}' not found`);
     return res.status(500).send("Invalid project");
