@@ -5,8 +5,8 @@ projects:
     shaclFile: ./config/dbpedia-en/config.ttl
     sparqlEndpoint: https://dbpedia.org/sparql
     endpoints-agents:
-      MISTRAL_AGENT_ID_query_2_text: ag:33fd9714:20250507:untitled-agent:d1fc8155
-      MISTRAL_AGENT_ID_text_2_query: ag:33fd9714:20250822:t2q-post-process:a046f692
+      MISTRAL_AGENT_ID_query_2_text: <MISTRAL_AGENT_KEY>
+      MISTRAL_AGENT_ID_text_2_query: <MISTRAL_AGENT_KEY>
     domains:
       - sparna-git.github.io
     cache:
@@ -15,8 +15,8 @@ projects:
     shaclFile: ./config/demo-ep/config.ttl
     sparqlEndpoint: http://graphdb.sparna.fr/repositories/endorse2025
     endpoints-agents:
-      MISTRAL_AGENT_ID_query_2_text: ag:33fd9714:20250507:untitled-agent:d1fc8155
-      MISTRAL_AGENT_ID_text_2_query: ag:33fd9714:20251002:t2q-org-ep:e1a9d878
+      MISTRAL_AGENT_ID_query_2_text: <MISTRAL_AGENT_KEY>
+      MISTRAL_AGENT_ID_text_2_query: <MISTRAL_AGENT_KEY>
     domains:
       - sparna-git.github.io
     cache:
