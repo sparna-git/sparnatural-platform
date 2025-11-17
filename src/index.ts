@@ -10,6 +10,7 @@ import generateRoute from "./routes/text2query";
 import reconciliationRoute from "./routes/reconcile";
 import home from "./routes/home";
 import sparqlRouter from "./routes/sparql";
+import pingRoute from "./routes/ping";
 
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
 
@@ -65,6 +66,9 @@ app.use(
 );
 // sparql endpoint
 app.use("/api/v1/:projectKey/sparql", sparqlRouter);
+
+// ping route
+app.use("/api/v1/:projectKey/ping", pingRoute);
 
 // Swagger
 app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

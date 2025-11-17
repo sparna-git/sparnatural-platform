@@ -135,6 +135,45 @@ paths:
                   error:
                     type: string
                     example: "Internal server error"
+
+  /api/v1/{projectKey}/ping:
+    get:
+      summary: Ping the project
+      tags: [Ping]
+      description: >
+        Test whether a specific project is reachable and its config was properly read
+      parameters:
+        - in: path
+          name: projectKey
+          required: true
+          schema:
+            type: string
+            example: dbpedia-en
+      responses:
+        "200":
+          description: Project reachable
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                success:
+                  summary: Exemple de requête générée
+                  value:
+                    query: object
+        "404":
+          description: Unknown project key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unknown project key"
+
+
+
   /api/v1/{projectKey}/reconciliation:
     post:
       summary: Recherche d'URI à partir de plusieurs termes (format Reconciliation W3C)
