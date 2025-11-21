@@ -2,8 +2,9 @@ import axios from "axios";
 import { SparnaturalQuery } from "../zod/query";
 import { z } from "zod";
 import { EmptyRequestError } from "../errors/emptyRequestError";
-import { reconcileQueries, parseQueries } from "../services/reconciliation";
 import { ConfigProvider } from "../config/ConfigProvider";
+import { ReconcileServiceIfc } from "./ReconcileServiceIfc";
+import { SparqlReconcileService } from "./SparqlReconcileService";
 
 /**
  * Récupère les agent IDs Mistral pour un projet donné
@@ -181,11 +182,10 @@ export async function getJsonFromAgent(
         );
       }
 
-      const queries = parseQueries(labelsToResolve);
-      const uriRes = await reconcileQueries(
+      const queries = SparqlReconcileService.parseQueries(labelsToResolve);
+      let reconcile:ReconcileServiceIfc = new SparqlReconcileService(projectKey, SPARQL_ENDPOINT);
+      const uriRes:Record<string, { result: any[] }> = await reconcile.reconcileQueries(
         queries,
-        SPARQL_ENDPOINT,
-        projectKey,
         false // includeTypes si besoin
       );
 

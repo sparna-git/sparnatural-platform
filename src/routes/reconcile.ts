@@ -1,11 +1,8 @@
 import express from "express";
-import {
-  reconcileQueries,
-  buildManifest,
-  parseQueries,
-} from "../services/reconciliation";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
+import { ReconcileServiceIfc } from "../services/ReconcileServiceIfc";
+import { SparqlReconcileService } from "../services/SparqlReconcileService";
 
 const router = express.Router();
 
@@ -45,7 +42,7 @@ router.post("/", async (req, res) => {
 
   let queries;
   try {
-    queries = parseQueries(req.body);
+    queries = SparqlReconcileService.parseQueries(req.body);
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }
@@ -53,10 +50,9 @@ router.post("/", async (req, res) => {
   const includeTypes = req.query.includeTypes === "true";
 
   try {
-    const responsePayload = await reconcileQueries(
+    let service:ReconcileServiceIfc = new SparqlReconcileService(projectKey, SPARQL_ENDPOINT);
+    const responsePayload = await service.reconcileQueries(
       queries,
-      SPARQL_ENDPOINT,
-      projectKey,
       includeTypes
     );
     return res.json(responsePayload);
@@ -87,7 +83,8 @@ router.get("/", async (req, res) => {
   if (!SPARQL_ENDPOINT)
     return res.status(500).json({ error: "SPARQL endpoint not configured" });
 
-  const manifest = await buildManifest(projectKey, SPARQL_ENDPOINT);
+  let service:ReconcileServiceIfc = new SparqlReconcileService(projectKey, SPARQL_ENDPOINT);
+  const manifest = await service.buildManifest();
   return res.json(manifest);
 });
 
