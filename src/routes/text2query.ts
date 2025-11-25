@@ -1,8 +1,10 @@
 import express from "express";
-import { getJsonFromAgent } from "../services/agent";
 import { EmptyRequestError } from "../errors/emptyRequestError";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
+
+// fabrique
+import { getText2QueryService } from "../services/serviceFactory";
 
 const router = express.Router({ mergeParams: true });
 
@@ -30,7 +32,9 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   }
 
   try {
-    const jsonQuery = await getJsonFromAgent(text as string, projectKey);
+    // utiliser le service via la fabrique
+    const service = getText2QueryService();
+    const jsonQuery = await service.generateJson(text as string, projectKey);
     const parsed =
       typeof jsonQuery === "string" ? JSON.parse(jsonQuery) : jsonQuery;
 
@@ -62,9 +66,10 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
       }
     }
 
-    return res
-      .status(500)
-      .json({ message: "Erreur de génération de la requête ("+error?.message+")", error: error });
+    return res.status(500).json({
+      message: "Erreur de génération de la requête (" + error?.message + ")",
+      error: error,
+    });
   }
 });
 

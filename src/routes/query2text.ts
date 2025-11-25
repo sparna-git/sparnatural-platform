@@ -1,7 +1,9 @@
 import express from "express";
-import { getSummaryFromAgent } from "../services/agent";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
+
+// fabrique
+import { getQuery2TextService } from "../services/serviceFactory";
 
 const router = express.Router({ mergeParams: true });
 
@@ -29,7 +31,14 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   let summary = "Résumé simulé pour développement.";
   try {
     const jsonQuery = JSON.parse(query as string);
-    summary = await getSummaryFromAgent(jsonQuery, lang as string, projectKey);
+
+    // utiliser le service via la fabrique
+    const service = getQuery2TextService();
+    summary = await service.generateSummary(
+      jsonQuery,
+      lang as string,
+      projectKey
+    );
     logger.info({ projectKey, query, summary }, "SPARQL converted to text");
   } catch (e) {
     summary = "Erreur de parsing ou d’appel à l’agent.";

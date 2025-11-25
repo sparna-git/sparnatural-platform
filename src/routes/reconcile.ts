@@ -4,17 +4,17 @@ import { ConfigProvider } from "../config/ConfigProvider";
 import { ReconcileServiceIfc } from "../services/ReconcileServiceIfc";
 import { SparqlReconcileService } from "../services/SparqlReconcileService";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 // --- POST / ---
-router.post("/", async (req, res) => {
-  let projectKey: string;
+router.post("/", async (req: express.Request<{ projectKey: string }>, res) => {
+  const { projectKey } = req.params;
 
   logger.info(
     {
       endpoint: "reconcile",
       method: req.method,
-      projectKey: req.baseUrl.split("/")[3],
+      projectKey,
       query: req.query,
       body: req.body,
       headers: req.headers,
@@ -23,10 +23,8 @@ router.post("/", async (req, res) => {
   );
 
   let config = ConfigProvider.getInstance().getConfig();
-  
 
   try {
-    projectKey = req.baseUrl.split("/")[3];
     if (!projectKey || !config.projects[projectKey]) {
       return res
         .status(400)
@@ -50,7 +48,10 @@ router.post("/", async (req, res) => {
   const includeTypes = req.query.includeTypes === "true";
 
   try {
-    let service:ReconcileServiceIfc = new SparqlReconcileService(projectKey, SPARQL_ENDPOINT);
+    let service: ReconcileServiceIfc = new SparqlReconcileService(
+      projectKey,
+      SPARQL_ENDPOINT
+    );
     const responsePayload = await service.reconcileQueries(
       queries,
       includeTypes
@@ -63,13 +64,12 @@ router.post("/", async (req, res) => {
 });
 
 // --- GET / --- retourne le manifest
-router.get("/", async (req, res) => {
-  let projectKey: string;
+router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
+  const { projectKey } = req.params;
 
   let config = ConfigProvider.getInstance().getConfig();
 
   try {
-    projectKey = req.baseUrl.split("/")[3];
     if (!projectKey || !config.projects[projectKey]) {
       return res
         .status(400)
@@ -83,7 +83,10 @@ router.get("/", async (req, res) => {
   if (!SPARQL_ENDPOINT)
     return res.status(500).json({ error: "SPARQL endpoint not configured" });
 
-  let service:ReconcileServiceIfc = new SparqlReconcileService(projectKey, SPARQL_ENDPOINT);
+  let service: ReconcileServiceIfc = new SparqlReconcileService(
+    projectKey,
+    SPARQL_ENDPOINT
+  );
   const manifest = await service.buildManifest();
   return res.json(manifest);
 });
