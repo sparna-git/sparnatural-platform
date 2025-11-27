@@ -2,9 +2,7 @@ import express from "express";
 import { EmptyRequestError } from "../errors/emptyRequestError";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
-
-// fabrique
-import { getText2QueryService } from "../services/serviceFactory";
+import { MistralText2QueryService } from "../services/impl/mistralText2QueryService";
 
 const router = express.Router({ mergeParams: true });
 
@@ -33,7 +31,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
 
   try {
     // utiliser le service via la fabrique
-    const service = getText2QueryService();
+    const service = new MistralText2QueryService();
     const jsonQuery = await service.generateJson(text as string, projectKey);
     const parsed =
       typeof jsonQuery === "string" ? JSON.parse(jsonQuery) : jsonQuery;

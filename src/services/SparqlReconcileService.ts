@@ -1,24 +1,27 @@
 import axios from "axios";
 import { getSHACLConfig } from "../config/SCHACL";
-import { ReconcileOutput, ReconcileServiceIfc, ReconcileInput } from "./ReconcileServiceIfc";
-import { autoInjectable, inject, injectable } from "tsyringe";
-import { ProjectConfig, SparqlReconcileServiceConfig } from "../config/ProjectConfig";
+import {
+  ReconcileOutput,
+  ReconcileServiceIfc,
+  ReconcileInput,
+  ReconcileResult,
+  ManifestType,
+} from "./ReconcileServiceIfc";
+import { inject, injectable } from "tsyringe";
+import { SparqlReconcileServiceConfig } from "../config/ProjectConfig";
 
 type CacheEntry = { results: ReconcileResult[]; lastAccessed: Date };
-
-
-type CacheEntry = { results: any[]; lastAccessed: Date };
 
 
 @injectable({token: "DummyReconcileService"})
 export class DummyReconcileService implements ReconcileServiceIfc{
 
-  reconcileQueries(queries: ReconcileInput, includeTypes: boolean) {
+  reconcileQueries(queries: ReconcileInput, includeTypes: boolean):Promise<ReconcileOutput> {
     throw new Error("Method not implemented.");
   }
 
-  buildManifest() {
-      return {}
+  buildManifest():Promise<ManifestType> {
+    throw new Error("Method not implemented.");
   }
 
 }
@@ -26,8 +29,7 @@ export class DummyReconcileService implements ReconcileServiceIfc{
 @injectable({token: "SparqlReconcileService"})
 // this indicates it is the default implementation for the ReconcileServiceIfc
 @injectable({token: "default:reconciliation"})
-export class SparqlReconcileService implements ReconcileServiceIfc{
-
+export class SparqlReconcileService implements ReconcileServiceIfc {
   public static DEFAULT_MAX_RESULTS = 10;
   public static DEFAULT_CACHE_SIZE = 1000;
 
@@ -40,7 +42,6 @@ export class SparqlReconcileService implements ReconcileServiceIfc{
   private maxResults:number;
   private cacheSize:number;
 
-  
   constructor(
     @inject("project.id") projectId?:string, 
     @inject("project.sparqlEndpoint")  sparqlEndpoint?:string,
@@ -54,7 +55,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc{
   }
 
   // --- Manifest ---
-  buildManifest() {
+  buildManifest():Promise<ManifestType> {
     return Promise.resolve({
       versions: ["0.2"],
       name: `Reconciliation ${this.projectId}`,
@@ -73,7 +74,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc{
   }
 
   // --- Reconciliation ---
-  reconcileQueries(queries: ReconcileInput, includeTypes: boolean) {
+  reconcileQueries(queries: ReconcileInput, includeTypes: boolean):Promise<ReconcileOutput> {
     const uriCache = this.memoryCache;
     const responsePayload: ReconcileOutput = {};
 
@@ -267,30 +268,18 @@ export class SparqlReconcileService implements ReconcileServiceIfc{
           LIMIT ${this.maxResults}
         `;
 
-      // Query 3: Other properties without language tags (ancienne query2 sans SKOS)
-      if (bindings.length === 0) {
-        const query3 = `
-          PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-          PREFIX dct: <http://purl.org/dc/terms/>
-          PREFIX dc: <http://purl.org/dc/elements/1.1/>
-          PREFIX schema: <http://schema.org/>
-          SELECT ?x WHERE {
-            ${typeFilter}
-            ?x foaf:name|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
-            FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
-          }
-          LIMIT ${this.maxResults}
-        `;
-        const url3 = `${this.sparqlEndpoint}?query=${encodeURIComponent(
-          query3
-        )}&format=json`;
-        const response3 = await axios.get(url3, { timeout: 60000, family: 4 });
-        bindings = response3.data.results.bindings;
-      }
-    } catch (err) {
-      console.error(`SPARQL request error for "${name}":`, err);
-      return [];
-    }
+        return axios
+          .get(
+            `${this.sparqlEndpoint}?query=${encodeURIComponent(
+              query2
+            )}&format=json`,
+            {
+              timeout: 60000,
+              family: 4,
+            }
+          )
+          .then((response2) => {
+            bindings = response2.data.results.bindings;
 
             if (bindings.length > 0) return bindings;
 
@@ -305,7 +294,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc{
                 ?x foaf:name|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
                 FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
               }
-              LIMIT ${SparqlReconcileService.MAX_RESULTS}
+              LIMIT ${this.maxResults}
             `;
 
             return axios
