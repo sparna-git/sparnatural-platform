@@ -65,9 +65,11 @@ export class ConfigProjectProvider {
 
         // 5. Same thing to register text2query service
         projectContainer.register("text2query", { useToken: projectConfig.text2query?.implementation ?? "default:text2query" });
+        projectContainer.register("text2query.config", { useValue: projectConfig.text2query ?? {} });
 
         // 6. Same thing to register query2text service
         projectContainer.register("query2text", { useToken: projectConfig.query2text?.implementation ?? "default:query2text" });
+        projectContainer.register("query2text.config", { useValue: projectConfig.query2text ?? {} });
 
         return projectContainer;
     }
