@@ -6,19 +6,29 @@ import { ConfigProvider } from "../../config/ConfigProvider";
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { SparqlReconcileService } from "../SparqlReconcileService";
 import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
+import { RestText2QueryServiceConfig } from "../../config/ProjectConfig";
 
 @injectable({token: "RestText2QueryService"})
 export class RestText2QueryService implements Text2QueryServiceIfc {
+
+    private reconciliation:ReconcileServiceIfc;
+    private config: RestText2QueryServiceConfig;
+
+    constructor(
+        @inject("reconciliation") reconcileServiceIfc: ReconcileServiceIfc,
+        @inject("text2query.config")  text2queryConfig?:RestText2QueryServiceConfig
+    ) {
+        this.reconciliation = reconcileServiceIfc;
+        this.config = text2queryConfig!;
+    }
+
   async generateJson(
     naturalLanguageQuery: string,
     projectKey: string
   ): Promise<z.infer<typeof SparnaturalQuery>> {
-    let config = ConfigProvider.getInstance().getConfig();
-    const projectConfig = config["projects"]?.[projectKey];
 
-    const agentIdTextToQuery =
-      projectConfig?.["endpoints-agents"]?.["MISTRAL_AGENT_ID_text_2_query"];
+    const agentIdTextToQuery = this.config.agentId;
 
     if (!agentIdTextToQuery) {
       throw new Error(
@@ -120,12 +130,9 @@ export class RestText2QueryService implements Text2QueryServiceIfc {
         }
 
         const queries = SparqlReconcileService.parseQueries(labelsToResolve);
-        let reconcile: ReconcileServiceIfc = new SparqlReconcileService(
-          projectKey,
-          SPARQL_ENDPOINT
-        );
+
         const uriRes: Record<string, { result: any[] }> =
-          await reconcile.reconcileQueries(
+          await this.reconciliation.reconcileQueries(
             queries,
             false // includeTypes si besoin
           );

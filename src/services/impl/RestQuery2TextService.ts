@@ -1,10 +1,12 @@
 import axios from "axios";
 import { ConfigProvider } from "../../config/ConfigProvider";
 import { Query2TextServiceIfc } from "../interfaces/Query2TextServiceIfc";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
+import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 
 @injectable({token: "RestQuery2TextService"})
 export class RestQuery2TextService implements Query2TextServiceIfc {
+
   async generateSummary(
     jsonQuery: object,
     lang: string,

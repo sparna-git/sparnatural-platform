@@ -15,6 +15,9 @@ projects:
       implementation: SparqlReconcileService
       cacheSize: 1000
       maxResults: 2
+    text2query:
+      implementation: MistralText2QueryService
+      agentId: ag:33fd9714:20250507:untitled-agent:d1fc8155
   demo-ep:
     shaclFile: ./config/demo-ep/config.ttl
     sparqlEndpoint: http://graphdb.sparna.fr/repositories/endorse2025
