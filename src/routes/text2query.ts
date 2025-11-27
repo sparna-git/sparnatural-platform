@@ -2,7 +2,7 @@ import express from "express";
 import { EmptyRequestError } from "../errors/emptyRequestError";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
-import { MistralText2QueryService } from "../services/impl/mistralText2QueryService";
+import { MistralText2QueryService } from "../services/impl/MistralText2QueryService";
 
 const router = express.Router({ mergeParams: true });
 

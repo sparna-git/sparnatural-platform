@@ -1,13 +1,16 @@
-import { Text2QueryServiceIfc } from "../interfaces/text2QueryServiceIfc";
+import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
 import { z } from "zod";
 import { SparnaturalQuery } from "../../zod/query";
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { SparqlReconcileService } from "../SparqlReconcileService";
 import { ConfigProvider } from "../../config/ConfigProvider";
-import { EmptyRequestError } from "../../errors/emptyRequestError";
 import { Mistral } from "@mistralai/mistralai";
 import schema from "../../schemas/SparnaturalQuery.schema.json";
+import { injectable } from "tsyringe";
 
+@injectable({token: "MistralText2QueryService"})
+// this indicates it is the default implementation for this service
+@injectable({token: "default:text2query"})
 export class MistralText2QueryService implements Text2QueryServiceIfc {
   private mistral = new Mistral({
     apiKey: process.env.MISTRAL_API_KEY!,

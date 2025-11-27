@@ -38,16 +38,9 @@ export class ConfigProjectProvider {
                 throw new Error(`Unknown project: ${projectKey}`);
             }
 
-            let p:Project = new Project(
-                projectKey,
-                this.config.projects[projectKey].sparqlEndpoint
-            );
-
             let projectContainer = this.buildProjectContainer(projectKey);
-
-            // always resolve the token "reconciliation" to get the proper implementation
-            p.reconcileService = projectContainer.resolve<ReconcileServiceIfc>("reconciliation");
-
+            // resolve the project by is class, not by token, to get all dependencies injected
+            let p:Project = projectContainer.resolve<Project>(Project);
             this.cache[projectKey] = p;
 
             console.dir(p);
@@ -69,6 +62,12 @@ export class ConfigProjectProvider {
         projectContainer.register("reconciliation", { useToken: projectConfig.reconciliation?.implementation ?? "default:reconciliation"  });
         // 4. register the reconciliation config to whatever is in the reconciliation section, or the default values
         projectContainer.register("reconciliation.config", { useValue: projectConfig.reconciliation ?? DEFAULT_RECONCILIATION_CONFIG  });
+
+        // 5. Same thing to register text2query service
+        projectContainer.register("text2query", { useToken: projectConfig.text2query?.implementation ?? "default:text2query" });
+
+        // 6. Same thing to register query2text service
+        projectContainer.register("query2text", { useToken: projectConfig.query2text?.implementation ?? "default:query2text" });
 
         return projectContainer;
     }

@@ -1,3 +1,5 @@
+import { injectable } from "tsyringe";
+
 export type SingleReconcileQuery = { query: string; type?: string };
 export type ReconcileInput = Record<string, SingleReconcileQuery>;
 export type ReconcileResultBase = {
@@ -45,4 +47,16 @@ export interface ReconcileServiceIfc {
   ): Promise<ReconcileOutput>;
 
   buildManifest(): Promise<ManifestType>;
+}
+
+@injectable({token: "NoOpReconcileService"})
+export class NoOpReconcileService implements ReconcileServiceIfc{
+
+  reconcileQueries(queries: ReconcileInput, includeTypes: boolean):Promise<ReconcileOutput> {
+    return Promise.resolve({});
+  }
+
+  buildManifest():Promise<ManifestType> {
+    throw new Error("Error: ReconcileService not configured");
+  }
 }

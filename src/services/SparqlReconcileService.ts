@@ -13,21 +13,8 @@ import { SparqlReconcileServiceConfig } from "../config/ProjectConfig";
 type CacheEntry = { results: ReconcileResult[]; lastAccessed: Date };
 
 
-@injectable({token: "DummyReconcileService"})
-export class DummyReconcileService implements ReconcileServiceIfc{
-
-  reconcileQueries(queries: ReconcileInput, includeTypes: boolean):Promise<ReconcileOutput> {
-    throw new Error("Method not implemented.");
-  }
-
-  buildManifest():Promise<ManifestType> {
-    throw new Error("Method not implemented.");
-  }
-
-}
-
 @injectable({token: "SparqlReconcileService"})
-// this indicates it is the default implementation for the ReconcileServiceIfc
+// this indicates it is the default implementation for this service
 @injectable({token: "default:reconciliation"})
 export class SparqlReconcileService implements ReconcileServiceIfc {
   public static DEFAULT_MAX_RESULTS = 10;

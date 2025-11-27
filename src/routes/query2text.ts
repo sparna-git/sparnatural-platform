@@ -1,7 +1,7 @@
 import express from "express";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
-import { MistralQuery2TextService } from "../services/impl/mistralQuery2TextService";
+import { MistralQuery2TextService } from "../services/impl/MistralQuery2TextService";
 
 
 const router = express.Router({ mergeParams: true });

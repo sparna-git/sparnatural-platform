@@ -13,7 +13,13 @@ export interface ProjectConfig {
         { implementation: 'SparqlReconcileService' } & SparqlReconcileServiceConfig
     ) | (
         { implementation: 'DummyReconcileService' } & DummyReconcileServiceConfig
-    )
+    ),
+    text2query?: {
+        implementation: 'MistralText2QueryService'
+    },
+    query2text?: {
+        implementation: 'MistralQuery2TextService'
+    }
 }
 
 export interface SparqlReconcileServiceConfig {

@@ -1,7 +1,11 @@
 import { Mistral } from "@mistralai/mistralai";
-import { Query2TextServiceIfc } from "../interfaces/query2TextServiceIfc";
+import { Query2TextServiceIfc } from "../interfaces/Query2TextServiceIfc";
 import { ConfigProvider } from "../../config/ConfigProvider";
+import { injectable } from "tsyringe";
 
+@injectable({token: "MistralQuery2TextService"})
+// this indicates it is the default implementation for this service
+@injectable({token: "default:query2text"})
 export class MistralQuery2TextService implements Query2TextServiceIfc {
   private mistral = new Mistral({
     apiKey: process.env.MISTRAL_API_KEY!,
