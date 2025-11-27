@@ -1,29 +1,35 @@
 import axios from "axios";
 import { getSHACLConfig } from "../config/SCHACL";
-import {
-  ReconcileOutput,
-  ReconcileServiceIfc,
-  ReconcileInput,
-  ReconcileResult,
-} from "./ReconcileServiceIfc";
+import { ReconcileOutput, ReconcileServiceIfc, ReconcileInput } from "./ReconcileServiceIfc";
+import { autoInjectable, inject, injectable } from "tsyringe";
+import { ProjectConfig, SparqlReconcileServiceConfig } from "../config/ProjectConfig";
 
 type CacheEntry = { results: ReconcileResult[]; lastAccessed: Date };
 
-export class SparqlReconcileServiceFactory {
-  constructor() {}
 
-  createService(
-    projectId: string,
-    projectConfig: { sparqlEndpoint: string },
-    serviceConfig: {}
-  ): SparqlReconcileService {
-    return new SparqlReconcileService(projectId, projectConfig.sparqlEndpoint);
+type CacheEntry = { results: any[]; lastAccessed: Date };
+
+
+@injectable({token: "DummyReconcileService"})
+export class DummyReconcileService implements ReconcileServiceIfc{
+
+  reconcileQueries(queries: ReconcileInput, includeTypes: boolean) {
+    throw new Error("Method not implemented.");
   }
+
+  buildManifest() {
+      return {}
+  }
+
 }
 
-export class SparqlReconcileService implements ReconcileServiceIfc {
-  private static MAX_RESULTS = 10;
-  private static CACHE_SIZE = 1000;
+@injectable({token: "SparqlReconcileService"})
+// this indicates it is the default implementation for the ReconcileServiceIfc
+@injectable({token: "default:reconciliation"})
+export class SparqlReconcileService implements ReconcileServiceIfc{
+
+  public static DEFAULT_MAX_RESULTS = 10;
+  public static DEFAULT_CACHE_SIZE = 1000;
 
   // --- Cache mémoire par projet ---
   private memoryCache: Record<string, CacheEntry> = {};
@@ -31,9 +37,20 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
   private projectId: string;
   private sparqlEndpoint: string;
 
-  constructor(projectId: string, sparqlEndpoint: string) {
-    this.projectId = projectId;
-    this.sparqlEndpoint = sparqlEndpoint;
+  private maxResults:number;
+  private cacheSize:number;
+
+  
+  constructor(
+    @inject("project.id") projectId?:string, 
+    @inject("project.sparqlEndpoint")  sparqlEndpoint?:string,
+    @inject("reconciliation.config")  reconciliationConfig?:SparqlReconcileServiceConfig
+  ) {
+    this.projectId = projectId || "";
+    this.sparqlEndpoint = sparqlEndpoint || "";
+
+    this.maxResults = reconciliationConfig?.maxResults || SparqlReconcileService.DEFAULT_MAX_RESULTS;
+    this.cacheSize = reconciliationConfig?.cacheSize || SparqlReconcileService.DEFAULT_CACHE_SIZE;
   }
 
   // --- Manifest ---
@@ -122,7 +139,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
     this.memoryCache[key] = { results, lastAccessed: new Date() };
 
     const keys = Object.keys(this.memoryCache);
-    if (keys.length > SparqlReconcileService.CACHE_SIZE) {
+    if (keys.length > this.cacheSize) {
       const oldestKey = keys.reduce((a, b) =>
         this.memoryCache[a].lastAccessed < this.memoryCache[b].lastAccessed
           ? a
@@ -217,7 +234,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
       SELECT ?x WHERE {
         { { ?x rdfs:label "${escapedName}"@en } UNION { ?x rdfs:label "${escapedName}"@fr } }
       }
-      LIMIT ${SparqlReconcileService.MAX_RESULTS}
+      LIMIT ${this.maxResults}
     `;
 
     let bindings: any[] = [];
@@ -247,21 +264,33 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
               { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@fr }
             }
           }
-          LIMIT ${SparqlReconcileService.MAX_RESULTS}
+          LIMIT ${this.maxResults}
         `;
 
-        return axios
-          .get(
-            `${this.sparqlEndpoint}?query=${encodeURIComponent(
-              query2
-            )}&format=json`,
-            {
-              timeout: 60000,
-              family: 4,
-            }
-          )
-          .then((response2) => {
-            bindings = response2.data.results.bindings;
+      // Query 3: Other properties without language tags (ancienne query2 sans SKOS)
+      if (bindings.length === 0) {
+        const query3 = `
+          PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+          PREFIX dct: <http://purl.org/dc/terms/>
+          PREFIX dc: <http://purl.org/dc/elements/1.1/>
+          PREFIX schema: <http://schema.org/>
+          SELECT ?x WHERE {
+            ${typeFilter}
+            ?x foaf:name|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
+            FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+          }
+          LIMIT ${this.maxResults}
+        `;
+        const url3 = `${this.sparqlEndpoint}?query=${encodeURIComponent(
+          query3
+        )}&format=json`;
+        const response3 = await axios.get(url3, { timeout: 60000, family: 4 });
+        bindings = response3.data.results.bindings;
+      }
+    } catch (err) {
+      console.error(`SPARQL request error for "${name}":`, err);
+      return [];
+    }
 
             if (bindings.length > 0) return bindings;
 
