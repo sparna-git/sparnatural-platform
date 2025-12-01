@@ -3,12 +3,25 @@ import { EmptyRequestError } from "../errors/emptyRequestError";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
 import { MistralText2QueryService } from "../services/impl/MistralText2QueryService";
+import { AppConfig } from "../config/AppConfig";
 
 const router = express.Router({ mergeParams: true });
 
 router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
   const { text } = req.query;
+
+  AppConfig.getInstance().getAppLogger().getLogger("text2query").info(
+    {
+      endpoint: "text2query",
+      method: req.method,
+      projectKey,
+      text,
+      headers: req.headers,
+      ip: req.ip,
+    },
+    "API call started: text2query"
+  );
 
   // Log au début de l'appel API
   logger.info(
@@ -23,16 +36,12 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     "API call started: text2query"
   );
 
-  let config = ConfigProvider.getInstance().getConfig();
-
-  if (!config.projects[projectKey]) {
-    return res.status(404).json({ error: "Unknown project key" });
-  }
-
   try {
-    // utiliser le service via la fabrique
-    const service = new MistralText2QueryService();
-    const jsonQuery = await service.generateJson(text as string, projectKey);
+    // utiliser le service text2query du projet
+    const project = AppConfig.getInstance().getProject(projectKey);
+    const service = project.text2queryService;
+
+    const jsonQuery = await service.generateJson(text as string);
     const parsed =
       typeof jsonQuery === "string" ? JSON.parse(jsonQuery) : jsonQuery;
 

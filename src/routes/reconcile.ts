@@ -23,21 +23,8 @@ router.post("/", async (req: express.Request<{ projectKey: string }>, res) => {
     "API call started: reconciliation"
   );
 
-  let config = ConfigProvider.getInstance().getConfig();
-
-  try {
-    if (!projectKey || !config.projects[projectKey]) {
-      return res
-        .status(400)
-        .json({ error: `Unknown projectKey: ${projectKey}` });
-    }
-  } catch {
-    return res.status(400).json({ error: "Invalid projectKey" });
-  }
-
-  const SPARQL_ENDPOINT = config.projects[projectKey].sparqlEndpoint;
-  if (!SPARQL_ENDPOINT)
-    return res.status(500).json({ error: "SPARQL endpoint not configured" });
+  const project = AppConfig.getInstance().getProject(projectKey);
+  const service = project.reconcileService;
 
   let queries;
   try {
@@ -49,10 +36,6 @@ router.post("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const includeTypes = req.query.includeTypes === "true";
 
   try {
-    let service: ReconcileServiceIfc = new SparqlReconcileService(
-      projectKey,
-      SPARQL_ENDPOINT
-    );
     const responsePayload = await service.reconcileQueries(
       queries,
       includeTypes
@@ -68,26 +51,9 @@ router.post("/", async (req: express.Request<{ projectKey: string }>, res) => {
 router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
 
-  let config = ConfigProvider.getInstance().getConfig();
+  const project = AppConfig.getInstance().getProject(projectKey);
+  const service = project.reconcileService;
 
-  try {
-    if (!projectKey || !config.projects[projectKey]) {
-      return res
-        .status(400)
-        .json({ error: `Unknown projectKey: ${projectKey}` });
-    }
-  } catch {
-    return res.status(400).json({ error: "Invalid projectKey" });
-  }
-
-  const SPARQL_ENDPOINT = config.projects[projectKey].sparqlEndpoint;
-  if (!SPARQL_ENDPOINT)
-    return res.status(500).json({ error: "SPARQL endpoint not configured" });
-
-  let service: ReconcileServiceIfc = new SparqlReconcileService(
-    projectKey,
-    SPARQL_ENDPOINT
-  );
   const manifest = await service.buildManifest();
   return res.json(manifest);
 });

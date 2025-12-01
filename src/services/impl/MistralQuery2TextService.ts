@@ -1,29 +1,28 @@
 import { Mistral } from "@mistralai/mistralai";
 import { Query2TextServiceIfc } from "../interfaces/Query2TextServiceIfc";
-import { ConfigProvider } from "../../config/ConfigProvider";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
+import { MistralQuery2TextServiceConfig } from "../../config/ProjectConfig";
 
-@injectable({token: "MistralQuery2TextService"})
+@injectable({ token: "MistralQuery2TextService" })
 // this indicates it is the default implementation for this service
-@injectable({token: "default:query2text"})
+@injectable({ token: "default:query2text" })
 export class MistralQuery2TextService implements Query2TextServiceIfc {
   private mistral = new Mistral({
     apiKey: process.env.MISTRAL_API_KEY!,
   });
 
-  async generateSummary(
-    jsonQuery: object,
-    lang: string,
-    projectKey: string
-  ): Promise<string> {
-    const config = ConfigProvider.getInstance().getConfig();
-    const agentId =
-      config.projects?.[projectKey]?.["endpoints-agents"]
-        ?.MISTRAL_AGENT_ID_query_2_text;
+  private config: MistralQuery2TextServiceConfig;
 
-    if (!agentId) {
-      throw new Error(`Agent ID query_2_text manquant pour ${projectKey}`);
-    }
+  constructor(
+    @inject("query2text.config")
+    query2textConfig?: MistralQuery2TextServiceConfig
+  ) {
+    this.config = query2textConfig!;
+  }
+
+  async generateSummary(jsonQuery: object, lang: string): Promise<string> {
+    const agentId = this.config.agentId;
+    console.log("Agent ID Query2Text:", agentId);
 
     const result = await this.mistral.agents.complete({
       agentId,

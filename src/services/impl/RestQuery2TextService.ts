@@ -1,29 +1,21 @@
 import axios from "axios";
-import { ConfigProvider } from "../../config/ConfigProvider";
 import { Query2TextServiceIfc } from "../interfaces/Query2TextServiceIfc";
 import { inject, injectable } from "tsyringe";
-import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
+import { RestQuery2TextServiceConfig } from "../../config/ProjectConfig";
 
-@injectable({token: "RestQuery2TextService"})
+@injectable({ token: "RestQuery2TextService" })
 export class RestQuery2TextService implements Query2TextServiceIfc {
+  private config: RestQuery2TextServiceConfig;
 
-  async generateSummary(
-    jsonQuery: object,
-    lang: string,
-    projectKey: string
-  ): Promise<string> {
+  constructor(
+    @inject("query2text.config") query2textConfig?: RestQuery2TextServiceConfig
+  ) {
+    this.config = query2textConfig!;
+  }
+
+  async generateSummary(jsonQuery: object, lang: string): Promise<string> {
     try {
-      let config = ConfigProvider.getInstance().getConfig();
-      const projectConfig = config["projects"]?.[projectKey];
-
-      const agentIdQueryToText =
-        projectConfig?.["endpoints-agents"]?.["MISTRAL_AGENT_ID_query_2_text"];
-
-      if (!agentIdQueryToText) {
-        throw new Error(
-          `Agent ID query_2_text non configuré pour le projet ${projectKey}`
-        );
-      }
+      const agentIdQueryToText = this.config.agentId;
 
       const messageContent = `LANGUAGE: ${lang}\n\nQUERY:\n${JSON.stringify(
         jsonQuery,

@@ -2,13 +2,24 @@ import express from "express";
 import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
 import { MistralQuery2TextService } from "../services/impl/MistralQuery2TextService";
-
+import { AppConfig } from "../config/AppConfig";
 
 const router = express.Router({ mergeParams: true });
 
 router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
   const { query, lang } = req.query;
+
+  AppConfig.getInstance().getAppLogger().getLogger("query2text").info(
+    {
+      endpoint: "query2text",
+      method: req.method,
+      projectKey,
+      query,
+      headers: req.headers,
+    },
+    "API call started: query2text"
+  );
 
   logger.info(
     {
@@ -21,22 +32,13 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     "API call started: query2text"
   );
 
-  let config = ConfigProvider.getInstance().getConfig();
-
-  if (!config.projects[projectKey]) {
-    return res.status(404).json({ error: "Unknown project key" });
-  }
-
   let summary = "Résumé simulé pour développement.";
   try {
     const jsonQuery = JSON.parse(query as string);
 
-    const service = new MistralQuery2TextService();
-    summary = await service.generateSummary(
-      jsonQuery,
-      lang as string,
-      projectKey
-    );
+    const project = AppConfig.getInstance().getProject(projectKey);
+    const service = project.query2textService;
+    summary = await service.generateSummary(jsonQuery, lang as string);
     logger.info({ projectKey, query, summary }, "SPARQL converted to text");
   } catch (e) {
     summary = "Erreur de parsing ou d’appel à l’agent.";

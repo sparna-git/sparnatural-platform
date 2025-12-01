@@ -2,39 +2,29 @@ import axios from "axios";
 import { SparnaturalQuery } from "../../zod/query";
 import { z } from "zod";
 import { EmptyRequestError } from "../../errors/emptyRequestError";
-import { ConfigProvider } from "../../config/ConfigProvider";
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { SparqlReconcileService } from "../SparqlReconcileService";
 import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
 import { inject, injectable } from "tsyringe";
 import { RestText2QueryServiceConfig } from "../../config/ProjectConfig";
 
-@injectable({token: "RestText2QueryService"})
+@injectable({ token: "RestText2QueryService" })
 export class RestText2QueryService implements Text2QueryServiceIfc {
+  private reconciliation: ReconcileServiceIfc;
+  private config: RestText2QueryServiceConfig;
 
-    private reconciliation:ReconcileServiceIfc;
-    private config: RestText2QueryServiceConfig;
-
-    constructor(
-        @inject("reconciliation") reconcileServiceIfc?: ReconcileServiceIfc,
-        @inject("text2query.config")  text2queryConfig?:RestText2QueryServiceConfig
-    ) {
-        this.reconciliation = reconcileServiceIfc!;
-        this.config = text2queryConfig!;
-    }
+  constructor(
+    @inject("reconciliation") reconcileServiceIfc?: ReconcileServiceIfc,
+    @inject("text2query.config") text2queryConfig?: RestText2QueryServiceConfig
+  ) {
+    this.reconciliation = reconcileServiceIfc!;
+    this.config = text2queryConfig!;
+  }
 
   async generateJson(
-    naturalLanguageQuery: string,
-    projectKey: string
+    naturalLanguageQuery: string
   ): Promise<z.infer<typeof SparnaturalQuery>> {
-
     const agentIdTextToQuery = this.config.agentId;
-
-    if (!agentIdTextToQuery) {
-      throw new Error(
-        `Agent ID text_2_query non configuré pour le projet ${projectKey}`
-      );
-    }
 
     const userMessage = { role: "user", content: naturalLanguageQuery };
 
@@ -118,16 +108,6 @@ export class RestText2QueryService implements Text2QueryServiceIfc {
           } label(s):`,
           Object.values(labelsToResolve).map((l) => l.query)
         );
-
-        // 🔄 Direct call au lieu d'un POST HTTP
-        const SPARQL_ENDPOINT =
-          ConfigProvider.getInstance().getConfig().projects[projectKey]
-            ?.sparqlEndpoint;
-        if (!SPARQL_ENDPOINT) {
-          throw new Error(
-            "SPARQL endpoint not configured for project " + projectKey
-          );
-        }
 
         const queries = SparqlReconcileService.parseQueries(labelsToResolve);
 

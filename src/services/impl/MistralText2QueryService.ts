@@ -1,33 +1,36 @@
 import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
-import { z } from "zod";
+import { string, z } from "zod";
 import { SparnaturalQuery } from "../../zod/query";
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { SparqlReconcileService } from "../SparqlReconcileService";
-import { ConfigProvider } from "../../config/ConfigProvider";
 import { Mistral } from "@mistralai/mistralai";
 import schema from "../../schemas/SparnaturalQuery.schema.json";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
+import { MistralText2QueryServiceConfig } from "../../config/ProjectConfig";
 
-@injectable({token: "MistralText2QueryService"})
+@injectable({ token: "MistralText2QueryService" })
 // this indicates it is the default implementation for this service
-@injectable({token: "default:text2query"})
+@injectable({ token: "default:text2query" })
 export class MistralText2QueryService implements Text2QueryServiceIfc {
-  private mistral = new Mistral({
-    apiKey: process.env.MISTRAL_API_KEY!,
-  });
+  private mistral = new Mistral({ apiKey: process.env.MISTRAL_API_KEY! });
+
+  private reconciliation: ReconcileServiceIfc;
+  private config: MistralText2QueryServiceConfig;
+
+  constructor(
+    @inject("reconciliation") reconciliationServiceIfc?: ReconcileServiceIfc,
+    @inject("text2query.config")
+    text2queryConfig?: MistralText2QueryServiceConfig
+  ) {
+    this.reconciliation = reconciliationServiceIfc!;
+    this.config = text2queryConfig!;
+  }
 
   async generateJson(
-    naturalLanguageQuery: string,
-    projectKey: string
+    naturalLanguageQuery: string
   ): Promise<z.infer<typeof SparnaturalQuery>> {
-    const config = ConfigProvider.getInstance().getConfig();
-    const agentId =
-      config.projects?.[projectKey]?.["endpoints-agents"]
-        ?.MISTRAL_AGENT_ID_text_2_query;
-
-    if (!agentId) {
-      throw new Error(`Agent ID text_2_query non configuré pour ${projectKey}`);
-    }
+    const agentId = this.config.agentId;
+    console.log("Agent ID Text2Query:", agentId);
 
     // Appel Mistral
     const result = await this.mistral.agents.complete({
@@ -99,15 +102,17 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
     collectLabels(parsed);
 
     if (Object.keys(labelsToResolve).length > 0) {
-      const endpoint = config.projects?.[projectKey]?.sparqlEndpoint;
-      const queries = SparqlReconcileService.parseQueries(labelsToResolve);
-
-      const rec: ReconcileServiceIfc = new SparqlReconcileService(
-        projectKey,
-        endpoint
+      console.log(
+        `[getJsonFromAgent] 🔎 Reconciliation utilisée pour ${
+          Object.keys(labelsToResolve).length
+        } label(s):`,
+        Object.values(labelsToResolve).map((l) => l.query)
       );
 
-      const uriRes = await rec.reconcileQueries(queries, false);
+      const queries = SparqlReconcileService.parseQueries(labelsToResolve);
+
+      const uriRes: Record<string, { result: any[] }> =
+        await this.reconciliation.reconcileQueries(queries, false);
 
       let resolvedIdx = 0;
       function injectUris(obj: any) {
