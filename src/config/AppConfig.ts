@@ -5,6 +5,10 @@ import { ProjectConfig, SparqlReconcileServiceConfig } from "./ProjectConfig";
 import { SparqlReconcileService } from "../services/SparqlReconcileService";
 import { ConfigProvider } from "./ConfigProvider";
 import { AppLogger } from "../utils/AppLogger";
+import { MistralText2QueryService } from "../services/impl/MistralText2QueryService";
+import { MistralQuery2TextService } from "../services/impl/MistralQuery2TextService";
+import { RestText2QueryService } from "../services/impl/RestText2QueryService";
+import { RestQuery2TextService } from "../services/impl/RestQuery2TextService";
 
 const DEFAULT_RECONCILIATION_CONFIG: SparqlReconcileServiceConfig = {
   cacheSize: SparqlReconcileService.DEFAULT_CACHE_SIZE,
@@ -105,6 +109,22 @@ export class AppConfig {
   }
 
   initContainer(): void {
+    container.register("MistralText2QueryService", {
+      useClass: MistralText2QueryService,
+    });
+
+    // --- Query2Text ---
+    container.register("MistralQuery2TextService", {
+      useClass: MistralQuery2TextService,
+    });
+
+    container.register("RestText2QueryService", {
+      useClass: RestText2QueryService,
+    });
+    container.register("RestQuery2TextService", {
+      useClass: RestQuery2TextService,
+    });
+
     container.register<string>("log.directory", {
       useValue: this.config.log?.directory ?? "log",
     });
