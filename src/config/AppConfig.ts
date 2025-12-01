@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import {container, DependencyContainer} from "tsyringe";
 import { Project } from "./Project";
-import { ReconcileServiceIfc } from "../services/ReconcileServiceIfc";
 import { ProjectConfig, SparqlReconcileServiceConfig } from "./ProjectConfig";
 import { SparqlReconcileService } from "../services/SparqlReconcileService";
 import { ConfigProvider } from "./ConfigProvider";
+import { AppLogger } from "../utils/AppLogger";
 
 
 const DEFAULT_RECONCILIATION_CONFIG: SparqlReconcileServiceConfig = {
@@ -12,13 +12,23 @@ const DEFAULT_RECONCILIATION_CONFIG: SparqlReconcileServiceConfig = {
     maxResults: SparqlReconcileService.DEFAULT_MAX_RESULTS
 };
 
-export class ConfigProjectProvider {
+export class AppConfig {
+
+    private static instance: AppConfig;
 
     private config: any;
     private cache: Record<string, Project> = {};
 
-    public constructor() {
+    private constructor() {
         this.config = ConfigProvider.getInstance().getConfig();
+        this.initContainer();
+    }
+
+    public static getInstance(): AppConfig {
+        if (!AppConfig.instance) {
+            AppConfig.instance = new AppConfig();
+        }
+        return AppConfig.instance;
     }
 
     listProjects(): string[] {
@@ -49,6 +59,10 @@ export class ConfigProjectProvider {
 
     }
 
+    getAppLogger() {
+        return container.resolve<AppLogger>(AppLogger);
+    }
+
     buildProjectContainer(projectKey: string): DependencyContainer {
         let projectContainer = container.createChildContainer();
     
@@ -72,6 +86,11 @@ export class ConfigProjectProvider {
         projectContainer.register("query2text.config", { useValue: projectConfig.query2text ?? {} });
 
         return projectContainer;
+    }
+
+    initContainer(): void {
+        container.register<string>("log.directory", {useValue: this.config.log?.directory ?? "log"});
+        container.register<string>("log.level", {useValue: this.config.log?.level ?? "info"});
     }
 
 }

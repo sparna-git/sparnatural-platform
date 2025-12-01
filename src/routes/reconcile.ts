@@ -3,6 +3,7 @@ import logger from "../utils/logger";
 import { ConfigProvider } from "../config/ConfigProvider";
 import { ReconcileServiceIfc } from "../services/ReconcileServiceIfc";
 import { SparqlReconcileService } from "../services/SparqlReconcileService";
+import { AppConfig } from "../config/AppConfig";
 
 const router = express.Router({ mergeParams: true });
 
@@ -10,7 +11,7 @@ const router = express.Router({ mergeParams: true });
 router.post("/", async (req: express.Request<{ projectKey: string }>, res) => {
   const { projectKey } = req.params;
 
-  logger.info(
+  AppConfig.getInstance().getAppLogger().getLogger("reconcile").info(
     {
       endpoint: "reconcile",
       method: req.method,

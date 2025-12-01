@@ -15,7 +15,7 @@ import pingRoute from "./routes/ping";
 
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
 
-import { ConfigProjectProvider } from "./config/ConfigProjectProvider";
+import { AppConfig } from "./config/AppConfig";
 import { ConfigProvider } from "./config/ConfigProvider";
 
 dotenv.config();
@@ -23,8 +23,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-let provider = new ConfigProjectProvider();
-let dbpedia = provider.getProject("dbpedia-en");
+let dbpedia = AppConfig.getInstance().getProject("dbpedia-en");
 
 
 // Swagger doc

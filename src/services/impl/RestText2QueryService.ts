@@ -16,10 +16,10 @@ export class RestText2QueryService implements Text2QueryServiceIfc {
     private config: RestText2QueryServiceConfig;
 
     constructor(
-        @inject("reconciliation") reconcileServiceIfc: ReconcileServiceIfc,
+        @inject("reconciliation") reconcileServiceIfc?: ReconcileServiceIfc,
         @inject("text2query.config")  text2queryConfig?:RestText2QueryServiceConfig
     ) {
-        this.reconciliation = reconcileServiceIfc;
+        this.reconciliation = reconcileServiceIfc!;
         this.config = text2queryConfig!;
     }
 
