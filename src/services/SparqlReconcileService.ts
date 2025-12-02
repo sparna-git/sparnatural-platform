@@ -12,10 +12,9 @@ import { SparqlReconcileServiceConfig } from "../config/ProjectConfig";
 
 type CacheEntry = { results: ReconcileResult[]; lastAccessed: Date };
 
-
-@injectable({token: "SparqlReconcileService"})
+@injectable({ token: "SparqlReconcileService" })
 // this indicates it is the default implementation for this service
-@injectable({token: "default:reconciliation"})
+@injectable({ token: "default:reconciliation" })
 export class SparqlReconcileService implements ReconcileServiceIfc {
   public static DEFAULT_MAX_RESULTS = 10;
   public static DEFAULT_CACHE_SIZE = 1000;
@@ -26,23 +25,28 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
   private projectId: string;
   private sparqlEndpoint: string;
 
-  private maxResults:number;
-  private cacheSize:number;
+  private maxResults: number;
+  private cacheSize: number;
 
   constructor(
-    @inject("project.id") projectId?:string, 
-    @inject("project.sparqlEndpoint")  sparqlEndpoint?:string,
-    @inject("reconciliation.config")  reconciliationConfig?:SparqlReconcileServiceConfig
+    @inject("project.id") projectId?: string,
+    @inject("project.sparqlEndpoint") sparqlEndpoint?: string,
+    @inject("reconciliation.config")
+    reconciliationConfig?: SparqlReconcileServiceConfig
   ) {
     this.projectId = projectId || "";
     this.sparqlEndpoint = sparqlEndpoint || "";
 
-    this.maxResults = reconciliationConfig?.maxResults || SparqlReconcileService.DEFAULT_MAX_RESULTS;
-    this.cacheSize = reconciliationConfig?.cacheSize || SparqlReconcileService.DEFAULT_CACHE_SIZE;
+    this.maxResults =
+      reconciliationConfig?.maxResults ||
+      SparqlReconcileService.DEFAULT_MAX_RESULTS;
+    this.cacheSize =
+      reconciliationConfig?.cacheSize ||
+      SparqlReconcileService.DEFAULT_CACHE_SIZE;
   }
 
   // --- Manifest ---
-  buildManifest():Promise<ManifestType> {
+  buildManifest(): Promise<ManifestType> {
     return Promise.resolve({
       versions: ["0.2"],
       name: `Reconciliation ${this.projectId}`,
@@ -61,16 +65,32 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
   }
 
   // --- Reconciliation ---
-  reconcileQueries(queries: ReconcileInput, includeTypes: boolean):Promise<ReconcileOutput> {
+  reconcileQueries(
+    queries: ReconcileInput,
+    includeTypes: boolean
+  ): Promise<ReconcileOutput> {
     const uriCache = this.memoryCache;
     const responsePayload: ReconcileOutput = {};
 
-    const entries = Object.entries(queries);
+    // Convertir en tableau : [key, qobj]
+    let entries = Object.entries(queries);
 
-    // Chaînage des promesses pour traiter les requêtes séquentiellement
+    // SUPPRESSION DES DOUBLONS if exist
+    // On garde la première clé rencontrée
+    const uniqueMap = new Map<string, [string, any]>();
+    for (const [key, qobj] of entries) {
+      const normalized = qobj.query.trim().toLowerCase();
+      if (!uniqueMap.has(normalized)) {
+        uniqueMap.set(normalized, [key, qobj]);
+      }
+    }
+
+    const uniqueEntries = Array.from(uniqueMap.values());
+
+    // Exécution séquentielle
     let chain = Promise.resolve();
 
-    entries.forEach(([key, qobj]) => {
+    uniqueEntries.forEach(([key, qobj]) => {
       chain = chain.then(() => {
         const name = qobj.query.trim();
         const cacheKey = encodeURIComponent(
@@ -79,20 +99,24 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
             (includeTypes ? "|openrefine" : "|simple")
         );
 
+        // Résultat déjà en cache ?
         if (
           uriCache[cacheKey] &&
           (!includeTypes || uriCache[cacheKey].results[0]?.type)
         ) {
           uriCache[cacheKey].lastAccessed = new Date();
           responsePayload[key] = { result: uriCache[cacheKey].results };
+
           console.log(
             uriCache[cacheKey].results.length > 0
               ? `[reconciliation] 🔎 "${name}" → "${uriCache[cacheKey].results[0].id}"`
               : `[reconciliation] 🔎 "${name}" → aucun résultat`
           );
+
           return;
         }
 
+        // Sinon → SPARQL + cache
         return this.runSparqlSearch(name, qobj.type, includeTypes).then(
           (uris) => {
             if (includeTypes) {
@@ -185,7 +209,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
     return chain.then(() => results);
   }
 
-  runSparqlSearch(
+  async runSparqlSearch(
     name: string,
     typeUri?: string,
     includeTypes: boolean = false
@@ -194,36 +218,21 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
       `Chargement de la configuration SHACL pour le projet ${this.projectId}`
     );
 
-    // Récupérer la config SHACL (mise en cache automatiquement)
-    const SCHACLconfig = getSHACLConfig(this.projectId);
+    // Nouvelle methode
+    const { postProcessor } = await getSHACLConfig(this.projectId);
+
     const escapedName = name.replace(/"/g, '\\"');
-    let typeFilter = "";
 
-    if (typeUri) {
-      if (includeTypes) {
-        // Mode OpenRefine : pas de SHACL, on prend le typeUri tel quel
-        typeFilter = `?x a <${typeUri}> .`;
-      } else {
-        // Mode simple reconciliation : on passe par SCHACLconfig
-        const nodeShape = SCHACLconfig[typeUri];
-        if (!nodeShape)
-          throw new Error(`NodeShape non trouvé pour typeUri=${typeUri}`);
-        const targetClass = nodeShape["http://www.w3.org/ns/shacl#targetClass"];
-        console.log("Target class:", targetClass);
-        if (targetClass) {
-          typeFilter = `?x a <${targetClass}> .`;
-        }
-      }
-    }
+    //
+    // QUERY 1 : rdfs:label
 
-    // Query 1: rdfs:label with language tags
     const query1 = `
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      SELECT ?x WHERE {
-        { { ?x rdfs:label "${escapedName}"@en } UNION { ?x rdfs:label "${escapedName}"@fr } }
-      }
-      LIMIT ${this.maxResults}
-    `;
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    SELECT ?x WHERE {
+      { { ?x rdfs:label "${escapedName}"@en } UNION { ?x rdfs:label "${escapedName}"@fr } }
+    }
+    LIMIT ${this.maxResults}
+  `;
 
     let bindings: any[] = [];
 
@@ -239,21 +248,22 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
       )
       .then((response1) => {
         bindings = response1.data.results.bindings;
-
         if (bindings.length > 0) return bindings;
 
-        // Query 2: SKOS properties with language tags (nouvelle requête)
+        //
+        // QUERY 2 : SKOS prefLabel / altLabel
+
         const query2 = `
-          PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-          SELECT ?x WHERE {
-            {
-              { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@en }
-              UNION
-              { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@fr }
-            }
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        SELECT ?x WHERE {
+          {
+            { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@en }
+            UNION
+            { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@fr }
           }
-          LIMIT ${this.maxResults}
-        `;
+        }
+        LIMIT ${this.maxResults}
+      `;
 
         return axios
           .get(
@@ -267,22 +277,33 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
           )
           .then((response2) => {
             bindings = response2.data.results.bindings;
-
             if (bindings.length > 0) return bindings;
 
-            // Query 3: Other properties without language tags (ancienne query2 sans SKOS)
-            const query3 = `
-              PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-              PREFIX dct: <http://purl.org/dc/terms/>
-              PREFIX dc: <http://purl.org/dc/elements/1.1/>
-              PREFIX schema: <http://schema.org/>
-              SELECT ?x WHERE {
-                ${typeFilter}
-                ?x foaf:name|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
-                FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
-              }
-              LIMIT ${this.maxResults}
-            `;
+            //
+            // QUERY 3 : SHACL-based search (avec post-processing SPARQL)
+
+            const typeTriple = typeUri ? `?x a <${typeUri}> .` : ``;
+
+            let query3 = `
+            PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX dct: <http://purl.org/dc/terms/>
+            PREFIX dc: <http://purl.org/dc/elements/1.1/>
+            PREFIX schema: <http://schema.org/>
+
+            SELECT ?x WHERE {
+              ${typeTriple}
+              ?x foaf:name|dct:title|dc:title|dct:identifier|dc:identifier|schema:name ?literal .
+              FILTER(LCASE(STR(?literal)) = LCASE("${escapedName}"))
+            }
+            LIMIT ${this.maxResults}
+          `;
+
+            // remplace par expandSparql
+            console.log("$$$ Avant expansion SHACL :", query3);
+
+            query3 = postProcessor.expandSparql(query3, {});
+
+            console.log("$$$ Après expansion SHACL :", query3);
 
             return axios
               .get(

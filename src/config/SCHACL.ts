@@ -1,50 +1,63 @@
-// src/config/SHACL.ts
 import fs from "fs";
 import path from "path";
-import { Parser } from "n3";
+
+import {
+  RdfStoreReader,
+  ShaclModel,
+  ShaclSparqlPostProcessor,
+} from "rdf-shacl-commons";
+
 import { ConfigProvider } from "./ConfigProvider";
 
-// Cache en mémoire pour les configurations SHACL
-const SHACL_CACHE: Record<string, Record<string, any>> = {};
+const SHACL_CACHE: Record<
+  string,
+  { model: ShaclModel; postProcessor: ShaclSparqlPostProcessor }
+> = {};
 
-export function getSHACLConfig(projectKey: string): Record<string, any> {
-  // Si la config est déjà en cache
+export async function getSHACLConfig(projectKey: string) {
   if (SHACL_CACHE[projectKey]) {
-    console.log(
-      `[SHACL] ✅ Configuration chargée depuis le cache pour ${projectKey}`
-    );
+    console.log(`[SHACL] ⚡ Cache hit → ${projectKey}`);
     return SHACL_CACHE[projectKey];
   }
 
-  // Sinon, on la charge depuis le fichier
-  const shaclFilePath = ConfigProvider.getInstance().getConfig().projects[projectKey]?.shaclFile;
+  const shaclFilePath =
+    ConfigProvider.getInstance().getConfig().projects[projectKey]?.shaclFile;
+
   if (!shaclFilePath) {
     throw new Error(
-      `Aucun fichier SHACL configuré pour le projet ${projectKey}`
+      `Aucun fichier SHACL configuré pour le projet '${projectKey}'`
     );
   }
 
   const absolutePath = path.join(__dirname, "../../", shaclFilePath);
+  console.log(`[SHACL] 📥 Lecture du fichier SHACL : ${absolutePath}`);
+
+  const ttlContent = fs.readFileSync(absolutePath, "utf8");
+
+  // 1) Construire le store RDF (type laissé en ANY)
+  const store: any = await new Promise((resolve) => {
+    RdfStoreReader.buildStoreFromString(ttlContent, absolutePath, resolve);
+  });
+
+  // 2) Skolemisation
+  ShaclModel.skolemizeAnonymousPropertyShapes(store);
+
+  // 3) Construire le modèle SHACL
+  const shaclModel = new ShaclModel(store as any);
+
+  // 4) Post-processor SPARQL
+  const postProcessor = new ShaclSparqlPostProcessor(shaclModel);
+
+  SHACL_CACHE[projectKey] = { model: shaclModel, postProcessor };
+
   console.log(
-    `[SHACL] 📖 Lecture du fichier pour ${projectKey}: ${absolutePath}`
+    `[SHACL] ✅ Modèle SHACL construit (${store.countQuads(
+      null,
+      null,
+      null,
+      null
+    )} triples)`
   );
 
-  // Lire et parser le fichier Turtle
-  const ttl = fs.readFileSync(absolutePath, "utf8");
-  const parser = new Parser();
-  const quads = parser.parse(ttl);
-
-  // Transformer les triples en objet
-  const SCHACLconfig: Record<string, any> = {};
-  for (const quad of quads) {
-    const subject = quad.subject.value;
-    const predicate = quad.predicate.value;
-    const object = quad.object.value;
-    if (!SCHACLconfig[subject]) SCHACLconfig[subject] = {};
-    SCHACLconfig[subject][predicate] = object;
-  }
-
-  // Stocker en cache
-  SHACL_CACHE[projectKey] = SCHACLconfig;
-  return SCHACLconfig;
+  return SHACL_CACHE[projectKey];
 }

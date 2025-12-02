@@ -113,7 +113,6 @@ export class AppConfig {
       useClass: MistralText2QueryService,
     });
 
-    // --- Query2Text ---
     container.register("MistralQuery2TextService", {
       useClass: MistralQuery2TextService,
     });
@@ -121,6 +120,7 @@ export class AppConfig {
     container.register("RestText2QueryService", {
       useClass: RestText2QueryService,
     });
+
     container.register("RestQuery2TextService", {
       useClass: RestQuery2TextService,
     });

@@ -57,45 +57,45 @@ export class RestText2QueryService implements Text2QueryServiceIfc {
       const rawClean = extractJsonFromMarkdown(raw);
       const parsed = JSON.parse(rawClean);
 
-      // 2. Chercher les labels avec URI_NOT_FOUND
       const labelsToResolve: Record<string, { query: string; type?: string }> =
         {};
       let idx = 0;
 
-      // Récupérer les labels
-      // --- collectLabels adapté au nouveau modèle ---
+      // Set pour éviter les doublons
+      const seen = new Set<string>();
+
       function collectLabels(obj: any, parentType?: string) {
         if (Array.isArray(obj)) {
-          obj.forEach((item) => collectLabels(item, parentType));
-        } else if (obj && typeof obj === "object") {
-          // Cas spécifique : LabelledCriteria<RdfTermCriteria>
-          if (
-            obj.criteria &&
-            obj.criteria.rdfTerm &&
-            obj.criteria.rdfTerm.type === "uri" &&
-            obj.criteria.rdfTerm.value ===
-              "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
-          ) {
+          return obj.forEach((i) => collectLabels(i, parentType));
+        }
+        if (!obj || typeof obj !== "object") return;
+
+        if (
+          obj.criteria?.rdfTerm?.type === "uri" &&
+          obj.criteria.rdfTerm.value ===
+            "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
+        ) {
+          const label = obj.label?.trim().toLowerCase();
+
+          // ↩️ Déjà vu ? On ignore.
+          if (label && !seen.has(label)) {
+            seen.add(label);
             labelsToResolve[`label_${idx++}`] = {
-              query: obj.label, // label vient du LabelledCriteria
-              type: parentType || undefined,
+              query: obj.label,
+              type: parentType,
             };
           }
-
-          // Si c'est un line avec criterias, on les parcourt
-          if (obj.line && obj.line.criterias) {
-            obj.line.criterias.forEach((c: any) =>
-              collectLabels(c, obj.line.oType || obj.line.sType)
-            );
-          }
-
-          // Parcours récursif des autres champs
-          Object.entries(obj).forEach(([key, v]) => {
-            if (key !== "criterias") {
-              collectLabels(v, parentType);
-            }
-          });
         }
+
+        // Critères enfant
+        if (obj.line?.criterias) {
+          obj.line.criterias.forEach((c: any) =>
+            collectLabels(c, obj.line.oType || obj.line.sType)
+          );
+        }
+
+        // Exploration récursive
+        Object.values(obj).forEach((v) => collectLabels(v, parentType));
       }
 
       collectLabels(parsed);

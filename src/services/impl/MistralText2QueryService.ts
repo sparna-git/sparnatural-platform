@@ -69,14 +69,17 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
     // JSON propre
     const parsed = JSON.parse(raw);
 
-    // Reconciliation des URI_NOT_FOUND
     const labelsToResolve: Record<string, { query: string; type?: string }> =
       {};
     let idx = 0;
 
+    // Set pour éviter les doublons
+    const seen = new Set<string>();
+
     function collectLabels(obj: any, parentType?: string) {
-      if (Array.isArray(obj))
+      if (Array.isArray(obj)) {
         return obj.forEach((i) => collectLabels(i, parentType));
+      }
       if (!obj || typeof obj !== "object") return;
 
       if (
@@ -84,18 +87,26 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
         obj.criteria.rdfTerm.value ===
           "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
       ) {
-        labelsToResolve[`label_${idx++}`] = {
-          query: obj.label,
-          type: parentType,
-        };
+        const label = obj.label?.trim().toLowerCase();
+
+        // ↩️ Déjà vu ? On ignore.
+        if (label && !seen.has(label)) {
+          seen.add(label);
+          labelsToResolve[`label_${idx++}`] = {
+            query: obj.label,
+            type: parentType,
+          };
+        }
       }
 
+      // Critères enfant
       if (obj.line?.criterias) {
         obj.line.criterias.forEach((c: any) =>
           collectLabels(c, obj.line.oType || obj.line.sType)
         );
       }
 
+      // Exploration récursive
       Object.values(obj).forEach((v) => collectLabels(v, parentType));
     }
 
