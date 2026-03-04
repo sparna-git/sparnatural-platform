@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { container, DependencyContainer } from "tsyringe";
 import { Project } from "./Project";
 import { ProjectConfig, SparqlReconcileServiceConfig } from "./ProjectConfig";
-import { SparqlReconcileService } from "../services/SparqlReconcileService";
 import { ConfigProvider } from "./ConfigProvider";
 import { AppLogger } from "../utils/AppLogger";
 import { MistralText2QueryService } from "../services/impl/MistralText2QueryService";
@@ -13,9 +12,16 @@ import { Q2TPromptGenerator } from "../services/Q2TPromptGeneratorService";
 import { T2QPromptGenerator } from "../services/T2QPromptGeneratorService";
 import { SparqlReconcileServiceV13 } from "../services/SparqlReconcileServiceV13";
 
+/*
 const DEFAULT_RECONCILIATION_CONFIG: SparqlReconcileServiceConfig = {
   cacheSize: SparqlReconcileService.DEFAULT_CACHE_SIZE,
   maxResults: SparqlReconcileService.DEFAULT_MAX_RESULTS,
+};
+*/
+
+const DEFAULT_RECONCILIATION_CONFIG: SparqlReconcileServiceConfig = {
+  cacheSize: 1000,
+  maxResults: 10,
 };
 
 export class AppConfig {

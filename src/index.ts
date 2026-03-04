@@ -1,4 +1,6 @@
 import "reflect-metadata";
+import { AppConfig } from "./config/AppConfig";
+
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -16,8 +18,6 @@ import promptT2QRoute from "./routes/t2qPrompt";
 import promptQ2TRoute from "./routes/q2tPrompt";
 
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
-
-import { AppConfig } from "./config/AppConfig";
 
 dotenv.config();
 
