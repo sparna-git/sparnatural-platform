@@ -9,15 +9,15 @@ projects:
     cache:
       urilookup: ./cache/dbpedia-en/urilookup_cache.json
     reconciliation:
-      implementation: SparqlReconcileServiceV13
+      implementation: SparqlReconcileService
       cacheSize: 1000
       maxResults: 2
     text2query:
       implementation: MistralText2QueryService
-      agentId: ag_019c8a5149a076f48d90b303514760d6
+      agentId: ag:33fd9714:20250822:t2q-post-process:a046f692
     query2text:
       implementation: MistralQuery2TextService
-      agentId: ag_019c8b1bad56750d95e1b91e7d2a8ce8
+      agentId: ag:33fd9714:20250507:untitled-agent:d1fc8155
     t2qPromptGenerator:
       implementation: T2QPromptGenerator
     q2tPromptGenerator:
@@ -30,12 +30,12 @@ projects:
     cache:
       urilookup: ./cache/demo-ep/urilookup_cache.json
     reconciliation:
-      implementation: SparqlReconcileServiceV13
+      implementation: SparqlReconcileService
       cacheSize: 1000
       maxResults: 2
     text2query:
       implementation: MistralText2QueryService
-      agentId: ag_019c8ea6b01e767ab664186d5749eb6f
+      agentId: ag:33fd9714:20251002:t2q-org-ep:e1a9d878
     query2text:
       implementation: MistralQuery2TextService
       agentId: ag:33fd9714:20250507:untitled-agent:d1fc8155
