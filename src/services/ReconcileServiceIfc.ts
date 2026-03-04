@@ -43,20 +43,33 @@ export type ManifestType = {
 export interface ReconcileServiceIfc {
   reconcileQueries(
     queries: ReconcileInput,
-    includeTypes: boolean
+    includeTypes: boolean,
   ): Promise<ReconcileOutput>;
+
+  /**
+   * Takes a complete parsed SparnaturalQuery, finds all URI_NOT_FOUND labels,
+   * reconciles them, and injects the resolved URIs back into the query.
+   * Mutates and returns the query.
+   */
+  resolveQueryUris(parsedQuery: any): Promise<any>;
 
   buildManifest(): Promise<ManifestType>;
 }
 
-@injectable({token: "NoOpReconcileService"})
-export class NoOpReconcileService implements ReconcileServiceIfc{
-
-  reconcileQueries(queries: ReconcileInput, includeTypes: boolean):Promise<ReconcileOutput> {
+@injectable({ token: "NoOpReconcileService" })
+export class NoOpReconcileService implements ReconcileServiceIfc {
+  reconcileQueries(
+    queries: ReconcileInput,
+    includeTypes: boolean,
+  ): Promise<ReconcileOutput> {
     return Promise.resolve({});
   }
 
-  buildManifest():Promise<ManifestType> {
+  resolveQueryUris(parsedQuery: any): Promise<any> {
+    return Promise.resolve(parsedQuery);
+  }
+
+  buildManifest(): Promise<ManifestType> {
     throw new Error("Error: ReconcileService not configured");
   }
 }

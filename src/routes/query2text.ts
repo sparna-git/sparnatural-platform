@@ -18,7 +18,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
       query,
       headers: req.headers,
     },
-    "API call started: query2text"
+    "API call started: query2text",
   );
 
   logger.info(
@@ -29,7 +29,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
       query,
       headers: req.headers,
     },
-    "API call started: query2text"
+    "API call started: query2text",
   );
 
   let summary = "Résumé simulé pour développement.";

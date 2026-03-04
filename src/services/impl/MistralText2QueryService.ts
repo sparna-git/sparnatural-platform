@@ -1,10 +1,11 @@
 import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
-import { string, z } from "zod";
-import { SparnaturalQuery } from "../../zod/query";
+
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
-import { SparqlReconcileService } from "../SparqlReconcileService";
 import { Mistral } from "@mistralai/mistralai";
+// need to be updated with the new schema
 import schema from "../../schemas/SparnaturalQuery.schema.json";
+// import newSchema from "../../schemas/newSchema.schema.json";
+
 import { inject, injectable } from "tsyringe";
 import { MistralText2QueryServiceConfig } from "../../config/ProjectConfig";
 
@@ -20,15 +21,14 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
   constructor(
     @inject("reconciliation") reconciliationServiceIfc?: ReconcileServiceIfc,
     @inject("text2query.config")
-    text2queryConfig?: MistralText2QueryServiceConfig
+    text2queryConfig?: MistralText2QueryServiceConfig,
   ) {
     this.reconciliation = reconciliationServiceIfc!;
     this.config = text2queryConfig!;
   }
 
-  async generateJson(
-    naturalLanguageQuery: string
-  ): Promise<z.infer<typeof SparnaturalQuery>> {
+  async generateJson(naturalLanguageQuery: string): Promise<JSON> {
+    //Promise<z.infer<typeof SparnaturalQuery>>
     const agentId = this.config.agentId;
     console.log("Agent ID Text2Query:", agentId);
 
@@ -42,14 +42,24 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
         },
       ],
       responseFormat: {
+        type: "json_object",
+      },
+    });
+
+    /*
+    responseFormat: {
         type: "json_schema",
         jsonSchema: {
           name: "SparnaturalQuery",
-          schemaDefinition: schema,
+          schemaDefinition: newSchema,
           strict: true,
         },
       },
-    });
+
+            responseFormat: {
+        type: "json_object",
+      },
+    */
 
     // Extraction contenu
     function normalizeContent(content: any): string {
@@ -60,6 +70,11 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
       return "";
     }
 
+    console.log(
+      "[text2query] Raw response from Mistral:",
+      result.choices?.[0]?.message?.content,
+    );
+
     const raw = normalizeContent(result.choices?.[0]?.message?.content);
 
     if (!raw || raw.trim() === "") {
@@ -68,88 +83,11 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
 
     // JSON propre
     const parsed = JSON.parse(raw);
+    console.log("[text2query] Parsed JSON from Mistral:", parsed);
 
-    const labelsToResolve: Record<string, { query: string; type?: string }> =
-      {};
-    let idx = 0;
+    // Reconcile URI_NOT_FOUND labels via the reconciliation service
+    await this.reconciliation.resolveQueryUris(parsed);
 
-    // Set pour éviter les doublons
-    const seen = new Set<string>();
-
-    function collectLabels(obj: any, parentType?: string) {
-      if (Array.isArray(obj)) {
-        return obj.forEach((i) => collectLabels(i, parentType));
-      }
-      if (!obj || typeof obj !== "object") return;
-
-      if (
-        obj.criteria?.rdfTerm?.type === "uri" &&
-        obj.criteria.rdfTerm.value ===
-          "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
-      ) {
-        const label = obj.label?.trim().toLowerCase();
-
-        // ↩️ Déjà vu ? On ignore.
-        if (label && !seen.has(label)) {
-          seen.add(label);
-          labelsToResolve[`label_${idx++}`] = {
-            query: obj.label,
-            type: parentType,
-          };
-        }
-      }
-
-      // Critères enfant
-      if (obj.line?.criterias) {
-        obj.line.criterias.forEach((c: any) =>
-          collectLabels(c, obj.line.oType || obj.line.sType)
-        );
-      }
-
-      // Exploration récursive
-      Object.values(obj).forEach((v) => collectLabels(v, parentType));
-    }
-
-    collectLabels(parsed);
-
-    if (Object.keys(labelsToResolve).length > 0) {
-      console.log(
-        `[getJsonFromAgent] 🔎 Reconciliation utilisée pour ${
-          Object.keys(labelsToResolve).length
-        } label(s):`,
-        Object.values(labelsToResolve).map((l) => l.query)
-      );
-
-      const queries = SparqlReconcileService.parseQueries(labelsToResolve);
-
-      const uriRes: Record<string, { result: any[] }> =
-        await this.reconciliation.reconcileQueries(queries, false);
-
-      let resolvedIdx = 0;
-      function injectUris(obj: any) {
-        if (Array.isArray(obj)) return obj.forEach(injectUris);
-        if (!obj || typeof obj !== "object") return;
-
-        if (
-          obj.criteria?.rdfTerm?.value ===
-          "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND"
-        ) {
-          const key = `label_${resolvedIdx++}`;
-          const results = uriRes[key]?.result;
-
-          const best = results?.sort((a, b) => b.score - a.score)[0];
-          if (best?.id) obj.criteria.rdfTerm.value = best.id;
-        }
-
-        Object.values(obj).forEach(injectUris);
-      }
-
-      injectUris(parsed);
-
-      delete parsed.metadata;
-    }
-
-    // Validation finale
-    return SparnaturalQuery.parse(parsed);
+    return parsed;
   }
 }

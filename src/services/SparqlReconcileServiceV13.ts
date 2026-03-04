@@ -8,19 +8,17 @@ import {
   ManifestType,
 } from "./ReconcileServiceIfc";
 import { inject, injectable } from "tsyringe";
-import { SparqlReconcileServiceConfig } from "../config/ProjectConfig";
+import { SparqlReconcileServiceV13Config } from "../config/ProjectConfig";
 import {
   collectUnresolvedLabels,
   buildLabelToUriMap,
   injectResolvedUris,
-} from "../utils/UriReconciliationHelperOld";
+} from "../utils/UriReconciliationHelperV13";
 
 type CacheEntry = { results: ReconcileResult[]; lastAccessed: Date };
 
-@injectable({ token: "SparqlReconcileService" })
-// this indicates it is the default implementation for this service
-@injectable({ token: "default:reconciliation" })
-export class SparqlReconcileService implements ReconcileServiceIfc {
+@injectable({ token: "SparqlReconcileServiceV13" })
+export class SparqlReconcileServiceV13 implements ReconcileServiceIfc {
   public static DEFAULT_MAX_RESULTS = 10;
   public static DEFAULT_CACHE_SIZE = 1000;
 
@@ -37,17 +35,17 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
     @inject("project.id") projectId?: string,
     @inject("project.sparqlEndpoint") sparqlEndpoint?: string,
     @inject("reconciliation.config")
-    reconciliationConfig?: SparqlReconcileServiceConfig,
+    reconciliationConfig?: SparqlReconcileServiceV13Config,
   ) {
     this.projectId = projectId || "";
     this.sparqlEndpoint = sparqlEndpoint || "";
 
     this.maxResults =
       reconciliationConfig?.maxResults ||
-      SparqlReconcileService.DEFAULT_MAX_RESULTS;
+      SparqlReconcileServiceV13.DEFAULT_MAX_RESULTS;
     this.cacheSize =
       reconciliationConfig?.cacheSize ||
-      SparqlReconcileService.DEFAULT_CACHE_SIZE;
+      SparqlReconcileServiceV13.DEFAULT_CACHE_SIZE;
   }
 
   // --- Manifest ---
@@ -153,8 +151,9 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
   }
 
   /**
-   * Takes a complete parsed SparnaturalQuery (old structure: branches → line.criterias → criteria.rdfTerm),
-   * finds all URI_NOT_FOUND labels, reconciles them via SPARQL, and injects the resolved URIs back.
+   * Takes a complete parsed SparnaturalQuery (v13), finds all URI_NOT_FOUND labels,
+   * reconciles them via SPARQL, and injects the resolved URIs back.
+   * All the collect/inject logic is handled here — callers just pass the query.
    */
   async resolveQueryUris(parsedQuery: any): Promise<any> {
     const labelsToResolve = collectUnresolvedLabels(parsedQuery);
@@ -171,7 +170,7 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
       Object.values(labelsToResolve).map((l) => l.query),
     );
 
-    const queries = SparqlReconcileService.parseQueries(labelsToResolve);
+    const queries = SparqlReconcileServiceV13.parseQueries(labelsToResolve);
     const uriRes = await this.reconcileQueries(queries, false);
     const labelToUri = buildLabelToUriMap(labelsToResolve, uriRes);
     injectResolvedUris(parsedQuery, labelToUri);

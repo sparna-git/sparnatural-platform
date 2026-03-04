@@ -12,6 +12,8 @@ import reconciliationRoute from "./routes/reconcile";
 import home from "./routes/home";
 import sparqlRouter from "./routes/sparql";
 import pingRoute from "./routes/ping";
+import promptT2QRoute from "./routes/t2qPrompt";
+import promptQ2TRoute from "./routes/q2tPrompt";
 
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
 
@@ -51,7 +53,7 @@ app.use(express.static("public"));
 app.use(
   "/api/v1/:projectKey/query2text",
   checkDomainMiddleware,
-  summarizeRoute
+  summarizeRoute,
 );
 app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
 
@@ -59,7 +61,7 @@ app.use(
   "/api/v1/:projectKey/reconciliation",
   (req, res, next) => {
     console.log(
-      `🔍 reconciliation request - ProjectKey: ${req.params.projectKey}`
+      `🔍 reconciliation request - ProjectKey: ${req.params.projectKey}`,
     );
     console.log(`📝 Method: ${req.method}`);
     console.log(`📊 Query params:`, req.query);
@@ -67,13 +69,27 @@ app.use(
     console.log(`📋 Headers:`, req.headers);
     next();
   },
-  reconciliationRoute
+  reconciliationRoute,
 );
 // sparql endpoint
 app.use("/api/v1/:projectKey/sparql", sparqlRouter);
 
 // ping route
 app.use("/api/v1/:projectKey/ping", pingRoute);
+
+// prompt t2q route
+
+app.use(
+  "/api/v1/:projectKey/prompt-t2q",
+  checkDomainMiddleware,
+  promptT2QRoute,
+);
+
+app.use(
+  "/api/v1/:projectKey/prompt-q2t",
+  checkDomainMiddleware,
+  promptQ2TRoute,
+);
 
 // Swagger
 app.use("/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

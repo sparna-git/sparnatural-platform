@@ -1,18 +1,16 @@
-import { z } from "zod";
-import { SparnaturalQuery } from "../../zod/query";
 import { injectable } from "tsyringe";
+// import { z } from "zod";
+// import { SparnaturalQuery } from "../../models/SparnaturalQuery";
 
 export interface Text2QueryServiceIfc {
-  generateJson(
-    naturalLanguageQuery: string
-  ): Promise<z.infer<typeof SparnaturalQuery>>;
+  // before it was: Promise<z.infer<typeof SparnaturalQuery>>
+  generateJson(naturalLanguageQuery: string): Promise<JSON>;
 }
 
 @injectable({ token: "NoOpText2QueryService" })
 export class NoOpText2QueryService implements Text2QueryServiceIfc {
-  generateJson(
-    naturalLanguageQuery: string
-  ): Promise<z.infer<typeof SparnaturalQuery>> {
+  // before it was: Promise<z.infer<typeof SparnaturalQuery>>
+  generateJson(naturalLanguageQuery: string): Promise<JSON> {
     throw new Error("Method not implemented.");
   }
 }

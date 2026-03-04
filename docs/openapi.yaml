@@ -172,7 +172,126 @@ paths:
                     type: string
                     example: "Unknown project key"
 
-
+  /api/v1/{projectKey}/prompt-t2q:
+    get:
+      summary: Generate the Text2Query prompt for a project
+      tags: [T2QPromptGenerator]
+      description: >
+        Generates the complete Text2Query prompt for a given project.
+        The SHACL file is automatically read from the project configuration (config.yaml)
+        using the `projectKey`. The returned prompt can be used directly in a text2query agent.
+      parameters:
+        - in: path
+          name: projectKey
+          required: true
+          description: The project identifier (e.g. "dbpedia-en", "demo-ep").
+          schema:
+            type: string
+            example: dbpedia-en
+      responses:
+        "200":
+          description: Prompt generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompt:
+                    type: string
+                    description: The full text2query prompt ready to be used in an agent.
+              examples:
+                success:
+                  summary: Example response
+                  value:
+                    prompt: "Role: Semantic Query Builder Assistant\n\nObjective: Translate a user's natural language request..."
+        "404":
+          description: Project not found or no SHACL file configured
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                unknownProject:
+                  summary: Unknown project
+                  value:
+                    error: "Unknown project: 'my-project'"
+                noShacl:
+                  summary: No SHACL file configured
+                  value:
+                    error: "No SHACL file configured for project 'my-project'"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error generating prompt"
+  /api/v1/{projectKey}/prompt-q2t:
+    get:
+      summary: Generate the Query2Text prompt for a project
+      tags: [Q2TPromptGenerator]
+      description: >
+        Generates the complete Query2Text prompt for a given project.
+        The SHACL file is automatically read from the project configuration (config.yaml)
+        using the `projectKey`. The returned prompt can be used directly in a query2text agent.
+      parameters:
+        - in: path
+          name: projectKey
+          required: true
+          description: The project identifier (e.g. "dbpedia-en", "demo-ep").
+          schema:
+            type: string
+            example: dbpedia-en
+      responses:
+        "200":
+          description: Prompt generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompt:
+                    type: string
+                    description: The full query2text prompt ready to be used in an agent.
+              examples:
+                success:
+                  summary: Example response
+                  value:
+                    prompt: "Role: Semantic Query Assistant\n\nObjective: Translate a structured JSON query into a clear, concise, and natural-sounding sentence in English or French depending on the query's metadata language.\n\n---"
+        "404":
+          description: Project not found or no SHACL file configured
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                unknownProject:
+                  summary: Unknown project
+                  value:
+                    error: "Unknown project: 'my-project'"
+                noShacl:
+                  summary: No SHACL file configured
+                  value:
+                    error: "No SHACL file configured for project 'my-project'"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error generating prompt"
 
   /api/v1/{projectKey}/reconciliation:
     post:

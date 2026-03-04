@@ -9,6 +9,9 @@ import { MistralText2QueryService } from "../services/impl/MistralText2QueryServ
 import { MistralQuery2TextService } from "../services/impl/MistralQuery2TextService";
 import { RestText2QueryService } from "../services/impl/RestText2QueryService";
 import { RestQuery2TextService } from "../services/impl/RestQuery2TextService";
+import { Q2TPromptGenerator } from "../services/Q2TPromptGeneratorService";
+import { T2QPromptGenerator } from "../services/T2QPromptGeneratorService";
+import { SparqlReconcileServiceV13 } from "../services/SparqlReconcileServiceV13";
 
 const DEFAULT_RECONCILIATION_CONFIG: SparqlReconcileServiceConfig = {
   cacheSize: SparqlReconcileService.DEFAULT_CACHE_SIZE,
@@ -105,6 +108,26 @@ export class AppConfig {
       useValue: projectConfig.query2text ?? {},
     });
 
+    // 7. Same thing to register Q2TPromptGenerator service
+    projectContainer.register("q2tPromptGenerator", {
+      useToken:
+        projectConfig.q2tPromptGenerator?.implementation ??
+        "default:q2tPromptGenerator",
+    });
+    projectContainer.register("q2tPromptGenerator.config", {
+      useValue: projectConfig.q2tPromptGenerator ?? {},
+    });
+
+    // 8. Same thing to register T2QPromptGenerator service
+    projectContainer.register("t2qPromptGenerator", {
+      useToken:
+        projectConfig.t2qPromptGenerator?.implementation ??
+        "default:t2qPromptGenerator",
+    });
+    projectContainer.register("t2qPromptGenerator.config", {
+      useValue: projectConfig.t2qPromptGenerator ?? {},
+    });
+
     return projectContainer;
   }
 
@@ -123,6 +146,20 @@ export class AppConfig {
 
     container.register("RestQuery2TextService", {
       useClass: RestQuery2TextService,
+    });
+    container.register("Q2TPromptGenerator", {
+      useClass: Q2TPromptGenerator,
+    });
+    container.register("T2QPromptGenerator", {
+      useClass: T2QPromptGenerator,
+    });
+
+    container.register("SparqlReconcileService", {
+      useClass: SparqlReconcileService,
+    });
+
+    container.register("SparqlReconcileServiceV13", {
+      useClass: SparqlReconcileServiceV13,
     });
 
     container.register<string>("log.directory", {

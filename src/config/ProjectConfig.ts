@@ -1,48 +1,73 @@
-
-
 export interface AppConfig {
-    log?: {
-        directory: string;
-    }
-    projects: Record<string, ProjectConfig>;
+  log?: {
+    directory: string;
+  };
+  projects: Record<string, ProjectConfig>;
 }
 
 export interface ProjectConfig {
-    sparqlEndpoint: string;
-    reconciliation?: (
-        { implementation: 'SparqlReconcileService' } & SparqlReconcileServiceConfig
-    ) | (
-        { implementation: 'DummyReconcileService' }
-    ),
-    text2query?: (
-        { implementation: 'MistralText2QueryService' } & MistralText2QueryServiceConfig
-    ) | (
-        { implementation: 'RestText2QueryService' } & RestQuery2TextServiceConfig
-    ),
-    query2text?: (
-        { implementation: 'MistralQuery2TextService' } & MistralQuery2TextServiceConfig
-    ) | (
-        { implementation: 'RestQuery2TextService' } & RestQuery2TextServiceConfig
-    )
+  sparqlEndpoint: string;
+  reconciliation?:
+    | ({
+        implementation: "SparqlReconcileService";
+      } & SparqlReconcileServiceConfig)
+    | ({
+        implementation: "SparqlReconcileServiceV13";
+      } & SparqlReconcileServiceV13Config)
+    | { implementation: "DummyReconcileService" };
+
+  text2query?:
+    | ({
+        implementation: "MistralText2QueryService";
+      } & MistralText2QueryServiceConfig)
+    | ({
+        implementation: "RestText2QueryService";
+      } & RestQuery2TextServiceConfig);
+  query2text?:
+    | ({
+        implementation: "MistralQuery2TextService";
+      } & MistralQuery2TextServiceConfig)
+    | ({
+        implementation: "RestQuery2TextService";
+      } & RestQuery2TextServiceConfig);
+  promptGeneratorQ2T?: {
+    implementation: "Q2TPromptGenerator";
+  } & PromptGeneratorQ2TConfig;
+  promptGeneratorT2Q?: {
+    implementation: "T2QPromptGenerator";
+  } & PromptGeneratorT2QConfig;
 }
 
 export interface SparqlReconcileServiceConfig {
-    cacheSize?: number;
-    maxResults?: number;
+  cacheSize?: number;
+  maxResults?: number;
+}
+
+export interface SparqlReconcileServiceV13Config {
+  cacheSize?: number;
+  maxResults?: number;
 }
 
 export interface MistralText2QueryServiceConfig {
-    agentId: string
+  agentId: string;
 }
 
 export interface RestText2QueryServiceConfig {
-    agentId: string
+  agentId: string;
 }
 
 export interface MistralQuery2TextServiceConfig {
-    agentId: string
+  agentId: string;
 }
 
 export interface RestQuery2TextServiceConfig {
-    agentId: string
+  agentId: string;
+}
+
+export interface PromptGeneratorQ2TConfig {
+  // For now, no specific configuration, but this can be extended in the future if needed.
+}
+
+export interface PromptGeneratorT2QConfig {
+  // For now, no specific configuration, but this can be extended in the future if needed.
 }
