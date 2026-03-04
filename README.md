@@ -1,4 +1,4 @@
-# Sparnatural platform
+# Sparnatural services platform
 
 
 ## Running locally on dev
