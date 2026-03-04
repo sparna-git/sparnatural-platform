@@ -64,12 +64,17 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
         }
       },
     );
+    console.log("Entry point NodeShapes (Category A):", entryPointIds);
 
     // Step 2: Get ALL NodeShapes, then subtract Cat A → Cat B
     const allNodeShapes = shaclModel
       .readAllNodeShapes()
       .map((ns) => new SparnaturalNodeShape(ns))
       .filter((sns) => !sns.isDeactivated());
+    console.log(
+      "All NodeShapes in the model:",
+      allNodeShapes.map((sns) => sns.getId()),
+    );
 
     const categoryAShapes: SparnaturalNodeShape[] = [];
     entryPoints.traverseBreadthFirst(
@@ -96,7 +101,11 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       tooltip: sns.getTooltip("en") ?? "No description available.",
       sparnaturalNodeShape: sns,
     }));
-
+    // cat B
+    console.log(
+      "Category B NodeShapes:",
+      categoryB.map((c) => c.id),
+    );
     // Build the reference table
     let finalModel = "\n\n## 8d. SHACL-Derived Reference Table\n\n";
 
@@ -118,8 +127,6 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       "when the traversal path leads to them through a property declared in the SHACL model.\n\n";
 
     categoryB.forEach((cls) => {
-      const validProps = cls.sparnaturalNodeShape.getValidProperties();
-      if (validProps.length === 0) return;
       finalModel += `- ${cls.id} described as "${cls.tooltip}".\n`;
     });
 
