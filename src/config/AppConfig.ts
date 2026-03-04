@@ -10,6 +10,7 @@ import { RestText2QueryService } from "../services/impl/RestText2QueryService";
 import { RestQuery2TextService } from "../services/impl/RestQuery2TextService";
 import { Q2TPromptGenerator } from "../services/Q2TPromptGeneratorService";
 import { T2QPromptGenerator } from "../services/T2QPromptGeneratorService";
+import { SparqlReconcileService } from "../services/SparqlReconcileService";
 import { SparqlReconcileServiceV13 } from "../services/SparqlReconcileServiceV13";
 
 /*

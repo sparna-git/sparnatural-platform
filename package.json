@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts --config=config/config-new.yaml"
+    "start": "ts-node src/index.ts --config=config/config-new.yaml",
+    "clean": "rm -rf dist",
+    "build:lib": "tsc",
+    "build": "npm run clean && npm run build:lib"
   },
   "dependencies": {
     "@mistralai/mistralai": "^1.10.0",
@@ -16,7 +19,7 @@
     "n3": "^1.26.0",
     "pino": "^9.9.0",
     "pino-pretty": "^13.1.1",
-    "rdf-shacl-commons": "^0.1.0",
+    "rdf-shacl-commons": "^0.3.0",
     "reflect-metadata": "^0.2.2",
     "sparqljs": "^3.4.0",
     "swagger-ui-express": "^4.6.3",
