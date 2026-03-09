@@ -8,7 +8,6 @@ import {
 import { getSHACLConfig } from "../config/SCHACL";
 
 import {
-  PropertyPath, // ← AJOUTER
   PropertyShape,
   NodeShape,
   SparnaturalNodeShape,
@@ -91,16 +90,18 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     // Build category arrays
     const categoryA = categoryAShapes.map((sns) => ({
       id: sns.getId(),
-      tooltip: sns.getTooltip("en") ?? "No description available.",
+      tooltip:
+        sns.getNodeShape().getTooltip("en") ?? "No description available.",
       sparnaturalNodeShape: sns,
     }));
 
     const categoryB = categoryBShapes.map((sns) => ({
       id: sns.getId(),
-      tooltip: sns.getTooltip("en") ?? "No description available.",
+      tooltip:
+        sns.getNodeShape().getTooltip("en") ?? "No description available.",
       sparnaturalNodeShape: sns,
     }));
-    // cat B
+    // cat Bsns.getNodeShape().getTooltip("en") etc.
     console.log(
       "Category B NodeShapes:",
       categoryB.map((c) => c.id),
@@ -204,18 +205,36 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
 
         // 1) If the range has navigable properties → predicateObjectPairs
         const rangeSnS = new SparnaturalNodeShape(rangeNS);
+        //log ranges without valid properties (dead ends)
+        /*
+        if (rangeSnS.getValidProperties().length === 0) {
+          console.warn(
+            `Range ${rangeId} of property ${propUri} has no valid properties → dead end in traversal`,
+          );
+        }
+        */
+
         if (rangeSnS.getValidProperties().length > 0) {
           usages.push("[predicateObjectPairs]");
         }
 
+        //console.log("RangeNs.resource.value:", rangeNS.resource);
         // 2) Check widget → can also offer values/filter
         const widgetUsage = this.getWidgetUsage(propShape, rangeNS.resource);
+        console.log(
+          `Property ${propUri} with range ${rangeId} checking widget usage:`,
+          widgetUsage,
+        );
         if (widgetUsage) {
           usages.push(widgetUsage);
         }
       } else {
         // No range → literal property, use widget
         const widgetUsage = this.getWidgetUsage(propShape, undefined);
+        console.log(
+          `Property ${propUri} has no range shapes, checking widget usage:`,
+          widgetUsage,
+        );
         if (widgetUsage) {
           usages.push(widgetUsage);
         }

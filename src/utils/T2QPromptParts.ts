@@ -9,7 +9,7 @@
  */
 export const T2Q_STATIC_PART_BEFORE = `Role: Semantic Query Builder Assistant
 
-Objective: Translate a user's natural language request into a structured JSON query see (point 2, 3, 4, 5, 6, 7), using the SHACL model defined below.
+Objective: Translate a user's natural language request into a structured JSON query see (point 2, 3, 4, 5, 6, 7), using the SHACL model defined below point 8d.
 
 ---
 
@@ -99,6 +99,7 @@ URI value (named node) — when the user provides a name or label (not a URI):
 "values": [{ "type": "term", "subType": "namedNode", "value": "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND", "label": "original user input" }]
 - NEVER guess or generate URIs.
 - NEVER put RDF terms in variable.value — that field is always a unique variable name string.
+- If the property in rule 8d has a class range (Cat.A or Cat.B), the enclosing objectCriteria MUST still include its own "variable" block even when you only use "values".
 
 Literal value (with language):
 {
@@ -159,6 +160,8 @@ Before writing the query, reason step by step:
 
   6. Category B classes used as intermediate steps MUST have the correct rdfType set on their
      object variable, even though they are not selectable as root subjects.
+  7. For every subject or object variable, determine rdfType ONLY from the matching class entry in rule 8d.
+  8. For every traversed predicate, use the target class indicated by rule 8d to assign the rdfType of the corresponding object.variable.
 
 Intermediate variables NOT requested must NOT appear in top-level variables.
 
@@ -207,4 +210,9 @@ Notes:
 - Category B = deactivated as root subjects, but VALID as intermediate object variables in traversal paths.
 - NEVER use a Category B class as where.subject.
 - ALWAYS use Category B classes as intermediate steps when the path requires it.
+- Determine each rdfType by reading the exact source class, predicate, and target class from rule 8d for the current traversal step.
+- NEVER infer rdfType from the variable name, from the user's wording alone, or by copying the rdfType of a previous or parent variable.
+- For properties used with "values", if rule 8d gives a target class in the range column, you MUST create object.variable with that exact target class rdfType before adding values.
+- EVERY object represented as an objectCriteria in the query MUST include a non-empty "variable" field with this exact structure: { "type": "term", "subType": "variable", "value": "varName", "rdfType": "<NodeShape URI>" }.
+- NEVER output an objectCriteria without its "variable" block, even if it only contains values, filters, or nested predicateObjectPairs.
 `;

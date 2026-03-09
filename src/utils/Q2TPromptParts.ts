@@ -42,8 +42,65 @@ To understand what the query is asking, read it as follows:
 
 7. "metadata.lang" — use this to determine the output language ("en" or "fr"). Default: English.
 
+`;
+
+/**
+ * Static part AFTER the transformed SHACL.
+ * Covers: Rules and Notes.
+ */
+export const Q2T_STATIC_PART_AFTER = `
 ---
 
+Rules:
+
+1. Output is a single natural sentence.
+   - The output MUST be a single, fluent, human-readable sentence.
+   - NEVER produce bullet points, lists, or multiple sentences.
+   - NEVER use URIs, variable names, or JSON keys.
+
+2. Structure of the sentence.
+   - BEGIN with the filter criteria (values, date ranges, number ranges, search terms).
+   - THEN describe the output columns declared in "variables".
+   - Reflect the relationships between entities as expressed by the nested predicateObjectPairs.
+
+3. Output columns only.
+   - Only mention entities that appear in the top-level "variables" array as output.
+   - Intermediate traversal entities not in "variables" are used only to describe the path,
+     not as output columns.
+
+4. Values.
+   - Use the "label" field of each entry in "object.values" as the value name.
+   - If the label is missing or the value is the fallback URI, describe it as "unknown entity".
+
+5. Language.
+   - Use the language from "metadata.lang" if present ("en" or "fr"). Default: English.
+   - Use the correct label column from the reference table.
+
+6. Aggregates.
+   - If a PatternBind appears in "variables", describe it using its aggregation label
+     (e.g., "the count of", "the average of") applied to the variable it wraps.
+
+7. Sentence starters.
+   - NEVER start with "Find", "Retrieve", "Get", "List", "Show", or similar imperatives.
+   - Begin directly with the filter criteria or the subject entity label.
+
+8. Tone.
+   - The sentence must sound natural, as if written by a human summarizing a query.
+
+9. Fallback.
+   - If the query is empty or cannot be interpreted, return:
+     English: "The query could not be interpreted."
+     French:  "La requête n'a pas pu être interprétée."
+
+---
+
+Notes:
+- The JSON example above is illustrative only. Do not reuse its content in responses.
+- Always derive labels exclusively from the reference table.
+- Never infer relationships not explicitly present in the predicateObjectPairs structure.
+`;
+
+export const Q2T_fewshot_example_dbpedia = `
 Concrete JSON example for reference:
 
 {
@@ -136,67 +193,16 @@ Explanation:
 - The filter (born before 1940) is mentioned as a criterion
 
 ---
-
-Class and Property Label Reference:
-
-Use ONLY these labels in the generated sentence. Never use raw URIs or variable names.
-
-Classes (rdfType URI -> English label / French label):
-
 `;
 
-/**
- * Static part AFTER the transformed SHACL.
- * Covers: Rules and Notes.
- */
-export const Q2T_STATIC_PART_AFTER = `
----
+export const Q2T_fewshot_example_demo_ep = `
+Concrete JSON example for reference:
 
-Rules:
 
-1. Output is a single natural sentence.
-   - The output MUST be a single, fluent, human-readable sentence.
-   - NEVER produce bullet points, lists, or multiple sentences.
-   - NEVER use URIs, variable names, or JSON keys.
-
-2. Structure of the sentence.
-   - BEGIN with the filter criteria (values, date ranges, number ranges, search terms).
-   - THEN describe the output columns declared in "variables".
-   - Reflect the relationships between entities as expressed by the nested predicateObjectPairs.
-
-3. Output columns only.
-   - Only mention entities that appear in the top-level "variables" array as output.
-   - Intermediate traversal entities not in "variables" are used only to describe the path,
-     not as output columns.
-
-4. Values.
-   - Use the "label" field of each entry in "object.values" as the value name.
-   - If the label is missing or the value is the fallback URI, describe it as "unknown entity".
-
-5. Language.
-   - Use the language from "metadata.lang" if present ("en" or "fr"). Default: English.
-   - Use the correct label column from the reference table.
-
-6. Aggregates.
-   - If a PatternBind appears in "variables", describe it using its aggregation label
-     (e.g., "the count of", "the average of") applied to the variable it wraps.
-
-7. Sentence starters.
-   - NEVER start with "Find", "Retrieve", "Get", "List", "Show", or similar imperatives.
-   - Begin directly with the filter criteria or the subject entity label.
-
-8. Tone.
-   - The sentence must sound natural, as if written by a human summarizing a query.
-
-9. Fallback.
-   - If the query is empty or cannot be interpreted, return:
-     English: "The query could not be interpreted."
-     French:  "La requête n'a pas pu être interprétée."
+For this example, the correct output is:
+Explanation:
+- Output column:
+- Property chain:
 
 ---
-
-Notes:
-- The JSON example above is illustrative only. Do not reuse its content in responses.
-- Always derive labels exclusively from the reference table.
-- Never infer relationships not explicitly present in the predicateObjectPairs structure.
 `;

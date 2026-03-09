@@ -27,6 +27,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
+
 <https://data.europarl.europa.eu/def/org-ep#> a owl:Ontology, adms:Asset;
   dcterms:type <https://publications.europa.eu/resource/authority/dataset-type/APROF>;
   dcterms:title "ORG-EP Application Profile"@en;
