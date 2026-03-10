@@ -10,13 +10,14 @@ info:
     - **Reconciliation** : Rechercher des URI RDF pertinentes à partir d’un label (utile pour la réconciliation ou l’autocomplétion).
 
     Chaque route peut être personnalisée par projet (`projectKey`) et supporte plusieurs langues.
-  tags:
-    - name: Query2Text
-      description: Génération de texte en langage naturel depuis une requête JSON
-    - name: Text2Query
-      description: Génération d'une requête JSON à partir d'une phrase
-    - name: Reconciliation
-      description: Recherche d'URI RDF pour un label donné
+
+tags:
+  - name: Query2Text
+    description: Génération de texte en langage naturel depuis une requête JSON
+  - name: Text2Query
+    description: Génération d'une requête JSON à partir d'une phrase
+  - name: Reconciliation
+    description: Recherche d'URI RDF pour un label donné
 
 paths:
   /api/v1/{projectKey}/query2text:

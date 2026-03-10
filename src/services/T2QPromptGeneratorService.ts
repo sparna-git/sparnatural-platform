@@ -90,15 +90,13 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     // Build category arrays
     const categoryA = categoryAShapes.map((sns) => ({
       id: sns.getId(),
-      tooltip:
-        sns.getNodeShape().getTooltip("en") ?? "No description available.",
+      tooltip: sns.getNodeShape().getTooltip("en") ?? "",
       sparnaturalNodeShape: sns,
     }));
 
     const categoryB = categoryBShapes.map((sns) => ({
       id: sns.getId(),
-      tooltip:
-        sns.getNodeShape().getTooltip("en") ?? "No description available.",
+      tooltip: sns.getNodeShape().getTooltip("en") ?? "",
       sparnaturalNodeShape: sns,
     }));
     // cat Bsns.getNodeShape().getTooltip("en") etc.
@@ -185,7 +183,7 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     validProperties.forEach((propShape: PropertyShape) => {
       const propUri = propShape.resource.value;
       const label = propShape.getLabel("en") ?? "unknown";
-      const tooltip = propShape.getTooltip("en") ?? "No description available.";
+      const tooltip = propShape.getTooltip("en") ?? "";
 
       const spps = new SparnaturalPropertyShape(propShape);
       const rangeShapes: NodeShape[] = spps.getRangeShapes();
@@ -194,7 +192,7 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       const usages: string[] = [];
 
       if (rangeShapes.length > 1) {
-        rangeType = "(multiple ranges)";
+        rangeType = ""; // multiple ranges
         usages.push("[values]");
       } else if (rangeShapes.length === 1 && rangeShapes[0]) {
         const rangeNS = rangeShapes[0];
@@ -262,7 +260,12 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     const searchWidget: SearchWidgetIfc =
       propShape.getSearchWidgetForRange(rangeResource);
     const widgetUri = searchWidget.getResource().value;
-
+    console.log(
+      `Checking widget for property ${propShape.resource.value} with range ${rangeResource?.value}:`,
+      {
+        widgetUri,
+      },
+    );
     if (widgetUri === SPARNATURAL.NON_SELECTABLE_PROPERTY.value) {
       return null;
     } else if (
@@ -272,13 +275,15 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       return "[filter:date]";
     } else if (
       widgetUri === SPARNATURAL.SEARCH_PROPERTY.value ||
-      widgetUri === SPARNATURAL.AUTOCOMPLETE_PROPERTY.value
+      widgetUri === SPARNATURAL.STRING_EQUALS_PROPERTY.value
     ) {
       return "[filter:search]";
     } else if (widgetUri === SPARNATURAL.NUMBER_PROPERTY.value) {
       return "[filter:Number]";
     } else if (widgetUri === SPARNATURAL.MAP_PROPERTY.value) {
       return "[filter:Map]";
+    } else if (widgetUri === SPARNATURAL.STRING_EQUALS_PROPERTY.value) {
+      return "[values]";
     } else {
       return "[values]";
     }
