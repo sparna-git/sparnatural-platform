@@ -24,8 +24,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-let dbpedia = AppConfig.getInstance().getProject("dbpedia-en");
-
 // Swagger doc
 const swaggerDocument = YAML.load(path.join(__dirname, "../docs/openapi.yaml"));
 
