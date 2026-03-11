@@ -65,9 +65,9 @@ export interface RestQuery2TextServiceConfig {
 }
 
 export interface PromptGeneratorQ2TConfig {
-  // For now, no specific configuration, but this can be extended in the future if needed.
+  language?: string;
 }
 
 export interface PromptGeneratorT2QConfig {
-  // For now, no specific configuration, but this can be extended in the future if needed.
+  language?: string;
 }

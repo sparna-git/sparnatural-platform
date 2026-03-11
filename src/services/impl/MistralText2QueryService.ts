@@ -4,7 +4,8 @@ import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { Mistral } from "@mistralai/mistralai";
 // need to be updated with the new schema
 import schema from "../../schemas/SparnaturalQuery.schema.json";
-// import newSchema from "../../schemas/newSchema.schema.json";
+import newSchema from "../../schemas/newSchema.schema.json";
+import strictSchema from "../../schemas/newSchema.strict.schema.json";
 
 import { inject, injectable } from "tsyringe";
 import { MistralText2QueryServiceConfig } from "../../config/ProjectConfig";
@@ -42,7 +43,12 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
         },
       ],
       responseFormat: {
-        type: "json_object",
+        type: "json_schema",
+        jsonSchema: {
+          name: "SparnaturalQuery",
+          schemaDefinition: strictSchema,
+          strict: true,
+        },
       },
     });
 
@@ -83,7 +89,7 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
 
     // JSON propre
     const parsed = JSON.parse(raw);
-    console.log("[text2query] Parsed JSON from Mistral:", parsed);
+    console.log("[text2query] Parsed JSON from Mistral:", raw);
 
     // Reconcile URI_NOT_FOUND labels via the reconciliation service
     await this.reconciliation.resolveQueryUris(parsed);

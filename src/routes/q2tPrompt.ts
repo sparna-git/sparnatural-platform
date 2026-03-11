@@ -12,7 +12,9 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
   try {
     const project = AppConfig.getInstance().getProject(projectKey);
     const service = project.promptGeneratorQ2TService as Q2TPromptGenerator;
-    const prompt = await service.generatePromptQ2T(projectKey);
+    const lang =
+      typeof req.query.lang === "string" ? req.query.lang : undefined;
+    const prompt = await service.generatePromptQ2T(projectKey, lang);
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     return res.send(prompt);

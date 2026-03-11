@@ -31,11 +31,16 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     this.config = config;
   }
 
-  async generatePromptT2Q(projectKey: string): Promise<string> {
+  async generatePromptT2Q(projectKey: string, lang?: string): Promise<string> {
+    const language = lang ?? this.config.language ?? "en";
     // Utilise getSHACLConfig qui a le cache + skolemization
     const { model } = await getSHACLConfig(projectKey);
     const sparnaturalModel = new SparnaturalShaclModel(model);
-    const referenceTable = this.buildReferenceTable(sparnaturalModel, model);
+    const referenceTable = this.buildReferenceTable(
+      sparnaturalModel,
+      model,
+      language,
+    );
     return T2Q_STATIC_PART_BEFORE + referenceTable + T2Q_STATIC_PART_AFTER;
   }
 
@@ -52,9 +57,10 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
   private buildReferenceTable(
     sparnaturalModel: SparnaturalShaclModel,
     shaclModel: ShaclModel,
+    language: string,
   ): string {
     // Step 1: Get Category A from the DAG (non-disabled nodes)
-    const entryPoints = sparnaturalModel.getEntryPointsNodeShapes("en");
+    const entryPoints = sparnaturalModel.getEntryPointsNodeShapes(language);
     const entryPointIds = new Set<string>();
     entryPoints.traverseBreadthFirst(
       (node: DagNodeIfc<SparnaturalNodeShape>) => {
@@ -90,20 +96,18 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     // Build category arrays
     const categoryA = categoryAShapes.map((sns) => ({
       id: sns.getId(),
-      tooltip: sns.getNodeShape().getTooltip("en") ?? "",
+      label: sns.getNodeShape().getLabel(language) ?? sns.getId(),
+      tooltip: sns.getNodeShape().getTooltip(language) ?? "",
       sparnaturalNodeShape: sns,
     }));
 
     const categoryB = categoryBShapes.map((sns) => ({
       id: sns.getId(),
-      tooltip: sns.getNodeShape().getTooltip("en") ?? "",
+      label: sns.getNodeShape().getLabel(language) ?? sns.getId(),
+      tooltip: sns.getNodeShape().getTooltip(language) ?? "",
       sparnaturalNodeShape: sns,
     }));
-    // cat Bsns.getNodeShape().getTooltip("en") etc.
-    console.log(
-      "Category B NodeShapes:",
-      categoryB.map((c) => c.id),
-    );
+
     // Build the reference table
     let finalModel = "\n\n## 8d. SHACL-Derived Reference Table\n\n";
 
@@ -111,7 +115,7 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     finalModel +=
       '### CATEGORY A — ROOT SUBJECT classes (can be the root "subject" of the query AND can appear as object variables):\n\n';
     categoryA.forEach((cls) => {
-      finalModel += `- ${cls.id} described as "${cls.tooltip}"\n`;
+      finalModel += `- ${cls.id} (${cls.label}) described as "${cls.tooltip}"\n`;
     });
 
     // Category B — only those with valid properties
@@ -125,7 +129,7 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       "when the traversal path leads to them through a property declared in the SHACL model.\n\n";
 
     categoryB.forEach((cls) => {
-      finalModel += `- ${cls.id} described as "${cls.tooltip}".\n`;
+      finalModel += `- ${cls.id} (${cls.label}) described as "${cls.tooltip}".\n`;
     });
 
     // Property Reference Table
@@ -160,10 +164,11 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       const validProps = cls.sparnaturalNodeShape.getValidProperties();
       if (validProps.length === 0) return;
 
-      finalModel += `\n**${cls.id}** described as "${cls.tooltip}"\n`;
+      finalModel += `\n**${cls.id}** (${cls.label}) described as "${cls.tooltip}"\n`;
       finalModel += this.buildPropertyTable(
         cls.sparnaturalNodeShape,
         entryPointIds,
+        language,
       );
     });
 
@@ -176,14 +181,15 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
   private buildPropertyTable(
     sns: SparnaturalNodeShape,
     entryPointIds: Set<string>,
+    language: string,
   ): string {
     const validProperties: PropertyShape[] = sns.getValidProperties();
     let table = "";
 
     validProperties.forEach((propShape: PropertyShape) => {
       const propUri = propShape.resource.value;
-      const label = propShape.getLabel("en") ?? "unknown";
-      const tooltip = propShape.getTooltip("en") ?? "";
+      const label = propShape.getLabel(language) ?? "unknown";
+      const tooltip = propShape.getTooltip(language) ?? "";
 
       const spps = new SparnaturalPropertyShape(propShape);
       const rangeShapes: NodeShape[] = spps.getRangeShapes();
@@ -197,42 +203,24 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       } else if (rangeShapes.length === 1 && rangeShapes[0]) {
         const rangeNS = rangeShapes[0];
         const rangeId = rangeNS.resource.value;
-        const rangeLabel = rangeNS.getLabel("en") ?? rangeId;
+        const rangeLabel = rangeNS.getLabel(language) ?? rangeId;
         const category = entryPointIds.has(rangeId) ? "Cat.A" : "Cat.B";
         rangeType = `${rangeLabel} (${category})`;
 
         // 1) If the range has navigable properties → predicateObjectPairs
         const rangeSnS = new SparnaturalNodeShape(rangeNS);
-        //log ranges without valid properties (dead ends)
-        /*
-        if (rangeSnS.getValidProperties().length === 0) {
-          console.warn(
-            `Range ${rangeId} of property ${propUri} has no valid properties → dead end in traversal`,
-          );
-        }
-        */
-
         if (rangeSnS.getValidProperties().length > 0) {
           usages.push("[predicateObjectPairs]");
         }
 
-        //console.log("RangeNs.resource.value:", rangeNS.resource);
         // 2) Check widget → can also offer values/filter
         const widgetUsage = this.getWidgetUsage(propShape, rangeNS.resource);
-        console.log(
-          `Property ${propUri} with range ${rangeId} checking widget usage:`,
-          widgetUsage,
-        );
         if (widgetUsage) {
           usages.push(widgetUsage);
         }
       } else {
         // No range → literal property, use widget
         const widgetUsage = this.getWidgetUsage(propShape, undefined);
-        console.log(
-          `Property ${propUri} has no range shapes, checking widget usage:`,
-          widgetUsage,
-        );
         if (widgetUsage) {
           usages.push(widgetUsage);
         }
@@ -260,12 +248,12 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     const searchWidget: SearchWidgetIfc =
       propShape.getSearchWidgetForRange(rangeResource);
     const widgetUri = searchWidget.getResource().value;
-    console.log(
+    /**   console.log(
       `Checking widget for property ${propShape.resource.value} with range ${rangeResource?.value}:`,
       {
         widgetUri,
       },
-    );
+    );*/
     if (widgetUri === SPARNATURAL.NON_SELECTABLE_PROPERTY.value) {
       return null;
     } else if (

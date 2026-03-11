@@ -38,10 +38,18 @@ export class Q2TPromptGenerator implements Q2TPromptGeneratorIfc {
     this.config = config;
   }
 
-  async generatePromptQ2T(projectKey: string): Promise<string> {
+  async generatePromptQ2T(
+    projectKey: string,
+    language?: string,
+  ): Promise<string> {
+    const lang = language ?? this.config.language ?? "en";
     const { model } = await getSHACLConfig(projectKey);
     const sparnaturalModel = new SparnaturalShaclModel(model);
-    const referenceTable = this.buildReferenceTable(sparnaturalModel, model);
+    const referenceTable = this.buildReferenceTable(
+      sparnaturalModel,
+      model,
+      lang,
+    );
     let prompt: string;
 
     if (projectKey === "dbpedia-en") {
@@ -65,38 +73,38 @@ export class Q2TPromptGenerator implements Q2TPromptGeneratorIfc {
   private buildReferenceTable(
     sparnaturalModel: SparnaturalShaclModel,
     shaclModel: ShaclModel,
+    language: string,
   ): string {
     const allNodeShapes = shaclModel
       .readAllNodeShapes()
       .map((ns) => new SparnaturalNodeShape(ns));
+
+    const langHeader = `${language} label`;
 
     let result = "\nClass and Property Label Reference:\n\n";
     result +=
       "Use ONLY these labels in the generated sentence. Never use raw URIs or variable names.\n\n";
 
     // --- Classes ---
-    result += "Classes (rdfType URI -> English label / French label):\n\n";
+    result += `Classes (rdfType URI -> ${langHeader}):\n\n`;
     allNodeShapes.forEach((sns) => {
       const id = sns.getId();
-      const labelEn = sns.getNodeShape().getLabel("en") ?? id;
-      const labelFr = sns.getNodeShape().getLabel("fr") ?? labelEn;
+      const labels = sns.getNodeShape().getLabel(language) ?? id;
       const tooltip =
-        sns.getNodeShape().getTooltip("en") ?? "No description available.";
-      result += `  ${id} -> ${labelEn} / ${labelFr} — ${tooltip}\n`;
+        sns.getNodeShape().getTooltip(language) ?? "No description available.";
+      result += `  ${id} -> ${labels} — ${tooltip}\n`;
     });
 
     // --- Properties ---
-    result +=
-      "\nProperties (predicate URI -> English label / French label):\n\n";
+    result += `\nProperties (predicate URI -> ${langHeader}):\n\n`;
     allNodeShapes.forEach((sns) => {
       const validProps: PropertyShape[] = sns.getValidProperties();
       validProps.forEach((propShape) => {
         const propUri = propShape.resource.value;
-        const labelEn = propShape.getLabel("en") ?? "unknown";
-        const labelFr = propShape.getLabel("fr") ?? labelEn;
+        const labels = propShape.getLabel(language) ?? "unknown";
         const tooltip =
-          propShape.getTooltip("en") ?? "No description available.";
-        result += `  ${propUri} -> ${labelEn} / ${labelFr} — ${tooltip}\n`;
+          propShape.getTooltip(language) ?? "No description available.";
+        result += `  ${propUri} -> ${labels} — ${tooltip}\n`;
       });
     });
 
