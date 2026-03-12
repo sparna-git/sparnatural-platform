@@ -14,8 +14,6 @@ import { PromptGeneratorQ2TConfig } from "../config/ProjectConfig";
 import {
   Q2T_STATIC_PART_BEFORE,
   Q2T_STATIC_PART_AFTER,
-  Q2T_fewshot_example_dbpedia,
-  Q2T_fewshot_example_demo_ep,
 } from "../utils/Q2TPromptParts";
 import { getSHACLConfig } from "../config/SCHACL";
 
@@ -26,6 +24,8 @@ import {
   SparnaturalShaclModel,
   ShaclModel,
 } from "rdf-shacl-commons";
+
+import { loadAdditionalInstructions } from "../config/AdditionalInstructions";
 
 @injectable({ token: "Q2TPromptGenerator" })
 @injectable({ token: "default:q2tPromptGenerator" })
@@ -45,6 +45,9 @@ export class Q2TPromptGenerator implements Q2TPromptGeneratorIfc {
     const lang = language ?? this.config.language ?? "en";
     const { model } = await getSHACLConfig(projectKey);
     const sparnaturalModel = new SparnaturalShaclModel(model);
+    const additionalInstructions = await loadAdditionalInstructions(
+      this.config.additionalInstructions,
+    );
     const referenceTable = this.buildReferenceTable(
       sparnaturalModel,
       model,
@@ -52,22 +55,11 @@ export class Q2TPromptGenerator implements Q2TPromptGeneratorIfc {
     );
     let prompt: string;
 
-    if (projectKey === "dbpedia-en") {
-      prompt =
-        Q2T_STATIC_PART_BEFORE +
-        Q2T_fewshot_example_dbpedia +
-        referenceTable +
-        Q2T_STATIC_PART_AFTER;
-    } else if (projectKey === "demo-ep") {
-      prompt =
-        Q2T_STATIC_PART_BEFORE +
-        Q2T_fewshot_example_demo_ep +
-        referenceTable +
-        Q2T_STATIC_PART_AFTER;
-    } else {
-      prompt = Q2T_STATIC_PART_BEFORE + referenceTable + Q2T_STATIC_PART_AFTER;
-    }
-    return prompt;
+    return (prompt =
+      Q2T_STATIC_PART_BEFORE +
+      additionalInstructions +
+      referenceTable +
+      Q2T_STATIC_PART_AFTER);
   }
 
   private buildReferenceTable(

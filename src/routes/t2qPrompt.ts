@@ -14,6 +14,7 @@ router.get("/", async (req: express.Request<{ projectKey: string }>, res) => {
     const service = project.promptGeneratorT2QService as T2QPromptGenerator;
     const lang =
       typeof req.query.lang === "string" ? req.query.lang : undefined;
+
     const prompt = await service.generatePromptT2Q(projectKey, lang);
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");

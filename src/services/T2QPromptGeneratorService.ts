@@ -1,6 +1,6 @@
 import { T2QPromptGeneratorIfc } from "./T2QPromptGeneratorIfc";
 import { inject, injectable } from "tsyringe";
-import { PromptGeneratorQ2TConfig } from "../config/ProjectConfig";
+import { PromptGeneratorT2QConfig } from "../config/ProjectConfig";
 import {
   T2Q_STATIC_PART_BEFORE,
   T2Q_STATIC_PART_AFTER,
@@ -17,16 +17,17 @@ import {
   SPARNATURAL,
   ShaclModel,
   DagNodeIfc,
+  Resource,
 } from "rdf-shacl-commons";
-import { Resource } from "rdf-shacl-commons/dist/rdf/Resource";
+import { loadAdditionalInstructions } from "../config/AdditionalInstructions";
 
 @injectable({ token: "T2QPromptGenerator" })
 @injectable({ token: "default:t2qPromptGenerator" })
 export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
-  private config: PromptGeneratorQ2TConfig;
+  private config: PromptGeneratorT2QConfig;
 
   constructor(
-    @inject("t2qPromptGenerator.config") config: PromptGeneratorQ2TConfig,
+    @inject("t2qPromptGenerator.config") config: PromptGeneratorT2QConfig,
   ) {
     this.config = config;
   }
@@ -36,12 +37,24 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     // Utilise getSHACLConfig qui a le cache + skolemization
     const { model } = await getSHACLConfig(projectKey);
     const sparnaturalModel = new SparnaturalShaclModel(model);
+    const additionalInstructions = await loadAdditionalInstructions(
+      this.config.additionalInstructions,
+    );
+    console.log(
+      "Additional instructions for T2Q prompt:",
+      additionalInstructions,
+    );
     const referenceTable = this.buildReferenceTable(
       sparnaturalModel,
       model,
       language,
     );
-    return T2Q_STATIC_PART_BEFORE + referenceTable + T2Q_STATIC_PART_AFTER;
+    return (
+      T2Q_STATIC_PART_BEFORE +
+      additionalInstructions +
+      referenceTable +
+      T2Q_STATIC_PART_AFTER
+    );
   }
 
   /**
@@ -97,14 +110,20 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     const categoryA = categoryAShapes.map((sns) => ({
       id: sns.getId(),
       label: sns.getNodeShape().getLabel(language) ?? sns.getId(),
-      tooltip: sns.getNodeShape().getTooltip(language) ?? "",
+      tooltip:
+        sns.getNodeShape().getShAgentInstruction(language) ??
+        sns.getNodeShape().getTooltip(language) ??
+        "",
       sparnaturalNodeShape: sns,
     }));
 
     const categoryB = categoryBShapes.map((sns) => ({
       id: sns.getId(),
       label: sns.getNodeShape().getLabel(language) ?? sns.getId(),
-      tooltip: sns.getNodeShape().getTooltip(language) ?? "",
+      tooltip:
+        sns.getNodeShape().getShAgentInstruction(language) ??
+        sns.getNodeShape().getTooltip(language) ??
+        "",
       sparnaturalNodeShape: sns,
     }));
 
@@ -189,7 +208,10 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     validProperties.forEach((propShape: PropertyShape) => {
       const propUri = propShape.resource.value;
       const label = propShape.getLabel(language) ?? "unknown";
-      const tooltip = propShape.getTooltip(language) ?? "";
+      const tooltip =
+        propShape.getShAgentInstruction(language) ??
+        propShape.getTooltip(language) ??
+        "";
 
       const spps = new SparnaturalPropertyShape(propShape);
       const rangeShapes: NodeShape[] = spps.getRangeShapes();

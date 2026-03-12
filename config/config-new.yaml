@@ -2,7 +2,7 @@ log:
   directory: ./logs
 projects:
   dbpedia-en:
-    shaclFile: ./config/dbpedia-en/config.ttl
+    shacl: ./config/dbpedia-en/config.ttl
     sparqlEndpoint: https://dbpedia.org/sparql
     domains:
       - sparna-git.github.io
@@ -20,10 +20,11 @@ projects:
       agentId: ag:33fd9714:20250507:untitled-agent:d1fc8155
     t2qPromptGenerator:
       implementation: T2QPromptGenerator
+      additionalInstructions: ./config/dbpedia-en/additionalInstructions.txt
     q2tPromptGenerator:
       implementation: Q2TPromptGenerator
   demo-ep:
-    shaclFile: ./config/demo-ep/config.ttl
+    shacl: ./config/demo-ep/config-1.ttl ./config/demo-ep/config-2.ttl
     sparqlEndpoint: http://graphdb.sparna.fr/repositories/endorse2025
     domains:
       - sparna-git.github.io
@@ -41,5 +42,28 @@ projects:
       agentId: ag:33fd9714:20250507:untitled-agent:d1fc8155
     t2qPromptGenerator:
       implementation: T2QPromptGenerator
+      additionalInstructions: ./config/demo-ep/additionalInstructions.txt
+    q2tPromptGenerator:
+      implementation: Q2TPromptGenerator
+  ruim:
+    shacl: ./config/ruim/sparnatural-config.ttl
+    sparqlEndpoint: https://data.sparna.fr/graphdb/repositories/RUIM
+    domains:
+      - sparna-git.github.io
+    cache:
+      urilookup: ./cache/ruim/urilookup_cache.json
+    reconciliation:
+      implementation: SparqlReconcileServiceV13
+      cacheSize: 1000
+      maxResults: 2
+    text2query:
+      implementation: MistralText2QueryService
+      agentId: ag_019cdc315bb676548af2277441008ea9
+    query2text:
+      implementation: MistralQuery2TextService
+      agentId: ag_019cdc2f1d59758e84c7ff1de49a15c6
+    t2qPromptGenerator:
+      implementation: T2QPromptGenerator
+      additionalInstructions: ./config/ruim/additionalInstructions.txt
     q2tPromptGenerator:
       implementation: Q2TPromptGenerator
