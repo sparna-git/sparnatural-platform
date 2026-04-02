@@ -24,8 +24,30 @@
       "description": "When true, the DISTINCT keyword is added to the SELECT clause. null if not needed."
     },
     "metadata": {
-      "type": "null",
-      "description": "Optional metadata. Always null for generated queries."
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "explanation": {
+              "type": ["string", "null"],
+              "description": "Explanation of the query construction, partial understanding, or domain rejection reason."
+            },
+            "reasoning": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Step-by-step reasoning trace explaining the query construction decisions."
+            }
+          },
+          "required": ["reasoning"],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Optional metadata with reasoning trace. null only when not applicable."
     },
     "variables": {
       "type": "array",

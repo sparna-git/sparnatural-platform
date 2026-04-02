@@ -4,13 +4,19 @@ import { injectable } from "tsyringe";
 
 export interface Text2QueryServiceIfc {
   // before it was: Promise<z.infer<typeof SparnaturalQuery>>
-  generateJson(naturalLanguageQuery: string): Promise<JSON>;
+  generateJson(
+    naturalLanguageQuery: string,
+    skipReconciliation?: boolean,
+  ): Promise<JSON>;
 }
 
 @injectable({ token: "NoOpText2QueryService" })
 export class NoOpText2QueryService implements Text2QueryServiceIfc {
   // before it was: Promise<z.infer<typeof SparnaturalQuery>>
-  generateJson(naturalLanguageQuery: string): Promise<JSON> {
+  generateJson(
+    naturalLanguageQuery: string,
+    skipReconciliation?: boolean,
+  ): Promise<JSON> {
     throw new Error("Method not implemented.");
   }
 }

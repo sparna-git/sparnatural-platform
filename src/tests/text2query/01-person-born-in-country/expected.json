@@ -1,0 +1,121 @@
+[
+  {
+    "type": "query",
+    "subType": "SELECT",
+    "variables": [
+      {
+        "type": "term",
+        "subType": "variable",
+        "value": "Person_1"
+      }
+    ],
+    "distinct": true,
+    "solutionModifiers": {
+      "limitOffset": {
+        "type": "solutionModifier",
+        "subType": "limitOffset",
+        "limit": 1000
+      }
+    },
+    "where": {
+      "type": "pattern",
+      "subType": "bgpSameSubject",
+      "subject": {
+        "type": "term",
+        "subType": "variable",
+        "value": "Person_1",
+        "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Person"
+      },
+      "predicateObjectPairs": [
+        {
+          "type": "predicateObjectPair",
+          "predicate": {
+            "type": "term",
+            "subType": "namedNode",
+            "value": "https://data.mydomain.com/ontologies/sparnatural-config/Person_bornIn"
+          },
+          "object": {
+            "type": "objectCriteria",
+            "variable": {
+              "type": "term",
+              "subType": "variable",
+              "value": "Country_2",
+              "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Country"
+            },
+            "filters": [],
+            "values": [
+              {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "http://dbpedia.org/resource/Algeria",
+                "label": "Algeria"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "query",
+    "subType": "SELECT",
+    "variables": [
+      {
+        "type": "term",
+        "subType": "variable",
+        "value": "Person_1"
+      },
+      {
+        "type": "term",
+        "subType": "variable",
+        "value": "Country_2"
+      }
+    ],
+    "distinct": true,
+    "solutionModifiers": {
+      "limitOffset": {
+        "type": "solutionModifier",
+        "subType": "limitOffset",
+        "limit": 1000
+      }
+    },
+    "where": {
+      "type": "pattern",
+      "subType": "bgpSameSubject",
+      "subject": {
+        "type": "term",
+        "subType": "variable",
+        "value": "Person_1",
+        "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Person"
+      },
+      "predicateObjectPairs": [
+        {
+          "type": "predicateObjectPair",
+          "predicate": {
+            "type": "term",
+            "subType": "namedNode",
+            "value": "https://data.mydomain.com/ontologies/sparnatural-config/Person_bornIn"
+          },
+          "object": {
+            "type": "objectCriteria",
+            "variable": {
+              "type": "term",
+              "subType": "variable",
+              "value": "Country_2",
+              "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Country"
+            },
+            "filters": [],
+            "values": [
+              {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "http://dbpedia.org/resource/Algeria",
+                "label": "Algeria"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

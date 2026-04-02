@@ -1,0 +1,77 @@
+{
+  "type": "query",
+  "subType": "SELECT",
+  "variables": [
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Artwork_1"
+    }
+  ],
+  "distinct": true,
+  "solutionModifiers": {
+    "limitOffset": {
+      "type": "solutionModifier",
+      "subType": "limitOffset",
+      "limit": 1000
+    }
+  },
+  "where": {
+    "type": "pattern",
+    "subType": "bgpSameSubject",
+    "subject": {
+      "type": "term",
+      "subType": "variable",
+      "value": "Artwork_1",
+      "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Artwork"
+    },
+    "predicateObjectPairs": [
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://data.mydomain.com/ontologies/sparnatural-config/Artwork_author"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "Person_2",
+            "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Person"
+          },
+          "filters": [],
+          "predicateObjectPairs": [
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://data.mydomain.com/ontologies/sparnatural-config/Person_movement"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "Movement_4",
+                  "rdfType": "https://data.mydomain.com/ontologies/sparnatural-config/Movement"
+                },
+                "filters": [],
+                "values": [
+                  {
+                    "type": "term",
+                    "subType": "namedNode",
+                    "value": "http://dbpedia.org/resource/Baroque",
+                    "label": "Baroque"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
