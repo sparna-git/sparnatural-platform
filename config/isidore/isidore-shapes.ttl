@@ -1,0 +1,2589 @@
+@prefix bnf-onto:        <http://data.bnf.fr/ontology/bnf-onto/> .
+@prefix cc:              <http://creativecommons.org/ns#> .
+@prefix dash:            <http://datashapes.org/dash#> .
+@prefix dc:              <http://purl.org/dc/elements/1.1/> .
+@prefix foaf:            <http://xmlns.com/foaf/0.1/> .
+@prefix gemet-schema:    <http://www.eionet.europa.eu/gemet/2004/06/gemet-schema.rdf#> .
+@prefix geonames:        <http://www.geonames.org/ontology#> .
+@prefix isidore:         <http://isidore.science/class/> .
+@prefix isidore-subject: <http://isidore.science/subject#> .
+@prefix mads:            <http://www.loc.gov/mads/rdf/v1#> .
+@prefix ore:             <http://www.openarchives.org/ore/terms/> .
+@prefix owl:             <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:             <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:            <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh:              <http://www.w3.org/ns/shacl#> .
+@prefix shape:           <https://shacl-play.sparna.fr/shapes/> .
+@prefix sioc:            <http://rdfs.org/sioc/ns#> .
+@prefix skos:            <http://www.w3.org/2004/02/skos/core#> .
+@prefix skos-thes:       <http://purl.org/iso25964/skos-thes#> .
+@prefix skos-xl:         <http://www.w3.org/2008/05/skos-xl#> .
+@prefix wgs84:           <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix xsd:             <http://www.w3.org/2001/XMLSchema#> .
+
+shape:Collection_inScheme
+        sh:class     skos:ConceptScheme ;
+        sh:maxCount  1 ;
+        sh:name      "inScheme"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:inScheme .
+
+shape:Document_hasPart
+        sh:datatype  xsd:string ;
+        sh:name      "hasPart"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:hasPart .
+
+shape:Agent_familyName
+        sh:datatype  xsd:string ;
+        sh:minCount  1 ;
+        sh:name      "familyName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      foaf:familyName .
+
+shape:Feature_featureCode
+        sh:in        ( <https://www.geonames.org/ontology#A.ADM1> <https://www.geonames.org/ontology#A.PCLD> <https://www.geonames.org/ontology#A.PCLF> <https://www.geonames.org/ontology#A.PCLI> <https://www.geonames.org/ontology#A.PCLIX> <https://www.geonames.org/ontology#A.PCLS> <https://www.geonames.org/ontology#A.TERR> <https://www.geonames.org/ontology#L.AREA> <https://www.geonames.org/ontology#L.CONT> ) ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "featureCode"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:featureCode .
+
+shape:ThesaurusArray_modified
+        sh:datatype  xsd:string ;
+        sh:minCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:ConceptScheme_created_datatype_0
+        sh:datatype  xsd:date .
+
+shape:Source  rdf:type  sh:NodeShape ;
+        rdfs:label      "Source"@en ;
+        sh:property     shape:Source_topic , shape:Source_isPartOf , shape:Source_publisher , shape:Source_type , shape:Source_title , shape:Source_homepage , shape:Source_identifier , shape:Source_altLabel , shape:Source_description ;
+        sh:targetClass  isidore:Source .
+
+shape:Feature_alternateName_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Organization  rdf:type  sh:NodeShape ;
+        rdfs:label      "Organization"@en ;
+        sh:property     shape:Organization_mbox , shape:Organization_homepage , shape:Organization_altLabel , shape:Organization_countryCode , shape:Organization_title ;
+        sh:targetClass  isidore:Organization .
+
+shape:ConceptScheme_Coverage
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "Coverage"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/Coverage> .
+
+shape:Document_created_2
+        sh:datatype  <https://www.w3.org/2001/XMLSchema#date> ;
+        sh:maxCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Document_identifierdoi
+        sh:datatype  xsd:string ;
+        sh:name      "identifierdoi"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:identifierdoi .
+
+shape:Collection_member
+        sh:name      "member"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Collection_member_class_0 shape:Collection_member_class_1 shape:Collection_member_class_2 shape:Collection_member_class_3 ) ;
+        sh:path      skos:member .
+
+shape:ConceptScheme_creator_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Theme_modified  sh:datatype  xsd:string ;
+        sh:hasValue  "" ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Document_dc_ressourcetype
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "dc_ressourcetype"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:dc_ressourcetype .
+
+shape:Source_title_2  dash:propertyRole
+                dash:LabelRole ;
+        sh:datatype        xsd:string ;
+        sh:maxCount        1 ;
+        sh:minCount        1 ;
+        sh:name            "title"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            <http://purl.org/dc/terms/title> .
+
+shape:Theme_acronymLabel
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "bg" "da" "de" "el" "en" "en-US" "es" "et" "eu" "fi" "fr" "hu" "it" "nl" "no" "pl" "pt" "ru" "sk" "sl" "sv" ) ;
+        sh:minCount    1 ;
+        sh:name        "acronymLabel"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        gemet-schema:acronymLabel .
+
+shape:Concept_narrower
+        sh:class     skos:Concept ;
+        sh:name      "narrower"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:narrower .
+
+shape:Document_bibliographicCitation_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Collection_title
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        xsd:string ;
+        sh:maxCount        1 ;
+        sh:minCount        1 ;
+        sh:name            "title"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            <http://purl.org/dc/terms/title> .
+
+shape:Feature_long  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "long"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      wgs84:long .
+
+shape:Concept_note  sh:name  "note"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_note_datatype_0 shape:Concept_note_datatype_1 ) ;
+        sh:path      skos:note .
+
+shape:Document_conformsTo
+        sh:name      "conformsTo"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_conformsTo_datatype_0 shape:Document_conformsTo_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/conformsTo> .
+
+shape:Concept  rdf:type  sh:NodeShape ;
+        rdfs:label      "Concept"@en ;
+        sh:property     shape:Concept_alt , shape:Concept_hasCloseExternalAuthority , shape:Concept_hasWikipediaArticle , shape:Concept_parentCountry , shape:Concept_deprecated , shape:Concept_altLabel_2 , shape:Concept_countryCode , shape:Concept_scopeNote , shape:Concept_long , shape:Concept_parentFeature , shape:Concept_broaderPartitive , shape:Concept_label , shape:Concept_creator , shape:Concept_P625 , shape:Concept_subordinateArray , shape:Concept_broader , shape:Concept_source , shape:Concept_broaderGeneric , shape:Concept_citationNote , shape:Concept_narrowerInstantial , shape:Concept_identifier_2 , shape:Concept_sameEEAGlossary , shape:Concept_altLabel , shape:Concept_hiddenLabel , shape:Concept_wikipediaArticle , shape:Concept_inScheme , shape:Concept_narrower , shape:Concept_narrowerGeneric , shape:Concept_featureClass , shape:Concept_hasBibliography , shape:Concept_focus , shape:Concept_domaineLitteral , shape:Concept_lat , shape:Concept_citationSource , shape:Concept_relatedHasPart , shape:Concept_broaderInstantial , shape:Concept_sameAs , shape:Concept_isPartOf , shape:Concept_officialName , shape:Concept_isMemberOfMADSCollection , shape:Concept_contributor , shape:Concept_locationMap , shape:Concept_postalCode , shape:Concept_editorialNote_2 , shape:Concept_neighbouringFeatures , shape:Concept_broadMatch , shape:Concept_seeAlso , shape:Concept_relatedMatch , shape:Concept_seeAlso_2 , shape:Concept_example , shape:Concept_featureCode , shape:Concept_closeMatch , shape:Concept_narrowMatch , shape:Concept_definition , shape:Concept_alternateName , shape:Concept_historyNote , shape:Concept_hasRelatedAuthority , shape:Concept_identifier , shape:Concept_exactMatch , shape:Concept_changeNote , shape:Concept_shortName , shape:Concept_source_2 , shape:Concept_prefLabel , shape:Concept_P61160 , shape:Concept_note , shape:Concept_notation , shape:Concept_isDefinedBy , shape:Concept_editorialNote , shape:Concept_isReplacedBy , shape:Concept_FRBNF , shape:Concept_population , shape:Concept_related , shape:Concept_id , shape:Concept_narrowerPartitive , shape:Concept_created , shape:Concept_domaine , shape:Concept_replaces , shape:Concept_modified , shape:Concept_page , shape:Concept_name , shape:Concept_topConceptOf , shape:Concept_childrenFeatures , shape:Concept_memberOf ;
+        sh:targetClass  skos:Concept .
+
+shape:Concept_source_2
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "bg" "cs" "da" "de" "el" "en" "es" "et" "fi" "fr" "hr" "hu" "is" "it" "lt" "lv" "mt" "nl" "no" "pl" "pt" "ro" "sk" "sl" "sv" "tr" ) ;
+        sh:name        "source"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        gemet-schema:source .
+
+shape:ConceptScheme_licence
+        sh:maxCount  1 ;
+        sh:name      "licence"@en ;
+        sh:nodeKind  sh:IRIOrLiteral ;
+        sh:or        ( shape:ConceptScheme_licence_literal shape:ConceptScheme_licence_resource ) ;
+        sh:path      <http://purl.org/dc/terms/licence> .
+
+shape:Concept_notation_datatype_2
+        sh:datatype  xsd:string .
+
+shape:Document_isPartOf_2
+        sh:name      "isPartOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/isPartOf> .
+
+shape:Document_isAggregatedBy
+        sh:name      "isAggregatedBy"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Document_isAggregatedBy_class_0 shape:Document_isAggregatedBy_class_1 shape:Document_isAggregatedBy_class_2 shape:Document_isAggregatedBy_class_3 shape:Document_isAggregatedBy_class_4 ) ;
+        sh:path      ore:isAggregatedBy .
+
+shape:Document_aggregates_class_2
+        sh:class  foaf:Document .
+
+shape:Feature_prefLabel_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_tableOfContents_2
+        sh:name      "tableOfContents"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_tableOfContents_2_datatype_0 shape:Document_tableOfContents_2_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/tableOfContents> .
+
+shape:Concept_topConceptOf
+        sh:class     skos:ConceptScheme ;
+        sh:maxCount  1 ;
+        sh:name      "topConceptOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:topConceptOf .
+
+shape:Source_2  rdf:type  sh:NodeShape ;
+        rdfs:label      "Source"@en ;
+        sh:property     shape:Source_publisher_2 , shape:Source_issued , shape:Source_title_2 , shape:Source_notation , shape:Source_page , shape:Source_label , shape:Source_creator ;
+        sh:targetClass  gemet-schema:Source .
+
+shape:Concept_narrowMatch
+        sh:name      "narrowMatch"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Concept_narrowMatch_class_0 shape:Concept_narrowMatch_class_1 ) ;
+        sh:path      skos:narrowMatch .
+
+shape:Document_title_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_audience_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_pages  sh:datatype  xsd:string ;
+        sh:name      "pages"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:pages .
+
+shape:Source_notation
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "notation"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:notation .
+
+shape:Document_extent
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "extent"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:extent .
+
+shape:Document_references_literal_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_seeAlso_2
+        sh:name      "seeAlso"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      rdfs:seeAlso .
+
+shape:Feature_shortName_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_similarTo
+        sh:datatype  xsd:string ;
+        sh:name      "similarTo"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      ore:similarTo .
+
+shape:ThesaurusArray_superOrdinate
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "superOrdinate"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:superOrdinate .
+
+shape:ConceptScheme_Format
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "Format"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/Format> .
+
+shape:Document_medium_datatype_1
+        sh:datatype  xsd:string .
+
+shape:ConceptScheme_modified
+        sh:datatype  xsd:date ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Concept_hasBibliography
+        sh:name      "hasBibliography"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      bnf-onto:hasBibliography .
+
+shape:Document_grantnumber
+        sh:datatype  xsd:string ;
+        sh:name      "grantnumber"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:grantnumber .
+
+shape:Concept_locationMap
+        sh:maxCount  1 ;
+        sh:name      "locationMap"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:locationMap .
+
+shape:Feature_prefLabel
+        sh:name      "prefLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Feature_prefLabel_datatype_0 shape:Feature_prefLabel_datatype_1 ) ;
+        sh:path      skos:prefLabel .
+
+shape:Document_language
+        sh:name      "language"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_language_datatype_0 shape:Document_language_datatype_1 ) ;
+        sh:path      dc:language .
+
+shape:ConceptScheme_licence_resource
+        sh:nodeKind  sh:IRI .
+
+shape:Document_temporal_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Theme_inScheme  sh:class  skos:ConceptScheme ;
+        sh:hasValue  <http://www.eionet.europa.eu/gemet/gemetThesaurus> ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "inScheme"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:inScheme .
+
+shape:Document_type_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature_countryCode
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "countryCode"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:countryCode .
+
+shape:Concept_creator
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "creator"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/creator> .
+
+shape:Concept_modified_datatype_0
+        sh:datatype  xsd:date .
+
+shape:Feature_alt  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "alt"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      wgs84:alt .
+
+shape:Label_note  sh:datatype  xsd:string ;
+        sh:name      "note"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:note .
+
+shape:Theme_label  dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "ar" "az" "bg" "ca" "cs" "da" "de" "el" "en" "en-US" "es" "et" "eu" "fi" "fr" "ga" "hr" "hu" "hy" "is" "it" "ka" "lt" "lv" "mt" "nl" "no" "pl" "pt" "ro" "ru" "sk" "sl" "sv" "tr" "uk" ) ;
+        sh:minCount        1 ;
+        sh:name            "label"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            rdfs:label .
+
+shape:ExpositionVirtuelle_depiction
+        sh:maxCount  1 ;
+        sh:name      "depiction"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:depiction .
+
+shape:Document_issued
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "issued"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:issued .
+
+shape:Document  rdf:type  sh:NodeShape ;
+        rdfs:label      "Document"@en ;
+        sh:property     shape:Document_rightsHolder_2 , shape:Document_grantproject , shape:Document_created , shape:Document_instructionalMethod , shape:Document_description , shape:Document_modified_2 , shape:Document_educationLevel , shape:Document_language , shape:Document_grantprogram , shape:Document_format_2 , shape:Document_medium , shape:Document_alternative , shape:Document_redirect , shape:Document_replaces , shape:Document_relation , shape:Document_provenance , shape:Document_dc_ressourcetype , shape:Document_isRequiredBy , shape:Document_references , shape:Document_isFormatOf , shape:Document_subjectClassification , shape:Document_grantnumber , shape:Document_date_2 , shape:Document_type , shape:Document_tableOfContents_2 , shape:Document_contibutor , shape:Document_date , shape:Document_abstractotherlanguage , shape:Document_extent , shape:Document_subject , shape:Document_aggregates , shape:Document_conformsTo , shape:Document_dateAccepted , shape:Document_isPartOf_2 , shape:Document_dateCopyrighted , shape:Document_bibliographicCitation_2 , shape:Document_number , shape:Document_identifierdoi , shape:Document_coverage , shape:Document_embargoDate , shape:Document_contributor , shape:Document_acronym , shape:Document_issued , shape:Document_name , shape:Document_isVersionOf , shape:Document_audience , shape:Document_url , shape:Document_relationisPublisherOf , shape:Document_isPartOf , shape:Document_source , shape:Document_preview_page , shape:Document_bibliographicCitation , shape:Document_modified , shape:Document_topic , shape:Document_available , shape:Document_spatial , shape:Document_seriesnumber , shape:Document_relationisPublishedBy , shape:Document_relationisFundedBy , shape:Document_temporal , shape:Document_tableOfContents , shape:Document_website , shape:Document_similarTo , shape:Document_isAggregatedBy , shape:Document_hasPart_2 , shape:Document_coverage_2 , shape:Document_collection , shape:Document_license_2 , shape:Document_rights , shape:Document_creator , shape:Document_rightsHolder , shape:Document_relationisPartOfBook , shape:Document_placepublication , shape:Document_accessRights , shape:Document_requires , shape:Document_hasVersion , shape:Document_audience_2 , shape:Document_alternateIdentifier , shape:Document_relationhasChapter , shape:Document_language_2 , shape:Document_notes , shape:Document_title , shape:Document_imprint , shape:Document_autodoi , shape:Document_format , shape:Document_relationisbn , shape:Document_license , shape:Document_pages , shape:Document_extent_2 , shape:Document_hasPart , shape:Document_subject_2 , shape:Document_provenance_2 , shape:Document_isReferencedBy , shape:Document_identifier , shape:Document_publisher ;
+        sh:targetClass  isidore:Document .
+
+shape:Concept_note_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Collection_subGroupOf
+        sh:class     gemet-schema:SuperGroup ;
+        sh:maxCount  1 ;
+        sh:name      "subGroupOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      gemet-schema:subGroupOf .
+
+shape:Source_publisher
+        sh:class     isidore:Organization ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "publisher"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/publisher> .
+
+shape:ExpositionVirtuelle_title
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        xsd:string ;
+        sh:maxCount        1 ;
+        sh:minCount        1 ;
+        sh:name            "title"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            <http://purl.org/dc/terms/title> .
+
+shape:Concept_memberOf
+        sh:class     skos:Collection ;
+        sh:name      "memberOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/umu/uneskos#memberOf> .
+
+shape:Concept_isDefinedBy
+        sh:class     foaf:Document ;
+        sh:maxCount  1 ;
+        sh:name      "isDefinedBy"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      rdfs:isDefinedBy .
+
+shape:Document_alternative_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_autodoi
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "autodoi"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:autodoi .
+
+shape:Concept_created
+        sh:maxCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_created_datatype_0 shape:Concept_created_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:ConceptScheme_Subject
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "Subject"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/Subject> .
+
+shape:Source_type  sh:datatype  xsd:string ;
+        sh:in        ( "Actualités" "Archive ouverte" "Article" "Base de données" "Bibliothèque numérique" "Billets" "Book" "Carte" "Fonds d'archives" "Manuscrits" "Ouvrages" "Page Web" "Partitions" "Périodiques" "Photos et images" "Revue" ) ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "type"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/type> .
+
+shape:ConceptScheme_subject
+        sh:name      "subject"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:ConceptScheme_subject_datatype_0 shape:ConceptScheme_subject_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/subject> .
+
+shape:Document_date  sh:datatype  xsd:string ;
+        sh:name      "date"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:date .
+
+shape:Concept_isPartOf
+        sh:class     skos-thes:ConceptGroup ;
+        sh:name      "isPartOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/isPartOf> .
+
+shape:Document_name  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "name"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:name .
+
+shape:Concept_wikipediaArticle
+        sh:name      "wikipediaArticle"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:wikipediaArticle .
+
+shape:Concept_editorialNote_2
+        sh:name      "editorialNote"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_editorialNote_2_datatype_0 shape:Concept_editorialNote_2_datatype_1 ) ;
+        sh:path      skos:editorialNote .
+
+shape:Document_subjectClassification
+        sh:datatype  xsd:string ;
+        sh:name      "subjectClassification"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:subjectClassification .
+
+shape:Source_issued  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "issued"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/issued> .
+
+shape:Group_inScheme  sh:class  skos:ConceptScheme ;
+        sh:hasValue  <http://www.eionet.europa.eu/gemet/gemetThesaurus> ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "inScheme"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:inScheme .
+
+shape:Document_format_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Theme_created  sh:datatype  xsd:string ;
+        sh:hasValue  "" ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Document_isAggregatedBy_class_0
+        sh:class  isidore:Source .
+
+shape:Document_grantprogram
+        sh:datatype  xsd:string ;
+        sh:name      "grantprogram"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:grantprogram .
+
+shape:Image_creator  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "creator"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/creator> .
+
+shape:Source_homepage
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "homepage"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:homepage .
+
+shape:Concept_officialName_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_long  sh:name  "long"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_long_datatype_0 shape:Concept_long_datatype_1 ) ;
+        sh:path      wgs84:long .
+
+shape:Document_title  sh:name  "title"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_title_datatype_0 shape:Document_title_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/title> .
+
+shape:Concept_example_datatype_1
+        sh:datatype  xsd:string .
+
+shape:ConceptScheme_Creator
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "Creator"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/Creator> .
+
+shape:Concept_editorialNote_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:ConceptScheme_hasTopConcept
+        sh:name      "hasTopConcept"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:ConceptScheme_hasTopConcept_class_0 shape:ConceptScheme_hasTopConcept_class_1 ) ;
+        sh:path      skos:hasTopConcept .
+
+shape:Document_extent_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:ConceptScheme_creator
+        sh:name      "creator"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:ConceptScheme_creator_datatype_0 shape:ConceptScheme_creator_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/creator> .
+
+shape:Collection_notation
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "notation"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:notation .
+
+shape:Collection_member_class_0
+        sh:class  gemet-schema:Group .
+
+shape:ConceptScheme  rdf:type  sh:NodeShape ;
+        rdfs:label      "ConceptScheme"@en ;
+        sh:property     shape:ConceptScheme_type , shape:ConceptScheme_license , shape:ConceptScheme_title , shape:ConceptScheme_description , shape:ConceptScheme_language , shape:ConceptScheme_subject , shape:ConceptScheme_contributor , shape:ConceptScheme_identifier , shape:ConceptScheme_comment , shape:ConceptScheme_prefLabel , shape:ConceptScheme_Subject , shape:ConceptScheme_format , shape:ConceptScheme_licence , shape:ConceptScheme_Publisher , shape:ConceptScheme_hasTopConcept , shape:ConceptScheme_Creator , shape:ConceptScheme_rightsHolder , shape:ConceptScheme_modified , shape:ConceptScheme_created , shape:ConceptScheme_creator , shape:ConceptScheme_publisher , shape:ConceptScheme_label , shape:ConceptScheme_Format , shape:ConceptScheme_Coverage ;
+        sh:targetClass  skos:ConceptScheme .
+
+shape:ConceptScheme_title
+        sh:name      "title"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:ConceptScheme_title_datatype_0 shape:ConceptScheme_title_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/title> .
+
+shape:Label_editorialNote
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "editorialNote"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:editorialNote .
+
+shape:ExpositionVirtuelle
+        rdf:type        sh:NodeShape ;
+        rdfs:label      "ExpositionVirtuelle"@en ;
+        sh:property     shape:ExpositionVirtuelle_depiction , shape:ExpositionVirtuelle_title , shape:ExpositionVirtuelle_description ;
+        sh:targetClass  bnf-onto:ExpositionVirtuelle .
+
+shape:Document_dateCopyrighted_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_contributor
+        sh:datatype  xsd:string ;
+        sh:name      "contributor"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:contributor .
+
+shape:Collection_microThesaurusOf
+        sh:class     skos:Collection ;
+        sh:maxCount  1 ;
+        sh:name      "microThesaurusOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:microThesaurusOf .
+
+shape:Concept_subordinateArray
+        sh:class     skos-thes:ThesaurusArray ;
+        sh:name      "subordinateArray"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:subordinateArray .
+
+shape:Organization_title
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        xsd:string ;
+        sh:maxCount        1 ;
+        sh:minCount        1 ;
+        sh:name            "title"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            <http://purl.org/dc/terms/title> .
+
+shape:Collection_label_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_prefLabel_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_subject_2
+        sh:name      "subject"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Document_subject_2_class_0 shape:Document_subject_2_class_1 ) ;
+        sh:path      <http://purl.org/dc/terms/subject> .
+
+shape:Document_rightsHolder_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Collection_created_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_subject_2_class_0
+        sh:class  skos:Concept .
+
+shape:Document_dateCopyrighted
+        sh:maxCount  1 ;
+        sh:name      "dateCopyrighted"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_dateCopyrighted_datatype_0 shape:Document_dateCopyrighted_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/dateCopyrighted> .
+
+shape:Feature_parentFeature
+        sh:class     skos:Concept ;
+        sh:name      "parentFeature"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:parentFeature .
+
+shape:Document_relationhasChapter
+        sh:datatype  xsd:string ;
+        sh:name      "relationhasChapter"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relationhasChapter .
+
+shape:ConceptScheme_created
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:ConceptScheme_created_datatype_0 shape:ConceptScheme_created_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Agent  rdf:type   sh:NodeShape ;
+        rdfs:label      "Agent"@en ;
+        sh:property     shape:Agent_name , shape:Agent_givenName , shape:Agent_familyName , shape:Agent_sameAs ;
+        sh:targetClass  foaf:Agent .
+
+shape:Feature_childrenFeatures
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "childrenFeatures"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:childrenFeatures .
+
+shape:Concept_identifier_2
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "identifier"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/identifier> .
+
+shape:SuperGroup_modified
+        sh:datatype  xsd:string ;
+        sh:hasValue  "" ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Document_conformsTo_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Feature_narrower
+        sh:class     skos:Concept ;
+        sh:name      "narrower"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:narrower .
+
+shape:Label_literalForm
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "en" ) ;
+        sh:maxCount        1 ;
+        sh:minCount        1 ;
+        sh:name            "literalForm"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            skos-xl:literalForm .
+
+shape:Document_subject_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_accessRights_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_lat  sh:name  "lat"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_lat_datatype_0 shape:Concept_lat_datatype_1 ) ;
+        sh:path      wgs84:lat .
+
+shape:Agent_name  dash:propertyRole  dash:LabelRole ;
+        sh:datatype        xsd:string ;
+        sh:minCount        1 ;
+        sh:name            "name"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            foaf:name .
+
+shape:Document_relation
+        sh:datatype  xsd:string ;
+        sh:name      "relation"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relation .
+
+shape:Concept_shortName_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_attributionURL
+        sh:maxCount  1 ;
+        sh:name      "attributionURL"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      cc:attributionURL .
+
+shape:Concept_exactMatch
+        sh:class     skos:Concept ;
+        sh:name      "exactMatch"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:exactMatch .
+
+shape:Document_collection
+        sh:datatype  xsd:string ;
+        sh:name      "collection"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:collection .
+
+shape:ThesaurusArray  rdf:type  sh:NodeShape ;
+        rdfs:label      "ThesaurusArray"@en ;
+        sh:property     shape:ThesaurusArray_prefLabel , shape:ThesaurusArray_member , shape:ThesaurusArray_superOrdinate , shape:ThesaurusArray_modified , shape:ThesaurusArray_created ;
+        sh:targetClass  skos-thes:ThesaurusArray .
+
+shape:Document_audience_2
+        sh:maxCount  1 ;
+        sh:name      "audience"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_audience_2_datatype_0 shape:Document_audience_2_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/audience> .
+
+shape:ConceptScheme_Publisher
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "Publisher"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/Publisher> .
+
+shape:Document_isVersionOf_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_alternateName_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_url  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "url"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:url .
+
+shape:Source_page  sh:maxCount  1 ;
+        sh:name      "page"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:page .
+
+shape:Concept_countryCode
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "countryCode"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:countryCode .
+
+shape:Concept_postalCode
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "postalCode"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:postalCode .
+
+shape:Document_language_2
+        sh:name      "language"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/language> .
+
+shape:Collection_homepage
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "homepage"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:homepage .
+
+shape:Source_label  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "label"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      rdfs:label .
+
+shape:ExpositionVirtuelle_description
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "description"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/description> .
+
+shape:Document_relationisPartOfBook
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "relationisPartOfBook"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relationisPartOfBook .
+
+shape:Concept_editorialNote
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "es" ) ;
+        sh:maxCount    1 ;
+        sh:name        "editorialNote"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        mads:editorialNote .
+
+shape:ConceptScheme_hasTopConcept_class_1
+        sh:class  skos:Concept .
+
+shape:Document_creator
+        sh:class     foaf:Agent ;
+        sh:name      "creator"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/creator> .
+
+shape:ConceptScheme_contributor_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_contibutor
+        sh:datatype  xsd:string ;
+        sh:name      "contibutor"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:contibutor .
+
+shape:Document_2  rdf:type  sh:NodeShape ;
+        rdfs:label      "Document"@en ;
+        sh:property     shape:Document_title_2 , shape:Document_depiction , shape:Document_description_2 , shape:Document_modified_2 , shape:Document_attributionName , shape:Document_primaryTopic , shape:Document_attributionURL , shape:Document_license_2 , shape:Document_created_2 ;
+        sh:targetClass  foaf:Document .
+
+shape:Concept_narrowMatch_class_1
+        sh:class  skos-xl:Label .
+
+shape:Concept_broadMatch
+        sh:class     skos:Concept ;
+        sh:name      "broadMatch"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:broadMatch .
+
+shape:Collection_2  rdf:type  sh:NodeShape ;
+        rdfs:label      "Collection"@en ;
+        sh:property     shape:Collection_prefLabel , shape:Collection_microThesaurusOf , shape:Collection_subGroupOf , shape:Collection_label , shape:Collection_notation , shape:Collection_inScheme , shape:Collection_created , shape:Collection_member , shape:Collection_identifier , shape:Collection_acronymLabel , shape:Collection_definition , shape:Collection_modified ;
+        sh:targetClass  skos:Collection .
+
+shape:ConceptScheme_type
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "en" ) ;
+        sh:maxCount    1 ;
+        sh:name        "type"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        <http://purl.org/dc/terms/type> .
+
+shape:SuperGroup_inScheme
+        sh:class     skos:ConceptScheme ;
+        sh:hasValue  <http://www.eionet.europa.eu/gemet/gemetThesaurus> ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "inScheme"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:inScheme .
+
+shape:Concept_relatedMatch_class_0
+        sh:class  skos:Concept .
+
+shape:Feature_shortName
+        sh:name      "shortName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Feature_shortName_datatype_0 shape:Feature_shortName_datatype_1 ) ;
+        sh:path      geonames:shortName .
+
+shape:Document_modified
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:modified .
+
+shape:ThesaurusArray_member
+        sh:class     skos:Concept ;
+        sh:name      "member"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:member .
+
+shape:Document_modified_2
+        sh:datatype  <https://www.w3.org/2001/XMLSchema#date> ;
+        sh:maxCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_modified_2_datatype_0 shape:Document_modified_2_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Document_created
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:created .
+
+shape:Feature_officialName_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_relationisFundedBy
+        sh:datatype  xsd:string ;
+        sh:name      "relationisFundedBy"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relationisFundedBy .
+
+shape:Group_member  sh:class  skos:Concept ;
+        sh:name      "member"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:member .
+
+shape:Document_source_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature_alternateName
+        sh:name      "alternateName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Feature_alternateName_datatype_0 shape:Feature_alternateName_datatype_1 ) ;
+        sh:path      geonames:alternateName .
+
+shape:Document_date_2
+        sh:datatype  <xsd:dateTime> ;
+        sh:name      "date"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/date> .
+
+shape:Document_references_resource
+        sh:nodeKind  sh:IRI .
+
+shape:Feature_locationMap
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "locationMap"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:locationMap .
+
+shape:Document_isAggregatedBy_class_2
+        sh:class  isidore-subject:primaires .
+
+shape:Concept_hiddenLabel
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "en" "en-US" "fr" "it" ) ;
+        sh:name        "hiddenLabel"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:hiddenLabel .
+
+shape:Document_hasVersion
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "hasVersion"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/hasVersion> .
+
+shape:Collection_modified_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_description_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_closeMatch_class_0
+        sh:class  skos:Concept .
+
+shape:Concept_lat_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_broaderGeneric
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "broaderGeneric"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:broaderGeneric .
+
+shape:Organization_homepage
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "homepage"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:homepage .
+
+shape:Document_isReferencedBy_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_contributor
+        sh:datatype  xsd:string ;
+        sh:name      "contributor"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/contributor> .
+
+shape:Feature_altLabel_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_isFormatOf_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_rightsHolder_2
+        sh:name      "rightsHolder"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_rightsHolder_2_datatype_0 shape:Document_rightsHolder_2_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/rightsHolder> .
+
+shape:Collection_member_class_2
+        sh:class  skos:Collection .
+
+shape:Collection_identifier
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "identifier"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/identifier> .
+
+shape:Concept_narrowerPartitive
+        sh:class     skos:Concept ;
+        sh:name      "narrowerPartitive"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:narrowerPartitive .
+
+shape:Document_isFormatOf
+        sh:name      "isFormatOf"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_isFormatOf_datatype_0 shape:Document_isFormatOf_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/isFormatOf> .
+
+shape:Document_attributionName
+        sh:datatype  <https://www.w3.org/2001/XMLSchema#string> ;
+        sh:maxCount  1 ;
+        sh:name      "attributionName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      cc:attributionName .
+
+shape:Document_tableOfContents_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_rights_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_rightsHolder
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "rightsHolder"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:rightsHolder .
+
+shape:Collection_countryCode
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "countryCode"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:countryCode .
+
+shape:Concept_page  sh:class  skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "page"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:page .
+
+shape:Document_tableOfContents
+        sh:datatype  xsd:string ;
+        sh:name      "tableOfContents"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:tableOfContents .
+
+shape:Document_topic  sh:class  skos:Concept ;
+        sh:name      "topic"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      sioc:topic .
+
+shape:Document_imprint
+        sh:datatype  xsd:string ;
+        sh:name      "imprint"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:imprint .
+
+shape:Concept_hasCloseExternalAuthority
+        sh:name      "hasCloseExternalAuthority"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      mads:hasCloseExternalAuthority .
+
+shape:Document_provenance_2_literal_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_identifier
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "identifier"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:identifier .
+
+shape:Concept_closeMatch
+        sh:name      "closeMatch"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Concept_closeMatch_class_0 shape:Concept_closeMatch_class_1 ) ;
+        sh:path      skos:closeMatch .
+
+shape:Concept_P625  sh:datatype  <http://www.opengis.net/ont/geosparql#wktLiteral> ;
+        sh:maxCount  1 ;
+        sh:name      "P625"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://www.opengis.net/ont/geosparql#P625> .
+
+shape:Feature_alternateName_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:ConceptScheme_license
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "license"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/license> .
+
+shape:Document_aggregates
+        sh:name      "aggregates"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Document_aggregates_class_0 shape:Document_aggregates_class_1 shape:Document_aggregates_class_2 ) ;
+        sh:path      ore:aggregates .
+
+shape:Document_references
+        sh:name      "references"@en ;
+        sh:nodeKind  sh:IRIOrLiteral ;
+        sh:or        ( shape:Document_references_literal shape:Document_references_resource ) ;
+        sh:path      <http://purl.org/dc/terms/references> .
+
+shape:Document_placepublication
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "placepublication"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:placepublication .
+
+shape:ThesaurusArray_prefLabel
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "ar" "de" "en" "es" "fr" "it" "nl" ) ;
+        sh:minCount        1 ;
+        sh:name            "prefLabel"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            skos:prefLabel .
+
+shape:Source_altLabel
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "altLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:altLabel .
+
+shape:Concept_relatedMatch
+        sh:name      "relatedMatch"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:or        ( shape:Concept_relatedMatch_class_0 shape:Concept_relatedMatch_class_1 ) ;
+        sh:path      skos:relatedMatch .
+
+shape:Image  rdf:type   sh:NodeShape ;
+        rdfs:label      "Image"@en ;
+        sh:property     shape:Image_title , shape:Image_rights , shape:Image_identifier , shape:Image_creator ;
+        sh:targetClass  foaf:Image .
+
+shape:Concept_neighbouringFeatures
+        sh:maxCount  1 ;
+        sh:name      "neighbouringFeatures"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:neighbouringFeatures .
+
+shape:Concept_isReplacedBy
+        sh:class     skos:Concept ;
+        sh:name      "isReplacedBy"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/isReplacedBy> .
+
+shape:Document_source
+        sh:name      "source"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_source_datatype_0 shape:Document_source_datatype_1 ) ;
+        sh:path      dc:source .
+
+shape:Document_medium
+        sh:name      "medium"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_medium_datatype_0 shape:Document_medium_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/medium> .
+
+shape:ConceptScheme_creator_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_notation
+        sh:name      "notation"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_notation_datatype_0 shape:Concept_notation_datatype_1 shape:Concept_notation_datatype_2 ) ;
+        sh:path      skos:notation .
+
+shape:Collection_prefLabel
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "ar" "az" "bg" "ca" "cs" "da" "de" "el" "en" "en-US" "es" "et" "eu" "fi" "fr" "ga" "hr" "hu" "hy" "is" "it" "ka" "lt" "lv" "mt" "nl" "no" "pl" "pt" "ro" "ru" "sk" "sl" "sv" "tr" "uk" ) ;
+        sh:name        "prefLabel"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:prefLabel .
+
+shape:Concept_seeAlso
+        sh:maxCount  1 ;
+        sh:name      "seeAlso"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      gemet-schema:seeAlso .
+
+shape:Document_description
+        sh:name      "description"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_description_datatype_0 shape:Document_description_datatype_1 ) ;
+        sh:path      dc:description .
+
+shape:Concept_narrowerGeneric
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "narrowerGeneric"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:narrowerGeneric .
+
+shape:Concept_broaderPartitive
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "broaderPartitive"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:broaderPartitive .
+
+shape:Feature_featureClass
+        sh:in        ( <https://www.geonames.org/ontology#A> <https://www.geonames.org/ontology#L> ) ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "featureClass"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:featureClass .
+
+shape:Concept_alt  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "alt"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      wgs84:alt .
+
+shape:Feature_officialName
+        sh:name      "officialName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Feature_officialName_datatype_0 shape:Feature_officialName_datatype_1 ) ;
+        sh:path      geonames:officialName .
+
+shape:Theme  rdf:type   sh:NodeShape ;
+        rdfs:label      "Theme"@en ;
+        sh:property     shape:Theme_member , shape:Theme_inScheme , shape:Theme_label , shape:Theme_acronymLabel , shape:Theme_modified , shape:Theme_created ;
+        sh:targetClass  gemet-schema:Theme .
+
+shape:SuperGroup_created
+        sh:datatype  xsd:string ;
+        sh:hasValue  "" ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Document_description_2
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "description"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/description> .
+
+shape:Concept_long_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_title_2
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "title"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/title> .
+
+shape:Source_creator  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "creator"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/creator> .
+
+shape:Document_temporal
+        sh:name      "temporal"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_temporal_datatype_0 shape:Document_temporal_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/temporal> .
+
+shape:Concept_domaineLitteral
+        sh:datatype  xsd:string ;
+        sh:name      "domaineLitteral"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      bnf-onto:domaineLitteral .
+
+shape:Document_acronym
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "acronym"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:acronym .
+
+shape:Concept_notation_datatype_1
+        sh:datatype  rdf:langString .
+
+shape:Collection_modified
+        sh:maxCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Collection_modified_datatype_0 shape:Collection_modified_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Concept_isMemberOfMADSCollection
+        sh:maxCount  1 ;
+        sh:name      "isMemberOfMADSCollection"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      mads:isMemberOfMADSCollection .
+
+shape:Document_aggregates_class_1
+        sh:class  skos:Concept .
+
+shape:Concept_created_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature_name  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "name"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:name .
+
+shape:Image_rights  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "rights"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/rights> .
+
+shape:Document_title_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_embargoDate
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "embargoDate"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:embargoDate .
+
+shape:Document_hasPart_2
+        sh:datatype  xsd:string ;
+        sh:name      "hasPart"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/hasPart> .
+
+shape:Source_identifier
+        sh:datatype  xsd:string ;
+        sh:minCount  1 ;
+        sh:name      "identifier"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/identifier> .
+
+shape:Document_publisher
+        sh:datatype  xsd:string ;
+        sh:name      "publisher"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:publisher .
+
+shape:Concept_deprecated
+        sh:datatype  xsd:boolean ;
+        sh:maxCount  1 ;
+        sh:name      "deprecated"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      owl:deprecated .
+
+shape:Concept_related
+        sh:name      "related"@en ;
+        sh:nodeKind  sh:BlankNodeOrIRI ;
+        sh:path      skos:related .
+
+shape:Document_references_literal_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Feature_shortName_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_example
+        sh:name      "example"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_example_datatype_0 shape:Concept_example_datatype_1 ) ;
+        sh:path      skos:example .
+
+shape:SuperGroup  rdf:type  sh:NodeShape ;
+        rdfs:label      "SuperGroup"@en ;
+        sh:property     shape:SuperGroup_prefLabel , shape:SuperGroup_member , shape:SuperGroup_inScheme , shape:SuperGroup_modified , shape:SuperGroup_created ;
+        sh:targetClass  gemet-schema:SuperGroup .
+
+shape:Document_medium_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_isVersionOf
+        sh:name      "isVersionOf"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_isVersionOf_datatype_0 shape:Document_isVersionOf_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/isVersionOf> .
+
+shape:ConceptScheme_licence_literal
+        sh:datatype  xsd:string ;
+        sh:nodeKind  sh:Literal .
+
+shape:Document_relationisPublishedBy
+        sh:datatype  xsd:string ;
+        sh:name      "relationisPublishedBy"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relationisPublishedBy .
+
+shape:Feature_parentCountry
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "parentCountry"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:parentCountry .
+
+shape:Document_license
+        sh:datatype  xsd:string ;
+        sh:name      "license"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:license .
+
+shape:Document_language_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Source_publisher_2
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "publisher"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/publisher> .
+
+shape:Label_prefLabel
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "prefLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:prefLabel .
+
+shape:Document_temporal_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_type_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Collection_altLabel
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "altLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:altLabel .
+
+shape:Agent_givenName
+        sh:datatype  xsd:string ;
+        sh:name      "givenName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      foaf:givenName .
+
+shape:Document_isAggregatedBy_class_4
+        sh:class  isidore-subject:secondaires .
+
+shape:Concept_historyNote
+        sh:name      "historyNote"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_historyNote_datatype_0 shape:Concept_historyNote_datatype_1 ) ;
+        sh:path      skos:historyNote .
+
+shape:Concept_altLabel_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Collection_definition
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "fr" ) ;
+        sh:maxCount    1 ;
+        sh:name        "definition"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:definition .
+
+shape:ConceptScheme_title_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Group  rdf:type   sh:NodeShape ;
+        rdfs:label      "Group"@en ;
+        sh:property     shape:Group_prefLabel , shape:Group_member , shape:Group_inScheme , shape:Group_subGroupOf , shape:Group_modified , shape:Group_created ;
+        sh:targetClass  gemet-schema:Group .
+
+shape:Concept_domaine
+        sh:class     skos:Concept ;
+        sh:name      "domaine"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      bnf-onto:domaine .
+
+shape:Group_created  sh:datatype  xsd:string ;
+        sh:hasValue  "" ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Document_instructionalMethod
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "instructionalMethod"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/instructionalMethod> .
+
+shape:Feature_exactMatch
+        sh:name      "exactMatch"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:exactMatch .
+
+shape:Concept_note_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Label_seeAlso  sh:class  skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "seeAlso"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      rdfs:seeAlso .
+
+shape:Concept_broader
+        sh:name      "broader"@en ;
+        sh:nodeKind  sh:BlankNodeOrIRI ;
+        sh:path      skos:broader .
+
+shape:Concept_officialName
+        sh:name      "officialName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_officialName_datatype_0 shape:Concept_officialName_datatype_1 ) ;
+        sh:path      geonames:officialName .
+
+shape:Concept_historyNote_datatype_1
+        sh:datatype  xsd:string .
+
+shape:ConceptScheme_label_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_provenance_2
+        sh:name      "provenance"@en ;
+        sh:nodeKind  sh:IRIOrLiteral ;
+        sh:or        ( shape:Document_provenance_2_literal shape:Document_provenance_2_resource ) ;
+        sh:path      <http://purl.org/dc/terms/provenance> .
+
+shape:Document_alternative_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:ConceptScheme_subject_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_definition
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "all" "ar" "bg" "cs" "da" "de" "el" "en" "es" "et" "fi" "fr" "ga" "he" "hr" "hu" "is" "it" "lt" "lv" "mt" "nl" "no" "pl" "pt" "ro" "ru" "sk" "sl" "sv" "tr" "uk" "zh-CN" ) ;
+        sh:name        "definition"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:definition .
+
+shape:Concept_prefLabel
+        sh:name      "prefLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_prefLabel_datatype_0 shape:Concept_prefLabel_datatype_1 ) ;
+        sh:path      skos:prefLabel .
+
+shape:Document_modified_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_relatedHasPart
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "relatedHasPart"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:relatedHasPart .
+
+shape:Feature_wikipediaArticle
+        sh:name      "wikipediaArticle"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:wikipediaArticle .
+
+shape:Source_title  dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "ar" "de" "en" "es" "fr" "he" "it" "pt" "vi" ) ;
+        sh:minCount        1 ;
+        sh:name            "title"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            <http://purl.org/dc/terms/title> .
+
+shape:Document_spatial
+        sh:datatype  xsd:string ;
+        sh:name      "spatial"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/spatial> .
+
+shape:Document_redirect
+        sh:datatype  xsd:string ;
+        sh:name      "redirect"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:redirect .
+
+shape:ConceptScheme_created_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature_postalCode
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "postalCode"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:postalCode .
+
+shape:Document_format_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_identifier
+        sh:datatype  xsd:string ;
+        sh:minCount  1 ;
+        sh:name      "identifier"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/identifier> .
+
+shape:Concept_officialName_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_example_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_hasRelatedAuthority
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "hasRelatedAuthority"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      mads:hasRelatedAuthority .
+
+shape:Organization_altLabel
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "altLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:altLabel .
+
+shape:Document_extent_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_rights
+        sh:name      "rights"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_rights_datatype_0 shape:Document_rights_datatype_1 ) ;
+        sh:path      dc:rights .
+
+shape:Document_educationLevel
+        sh:datatype  xsd:string ;
+        sh:name      "educationLevel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:educationLevel .
+
+shape:Document_replaces
+        sh:datatype  xsd:string ;
+        sh:name      "replaces"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/replaces> .
+
+shape:Concept_scopeNote
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "bg" "cs" "da" "de" "el" "en" "es" "et" "fi" "fr" "is" "it" "lt" "lv" "nl" "no" "pt" "ro" "sk" "sl" "sv" ) ;
+        sh:name        "scopeNote"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:scopeNote .
+
+shape:Theme_member  sh:class  skos:Concept ;
+        sh:minCount  1 ;
+        sh:name      "member"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:member .
+
+shape:Label_example  sh:datatype  xsd:string ;
+        sh:name      "example"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      skos:example .
+
+shape:Collection  rdf:type  sh:NodeShape ;
+        rdfs:label      "Collection"@en ;
+        sh:property     shape:Collection_homepage , shape:Collection_altLabel , shape:Collection_countryCode , shape:Collection_title , shape:Collection_description ;
+        sh:targetClass  isidore:Collection .
+
+shape:ConceptScheme_contributor
+        sh:name      "contributor"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:ConceptScheme_contributor_datatype_0 shape:ConceptScheme_contributor_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/contributor> .
+
+shape:SuperGroup_member
+        sh:class     gemet-schema:Group ;
+        sh:minCount  1 ;
+        sh:name      "member"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:member .
+
+shape:Collection_created_datatype_0
+        sh:datatype  xsd:date .
+
+shape:Concept_name  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "name"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:name .
+
+shape:Document_bibliographicCitation_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_rightsHolder_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_seriesnumber
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "seriesnumber"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:seriesnumber .
+
+shape:Document_isReferencedBy
+        sh:name      "isReferencedBy"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_isReferencedBy_datatype_0 shape:Document_isReferencedBy_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/isReferencedBy> .
+
+shape:Label_hasCloseExternalAuthority
+        sh:maxCount  1 ;
+        sh:name      "hasCloseExternalAuthority"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      mads:hasCloseExternalAuthority .
+
+shape:Document_references_literal
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_references_literal_datatype_0 shape:Document_references_literal_datatype_1 ) .
+
+shape:Concept_parentFeature
+        sh:class     skos:Concept ;
+        sh:name      "parentFeature"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:parentFeature .
+
+shape:Concept_population
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "population"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:population .
+
+shape:Source_description
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "description"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/description> .
+
+shape:Document_subject_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_FRBNF  sh:datatype  xsd:int ;
+        sh:maxCount  1 ;
+        sh:name      "FRBNF"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      bnf-onto:FRBNF .
+
+shape:Feature_prefLabel_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Group_modified  sh:datatype  xsd:string ;
+        sh:hasValue  "" ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Concept_shortName_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_grantproject
+        sh:datatype  xsd:string ;
+        sh:name      "grantproject"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:grantproject .
+
+shape:Image_title  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "title"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/title> .
+
+shape:Document_audience_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_altLabel_2
+        sh:class     skos-xl:Label ;
+        sh:name      "altLabel"@en ;
+        sh:nodeKind  sh:BlankNode ;
+        sh:path      skos-xl:altLabel .
+
+shape:Agent_sameAs  sh:name  "sameAs"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      owl:sameAs .
+
+shape:Document_available
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "available"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/available> .
+
+shape:Group_prefLabel
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "ar" "az" "bg" "ca" "cs" "da" "de" "el" "en" "en-US" "es" "et" "eu" "fi" "fr" "ga" "hr" "hu" "hy" "is" "it" "ka" "lt" "lv" "mt" "nl" "no" "pl" "pt" "ro" "ru" "sk" "sl" "sv" "tr" "uk" ) ;
+        sh:minCount        1 ;
+        sh:name            "prefLabel"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            skos:prefLabel .
+
+shape:ConceptScheme_comment
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "comment"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      rdfs:comment .
+
+shape:Concept_broaderInstantial
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "broaderInstantial"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:broaderInstantial .
+
+shape:Document_isVersionOf_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_alternateName_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_modified
+        sh:maxCount  1 ;
+        sh:name      "modified"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_modified_datatype_0 shape:Concept_modified_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/modified> .
+
+shape:Document_format
+        sh:name      "format"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_format_datatype_0 shape:Document_format_datatype_1 ) ;
+        sh:path      dc:format .
+
+shape:Document_alternative
+        sh:name      "alternative"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_alternative_datatype_0 shape:Document_alternative_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/alternative> .
+
+shape:Collection_description
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "description"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/description> .
+
+shape:Document_isRequiredBy
+        sh:datatype  xsd:string ;
+        sh:name      "isRequiredBy"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/isRequiredBy> .
+
+shape:Document_website
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "website"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:website .
+
+shape:Concept_modified_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Collection_acronymLabel
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "bg" "da" "de" "el" "en" "en-US" "es" "et" "eu" "fi" "fr" "hu" "it" "nl" "no" "pl" "pt" "ru" "sk" "sl" "sv" ) ;
+        sh:name        "acronymLabel"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        gemet-schema:acronymLabel .
+
+shape:ConceptScheme_hasTopConcept_class_0
+        sh:class  rdfs:Class .
+
+shape:Concept_label  sh:datatype  rdf:langString ;
+        sh:languageIn  ( "es" ) ;
+        sh:maxCount    1 ;
+        sh:name        "label"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        rdfs:label .
+
+shape:ConceptScheme_contributor_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_narrowMatch_class_0
+        sh:class  skos:Concept .
+
+shape:ConceptGroup_prefLabel
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "en" "fr" ) ;
+        sh:minCount        1 ;
+        sh:name            "prefLabel"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            skos:prefLabel .
+
+shape:Concept_narrowerInstantial
+        sh:class     skos:Concept ;
+        sh:name      "narrowerInstantial"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos-thes:narrowerInstantial .
+
+shape:Concept_P61160  sh:maxCount  1 ;
+        sh:name      "P61160"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://rdaregistry.info/Elements/u/#P61160> .
+
+shape:Concept_featureCode
+        sh:maxCount  1 ;
+        sh:name      "featureCode"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:featureCode .
+
+shape:Document_abstractotherlanguage
+        sh:datatype  xsd:string ;
+        sh:name      "abstractotherlanguage"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:abstractotherlanguage .
+
+shape:Collection_created
+        sh:maxCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Collection_created_datatype_0 shape:Collection_created_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Document_coverage_2
+        sh:name      "coverage"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/coverage> .
+
+shape:Concept_id  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "id"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <https://datos.bne.es/def/id> .
+
+shape:Feature_officialName_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_altLabel
+        sh:name      "altLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_altLabel_datatype_0 shape:Concept_altLabel_datatype_1 ) ;
+        sh:path      skos:altLabel .
+
+shape:Collection_label
+        sh:name      "label"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Collection_label_datatype_0 shape:Collection_label_datatype_1 ) ;
+        sh:path      rdfs:label .
+
+shape:Document_primaryTopic
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "primaryTopic"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:primaryTopic .
+
+shape:Document_source_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:SuperGroup_prefLabel
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        rdf:langString ;
+        sh:languageIn      ( "ar" "az" "bg" "ca" "cs" "da" "de" "el" "en" "en-US" "es" "et" "eu" "fi" "fr" "ga" "hr" "hu" "hy" "it" "ka" "lt" "lv" "mt" "nl" "no" "pl" "pt" "ro" "ru" "sk" "sl" "sv" "tr" "uk" ) ;
+        sh:minCount        1 ;
+        sh:name            "prefLabel"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            skos:prefLabel .
+
+shape:Feature_sameAs  sh:maxCount  1 ;
+        sh:name      "sameAs"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      owl:sameAs .
+
+shape:Document_isAggregatedBy_class_1
+        sh:class  isidore-subject:evenementielles .
+
+shape:Concept_alternateName
+        sh:name      "alternateName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_alternateName_datatype_0 shape:Concept_alternateName_datatype_1 ) ;
+        sh:path      geonames:alternateName .
+
+shape:Collection_modified_datatype_0
+        sh:datatype  xsd:date .
+
+shape:Concept_lat_datatype_0
+        sh:datatype  xsd:double .
+
+shape:Document_relationisbn
+        sh:datatype  xsd:string ;
+        sh:name      "relationisbn"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relationisbn .
+
+shape:Concept_shortName
+        sh:name      "shortName"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Concept_shortName_datatype_0 shape:Concept_shortName_datatype_1 ) ;
+        sh:path      geonames:shortName .
+
+shape:Concept_editorialNote_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature_altLabel_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Organization_mbox
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "mbox"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      foaf:mbox .
+
+shape:Document_provenance
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "provenance"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:provenance .
+
+shape:Source_topic  sh:class  skos:Concept ;
+        sh:name      "topic"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      sioc:topic .
+
+shape:Concept_inScheme
+        sh:class     skos:ConceptScheme ;
+        sh:maxCount  1 ;
+        sh:name      "inScheme"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:inScheme .
+
+shape:  rdf:type  owl:Ontology ;
+        <http://purl.org/dc/terms/abstract>
+                "Generated by SHACL Play!"@en ;
+        <http://purl.org/dc/terms/created>
+                "2026-04-02T12:17:07.337Z"^^xsd:dateTime .
+
+shape:Document_type  sh:name  "type"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_type_datatype_0 shape:Document_type_datatype_1 ) ;
+        sh:path      dc:type .
+
+shape:Collection_member_class_1
+        sh:class  gemet-schema:SuperGroup .
+
+shape:ConceptScheme_prefLabel
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "ar" "de" "el" "en" "es" "fr" "he" "it" "mul" "nl" "pt" "ru" ) ;
+        sh:name        "prefLabel"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:prefLabel .
+
+shape:Document_isPartOf
+        sh:datatype  xsd:string ;
+        sh:name      "isPartOf"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:isPartOf .
+
+shape:Document_dateCopyrighted_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_rights_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_provenance_2_literal
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_provenance_2_literal_datatype_0 shape:Document_provenance_2_literal_datatype_1 ) .
+
+shape:Collection_label_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_prefLabel_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_subject_2_class_1
+        sh:class  skos-xl:Label .
+
+shape:Concept_citationNote
+        sh:datatype  xsd:string ;
+        sh:name      "citationNote"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      mads:citationNote .
+
+shape:Document_bibliographicCitation_2
+        sh:name      "bibliographicCitation"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_bibliographicCitation_2_datatype_0 shape:Document_bibliographicCitation_2_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/bibliographicCitation> .
+
+shape:Document_provenance_2_literal_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Group_subGroupOf
+        sh:class     gemet-schema:SuperGroup ;
+        sh:in        ( <http://www.eionet.europa.eu/gemet/supergroup/2894> <http://www.eionet.europa.eu/gemet/supergroup/4044> <http://www.eionet.europa.eu/gemet/supergroup/5306> <http://www.eionet.europa.eu/gemet/supergroup/5499> ) ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "subGroupOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      gemet-schema:subGroupOf .
+
+shape:Source_isPartOf
+        sh:class     isidore:Collection ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "isPartOf"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/isPartOf> .
+
+shape:Concept_childrenFeatures
+        sh:maxCount  1 ;
+        sh:name      "childrenFeatures"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:childrenFeatures .
+
+shape:Document_conformsTo_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_changeNote
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "en" "fr" ) ;
+        sh:maxCount    1 ;
+        sh:name        "changeNote"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        skos:changeNote .
+
+shape:Feature_seeAlso
+        sh:name      "seeAlso"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      rdfs:seeAlso .
+
+shape:Document_accessRights_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature  rdf:type  sh:NodeShape ;
+        rdfs:label      "Feature"@en ;
+        sh:property     shape:Feature_alt , shape:Feature_isDefinedBy , shape:Feature_parentFeature , shape:Feature_seeAlso , shape:Feature_prefLabel , shape:Feature_long , shape:Feature_locationMap , shape:Feature_officialName , shape:Feature_childrenFeatures , shape:Feature_narrower , shape:Feature_name , shape:Feature_broader , shape:Feature_shortName , shape:Feature_population , shape:Feature_neighbouringFeatures , shape:Feature_featureCode , shape:Feature_sameAs , shape:Feature_postalCode , shape:Feature_alternateName , shape:Feature_countryCode , shape:Feature_featureClass , shape:Feature_lat , shape:Feature_parentCountry , shape:Feature_wikipediaArticle , shape:Feature_altLabel , shape:Feature_exactMatch ;
+        sh:targetClass  geonames:Feature .
+
+shape:Document_format_2
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "format"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/format> .
+
+shape:Concept_citationSource
+        sh:datatype  xsd:string ;
+        sh:name      "citationSource"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      mads:citationSource .
+
+shape:Document_subject
+        sh:name      "subject"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_subject_datatype_0 shape:Document_subject_datatype_1 ) ;
+        sh:path      dc:subject .
+
+shape:ConceptScheme_description
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "en" "fr" ) ;
+        sh:name        "description"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        <http://purl.org/dc/terms/description> .
+
+shape:Feature_neighbouringFeatures
+        sh:maxCount  1 ;
+        sh:name      "neighbouringFeatures"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:neighbouringFeatures .
+
+shape:ThesaurusArray_created
+        sh:datatype  xsd:string ;
+        sh:minCount  1 ;
+        sh:name      "created"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/created> .
+
+shape:Document_coverage
+        sh:datatype  xsd:string ;
+        sh:name      "coverage"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:coverage .
+
+shape:Document_provenance_2_resource
+        sh:nodeKind  sh:IRI .
+
+shape:Concept_long_datatype_0
+        sh:datatype  xsd:double .
+
+shape:Document_bibliographicCitation
+        sh:datatype  xsd:string ;
+        sh:name      "bibliographicCitation"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:bibliographicCitation .
+
+shape:Document_preview_page
+        sh:datatype  xsd:string ;
+        sh:name      "preview_page"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:preview_page .
+
+shape:Concept_notation_datatype_0
+        sh:datatype  <http://id.loc.gov/datatypes/codes/gac> .
+
+shape:ConceptScheme_language
+        sh:datatype  xsd:string ;
+        sh:name      "language"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/language> .
+
+shape:Document_audience
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "audience"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:audience .
+
+shape:Document_aggregates_class_0
+        sh:class  geonames:Feature .
+
+shape:Document_extent_2
+        sh:name      "extent"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_extent_2_datatype_0 shape:Document_extent_2_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/extent> .
+
+shape:Concept_created_datatype_0
+        sh:datatype  xsd:date .
+
+shape:Document_notes  sh:datatype  xsd:string ;
+        sh:name      "notes"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:notes .
+
+shape:Document_dateAccepted
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "dateAccepted"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/dateAccepted> .
+
+shape:ConceptScheme_publisher
+        sh:datatype    rdf:langString ;
+        sh:languageIn  ( "fr" ) ;
+        sh:maxCount    1 ;
+        sh:name        "publisher"@en ;
+        sh:nodeKind    sh:Literal ;
+        sh:path        <http://purl.org/dc/terms/publisher> .
+
+shape:Concept_source  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "source"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/source> .
+
+shape:Document_license_2
+        sh:maxCount  1 ;
+        sh:name      "license"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      cc:license , <http://purl.org/dc/terms/license> .
+
+shape:ConceptScheme_rightsHolder
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "rightsHolder"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/rightsHolder> .
+
+shape:ConceptScheme_format
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "format"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/format> .
+
+shape:Document_number
+        sh:datatype  xsd:string ;
+        sh:name      "number"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:number .
+
+shape:Document_requires
+        sh:datatype  xsd:string ;
+        sh:name      "requires"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      <http://purl.org/dc/terms/requires> .
+
+shape:Feature_lat  sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "lat"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      wgs84:lat .
+
+shape:Concept_relatedMatch_class_1
+        sh:class  skos-xl:Label .
+
+shape:Label  rdf:type   sh:NodeShape ;
+        rdfs:label      "Label"@en ;
+        sh:property     shape:Label_hasCloseExternalAuthority , shape:Label_note , shape:Label_example , shape:Label_literalForm , shape:Label_seeAlso , shape:Label_prefLabel , shape:Label_editorialNote ;
+        sh:targetClass  skos-xl:Label .
+
+shape:Concept_focus  sh:maxCount  1 ;
+        sh:name      "focus"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:focus .
+
+shape:ConceptGroup_member
+        sh:class     skos:Concept ;
+        sh:minCount  1 ;
+        sh:name      "member"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:member .
+
+shape:ConceptScheme_label
+        sh:maxCount  1 ;
+        sh:name      "label"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:ConceptScheme_label_datatype_0 shape:ConceptScheme_label_datatype_1 ) ;
+        sh:path      rdfs:label .
+
+shape:Feature_population
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:name      "population"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:population .
+
+shape:Image_identifier
+        dash:propertyRole  dash:LabelRole ;
+        sh:datatype        xsd:string ;
+        sh:maxCount        1 ;
+        sh:minCount        1 ;
+        sh:name            "identifier"@en ;
+        sh:nodeKind        sh:Literal ;
+        sh:path            <http://purl.org/dc/terms/identifier> .
+
+shape:Feature_broader
+        sh:class     skos:Concept ;
+        sh:name      "broader"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      skos:broader .
+
+shape:Document_language_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_parentCountry
+        sh:class     skos:Concept ;
+        sh:maxCount  1 ;
+        sh:name      "parentCountry"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:parentCountry .
+
+shape:Document_isAggregatedBy_class_3
+        sh:class  isidore-subject:publications .
+
+shape:Concept_altLabel_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Concept_sameEEAGlossary
+        sh:maxCount  1 ;
+        sh:name      "sameEEAGlossary"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      gemet-schema:sameEEAGlossary .
+
+shape:ConceptScheme_title_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_relationisPublisherOf
+        sh:datatype  xsd:string ;
+        sh:name      "relationisPublisherOf"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:relationisPublisherOf .
+
+shape:Document_alternateIdentifier
+        sh:datatype  xsd:string ;
+        sh:name      "alternateIdentifier"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      dc:alternateIdentifier .
+
+shape:Concept_hasWikipediaArticle
+        sh:name      "hasWikipediaArticle"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      gemet-schema:hasWikipediaArticle .
+
+shape:Document_description_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Feature_altLabel
+        sh:name      "altLabel"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Feature_altLabel_datatype_0 shape:Feature_altLabel_datatype_1 ) ;
+        sh:path      skos:altLabel .
+
+shape:Concept_closeMatch_class_1
+        sh:class  skos-xl:Label .
+
+shape:Document_isReferencedBy_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_historyNote_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:ConceptScheme_label_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:ConceptScheme_identifier
+        sh:maxCount  1 ;
+        sh:name      "identifier"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/identifier> .
+
+shape:Document_isFormatOf_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Document_accessRights
+        sh:name      "accessRights"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:or        ( shape:Document_accessRights_datatype_0 shape:Document_accessRights_datatype_1 ) ;
+        sh:path      <http://purl.org/dc/terms/accessRights> .
+
+shape:Concept_featureClass
+        sh:maxCount  1 ;
+        sh:name      "featureClass"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      geonames:featureClass .
+
+shape:Organization_countryCode
+        sh:datatype  xsd:string ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "countryCode"@en ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      geonames:countryCode .
+
+shape:ConceptScheme_subject_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Collection_member_class_3
+        sh:class  skos:Concept .
+
+shape:Feature_isDefinedBy
+        sh:class     foaf:Document ;
+        sh:maxCount  1 ;
+        sh:minCount  1 ;
+        sh:name      "isDefinedBy"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      rdfs:isDefinedBy .
+
+shape:Document_depiction
+        sh:maxCount  1 ;
+        sh:name      "depiction"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      foaf:depiction .
+
+shape:Concept_replaces
+        sh:class     skos:Concept ;
+        sh:name      "replaces"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      <http://purl.org/dc/terms/replaces> .
+
+shape:ConceptGroup  rdf:type  sh:NodeShape ;
+        rdfs:label      "ConceptGroup"@en ;
+        sh:property     shape:ConceptGroup_prefLabel , shape:ConceptGroup_member ;
+        sh:targetClass  skos-thes:ConceptGroup .
+
+shape:Document_modified_2_datatype_0
+        sh:datatype  rdf:langString .
+
+shape:Document_tableOfContents_2_datatype_1
+        sh:datatype  xsd:string .
+
+shape:Concept_sameAs  sh:maxCount  1 ;
+        sh:name      "sameAs"@en ;
+        sh:nodeKind  sh:IRI ;
+        sh:path      owl:sameAs .

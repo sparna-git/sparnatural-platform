@@ -4,4 +4,6 @@ package-lock.json
 cache/
 logs/
 config.yaml
+dist/
+src/tests/test-report/
 

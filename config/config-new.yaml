@@ -9,15 +9,15 @@ projects:
     cache:
       urilookup: ./cache/dbpedia-en/urilookup_cache.json
     reconciliation:
-      implementation: SparqlReconcileService
+      implementation: SparqlReconcileServiceV13
       cacheSize: 1000
       maxResults: 2
     text2query:
       implementation: MistralText2QueryService
-      agentId: ag:33fd9714:20250822:t2q-post-process:a046f692
+      agentId: ag_019c8a5149a076f48d90b303514760d6
     query2text:
       implementation: MistralQuery2TextService
-      agentId: ag:33fd9714:20250507:untitled-agent:d1fc8155
+      agentId: ag_019c8b1bad56750d95e1b91e7d2a8ce8
     t2qPromptGenerator:
       implementation: T2QPromptGenerator
       additionalInstructions: ./config/dbpedia-en/additionalInstructions.txt
@@ -53,7 +53,7 @@ projects:
     cache:
       urilookup: ./cache/ruim/urilookup_cache.json
     reconciliation:
-      implementation: SparqlReconcileServiceV13
+      implementation: LuceneReconcileService
       cacheSize: 1000
       maxResults: 2
     text2query:
@@ -67,3 +67,6 @@ projects:
       additionalInstructions: ./config/ruim/additionalInstructions.txt
     q2tPromptGenerator:
       implementation: Q2TPromptGenerator
+  isidore:
+    shacl: ./config/isidore/isidore-shapes.ttl
+    sparqlEndpoint: https://isidore-ref.huma-num.fr/sparql
