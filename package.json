@@ -9,6 +9,7 @@
     "build": "npm run clean && npm run build:lib",
     "test:t2q": "ts-node src/tests/text2query-test.ts",
     "mcp:isidore": "ts-node src/mcp/server.ts --mcp --project=isidore --config=config/config-new.yaml",
+    "mcp:isidore:http": "ts-node src/mcp/server.ts --mcp --project=isidore --transport=http --host=127.0.0.1 --port=3333 --config=config/config-new.yaml",
     "mcp:inspect:isidore": "npx @modelcontextprotocol/inspector -- ts-node src/mcp/server.ts --mcp --project=isidore --config=config/config-new.yaml",
     "mcp:dbpedia-en": "ts-node src/mcp/server.ts --mcp --project=dbpedia-en --config=config/config-new.yaml",
     "mcp:inspect:dbpedia-en": "npx @modelcontextprotocol/inspector -- ts-node src/mcp/server.ts --mcp --project=dbpedia-en --config=config/config-new.yaml"

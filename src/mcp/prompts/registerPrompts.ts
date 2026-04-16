@@ -8,6 +8,7 @@ interface RegisterPromptsOptions {
   projectId: string;
 }
 
+// Example of a workflow prompt that guides the model through a structured process
 export function registerPrompts(
   server: McpServer,
   options: RegisterPromptsOptions,
@@ -56,28 +57,21 @@ export function registerPrompts(
 
               You must follow this workflow strictly:
 
-              Step 1 — Inspect the full schema first
-              Use inspect_schema_shacl first.
-              Read the raw SHACL schema to understand the complete graph structure, valid paths, and the most appropriate properties before doing anything else.
+              Step 1 — Discover the relevant NodeShapes
+              Use discover_nodeshapes to retrieve the SHACL NodeShapes, their targets, and their declared properties. Organize and confirm the relevant classes, entry points, and candidate predicates related to the user request.
 
-              Step 2 — Discover the relevant NodeShapes
-              After inspecting the raw SHACL schema, use discover_nodeshapes.
-              Use it to organize and confirm the relevant NodeShapes, classes, targets, and candidate predicates related to the user request.
+              Step 2 — Resolve entities to IRIs if needed
+              If the user request contains named entities (persons, places, organizations, concepts, resources), use reconcile_entities to resolve them to IRIs. Pass the 'type' from the targetClass of the matching NodeShape discovered in step 1.
 
-              Step 3 — Resolve entities to IRIs if needed
-              If the user request contains named entities such as persons, places, organizations, concepts, or resources, use reconcile_entities only after the schema has been inspected and the relevant types are known.
-
-              Step 4 — Build and execute the final SPARQL query
+              Step 3 — Build and execute the final SPARQL query
               Construct a valid SPARQL query using the schema structure, the confirmed NodeShapes, and the reconciled IRIs when needed.
               Use execute_final_sparql only once the query is complete, valid, and aligned with the schema.
 
               Important rules:
-              - You must start with inspect_schema_shacl.
-              - Do not start with discover_nodeshapes.
-              - Do not execute SPARQL before inspecting the raw SHACL schema.
+              - You must start with discover_nodeshapes.
               - Do not guess classes, predicates, or graph paths without checking the schema.
               - Do not use execute_final_sparql for trial-and-error.
-              - Use reconcile_entities only after schema inspection and only when named entities need to be resolved.
+              - Use reconcile_entities only after discover_nodeshapes and only when named entities need to be resolved.
 
               Your goal is to answer the user request with a schema-aware, well-structured, and valid SPARQL query process.`,
             },

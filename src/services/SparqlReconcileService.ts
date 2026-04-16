@@ -98,11 +98,13 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
     uniqueEntries.forEach(([key, qobj]) => {
       chain = chain.then(() => {
         const name = qobj.query.trim();
+        console.log("[QOBJ]", qobj);
         const cacheKey = encodeURIComponent(
           name.toLowerCase() +
             (qobj.type ? `|${qobj.type}` : "") +
             (includeTypes ? "|openrefine" : "|simple"),
         );
+        console.log("[cacheKey]", cacheKey);
 
         // Résultat déjà en cache ?
         if (
@@ -253,18 +255,32 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
     // Nouvelle methode
     const { postProcessor } = await getSHACLConfig(this.projectId);
 
-    const escapedName = name.replace(/"/g, '\\"');
-
-    //
+    let escapedName = name.replace(/"/g, '\\"');
+    // fisrst lettre of escapedName to uppercase
+    escapedName = escapedName.charAt(0).toUpperCase() + escapedName.slice(1);
+    const normalized = escapedName.toLowerCase();
+    /*console.log("normalized value :", normalized);
+    console.log(
+      `Recherche SPARQL pour "${name}" (type: ${typeUri || "none"})...`,
+    );
+    */
     // QUERY 1 : rdfs:label
 
     const query1 = `
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     SELECT ?x WHERE {
-      { { ?x rdfs:label "${escapedName}"@en } UNION { ?x rdfs:label "${escapedName}"@fr } }
+      { 
+       { ?x rdfs:label "${escapedName}"@en } 
+        UNION 
+       { ?x rdfs:label "${escapedName}"@fr } 
+        UNION
+        { ?x rdfs:label "${normalized}"@en }
+        UNION
+        { ?x rdfs:label "${normalized}"@fr }
+      }
     }
     LIMIT ${this.maxResults}
-  `;
+    `;
 
     let bindings: any[] = [];
 
@@ -286,12 +302,16 @@ export class SparqlReconcileService implements ReconcileServiceIfc {
         // QUERY 2 : SKOS prefLabel / altLabel
 
         const query2 = `
-        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+       PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         SELECT ?x WHERE {
           {
             { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@en }
             UNION
             { ?x skos:prefLabel|skos:altLabel|skos:notation "${escapedName}"@fr }
+            UNION
+            { ?x skos:prefLabel|skos:altLabel|skos:notation "${normalized}"@en }
+            UNION
+            { ?x skos:prefLabel|skos:altLabel|skos:notation "${normalized}"@fr }
           }
         }
         LIMIT ${this.maxResults}

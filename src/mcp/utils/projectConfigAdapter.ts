@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import axios from "axios";
 import { ConfigProvider } from "../../config/ConfigProvider";
 import { AppConfig } from "../../config/AppConfig";
@@ -10,6 +8,7 @@ import type {
   ReconcileInput,
   ReconcileOutput,
 } from "../../services/ReconcileServiceIfc";
+import { getIsidoreSuggestLabels } from "../../services/IsidoreApiReconcileService";
 
 export interface ProjectConfig {
   projectId: string;
@@ -22,7 +21,6 @@ export interface ProjectConfig {
  */
 export interface ProjectConfigAdapter {
   getProjectConfig(projectId: string): Promise<ProjectConfig>;
-  readShacl(projectId: string): Promise<string>;
   executeSparql(projectId: string, query: string): Promise<unknown>;
   getShaclNodeShapes(
     projectId: string,
@@ -63,12 +61,6 @@ export class ConfigBackedProjectConfigAdapter implements ProjectConfigAdapter {
     };
   }
 
-  async readShacl(projectId: string): Promise<string> {
-    // ensure the project exists (and surfaces a clearer error than loadShaclTtl)
-    await this.getProjectConfig(projectId);
-    return loadShaclTtl(projectId).ttl;
-  }
-
   // For simplicity, this method directly executes the SPARQL query against the endpoint.
   async executeSparql(projectId: string, query: string): Promise<unknown> {
     const config = await this.getProjectConfig(projectId);
@@ -89,7 +81,7 @@ export class ConfigBackedProjectConfigAdapter implements ProjectConfigAdapter {
   // get NodeShapes from the SHACL file
   async getShaclNodeShapes(
     projectId: string,
-    lang = "en",
+    lang = "fr",
   ): Promise<NodeShapeInfo[]> {
     // ensure project exists
     await this.getProjectConfig(projectId);
@@ -105,77 +97,97 @@ export class ConfigBackedProjectConfigAdapter implements ProjectConfigAdapter {
   ): Promise<ReconcileOutput> {
     // ensure project exists
     await this.getProjectConfig(projectId);
+
+    // For the isidore project, try the ISIDORE suggest API first (faster,
+    // handles accents/case). Fall back to SPARQL reconciliation per query
+    // if the API returns no candidates.
+    if (projectId === "isidore") {
+      return this._reconcileViaIsidoreApi(projectId, queries, includeTypes);
+    }
+
     const project = AppConfig.getInstance().getProject(projectId);
     return project.reconcileService.reconcileQueries(queries, includeTypes);
   }
-}
 
-/**
- * Simple file-based adapter for standalone usage without the full platform config.
- */
-export class FileBasedProjectConfigAdapter implements ProjectConfigAdapter {
-  constructor(private readonly baseConfigDir: string) {}
-
-  async getProjectConfig(projectId: string): Promise<ProjectConfig> {
-    const projectDir = path.join(this.baseConfigDir, projectId);
-    const endpointFile = path.join(projectDir, "endpoint.txt");
-
-    let sparqlEndpoint: string;
-    try {
-      sparqlEndpoint = fs.readFileSync(endpointFile, "utf-8").trim();
-    } catch {
-      throw new Error(
-        `Unable to resolve SPARQL endpoint for project '${projectId}'.`,
-      );
-    }
-
-    return {
-      projectId,
-      sparqlEndpoint,
-      shaclPath: path.join(projectDir, "shacl.ttl"),
-    };
-  }
-
-  async readShacl(projectId: string): Promise<string> {
-    const config = await this.getProjectConfig(projectId);
-    if (!config.shaclPath) {
-      throw new Error(`No SHACL path configured for project '${projectId}'.`);
-    }
-    return fs.readFileSync(config.shaclPath, "utf-8");
-  }
-
-  async executeSparql(projectId: string, query: string): Promise<unknown> {
-    const config = await this.getProjectConfig(projectId);
-
-    const response = await axios({
-      method: "POST",
-      url: config.sparqlEndpoint,
-      headers: {
-        Accept: "application/sparql-results+json, application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      data: new URLSearchParams({ query }),
-    });
-
-    return response.data;
-  }
-
-  async getShaclNodeShapes(
-    _projectId: string,
-    _lang = "en",
-  ): Promise<NodeShapeInfo[]> {
-    throw new Error(
-      "getShaclNodeShapes is not supported by FileBasedProjectConfigAdapter. Use ConfigBackedProjectConfigAdapter.",
-    );
-  }
-
-  async reconcileEntities(
-    _projectId: string,
-    _queries: ReconcileInput,
-    _includeTypes = false,
+  private async _reconcileViaIsidoreApi(
+    projectId: string,
+    queries: ReconcileInput,
+    includeTypes: boolean,
   ): Promise<ReconcileOutput> {
-    throw new Error(
-      "reconcileEntities is not supported by FileBasedProjectConfigAdapter. Use ConfigBackedProjectConfigAdapter.",
-    );
+    const responsePayload: ReconcileOutput = {};
+    const project = AppConfig.getInstance().getProject(projectId);
+
+    for (const [key, qobj] of Object.entries(queries)) {
+      // --- Step 1: ask ISIDORE suggest for normalized label candidates ---
+      // ISIDORE handles accents (é, è…) and case insensitivity natively.
+      const labels = await getIsidoreSuggestLabels(qobj.query);
+
+      if (labels.length === 0) {
+        // ISIDORE returned nothing → fall back to the existing SPARQL service
+        console.log(
+          `[isidore-api] No suggestions for "${qobj.query}", falling back to SPARQL.`,
+        );
+        const fallback = await project.reconcileService.reconcileQueries(
+          { [key]: qobj },
+          includeTypes,
+        );
+        responsePayload[key] = fallback[key] ?? { result: [] };
+        continue;
+      }
+
+      // --- Step 2: resolve each normalized label to a URI via SPARQL ---
+      // We pass the exact label strings (correctly cased / accented) to the
+      // existing SPARQL reconcile service, which does an exact-match lookup.
+      // This is much more reliable than the original fuzzy LCASE() approach.
+      const labelQueries: ReconcileInput = {};
+      labels.forEach((label, i) => {
+        labelQueries[`${key}_${i}`] = { query: label, type: qobj.type };
+      });
+
+      const sparqlResults = await project.reconcileService.reconcileQueries(
+        labelQueries,
+        includeTypes,
+      );
+
+      // Collect unique URIs (different labels may resolve to the same entity)
+      const seen = new Set<string>();
+      const allResults = Object.values(sparqlResults)
+        .flatMap((r) => r.result)
+        .filter((r) => {
+          if (seen.has(r.id)) return false;
+          seen.add(r.id);
+          return true;
+        });
+
+      if (allResults.length === 0) {
+        // ISIDORE gave labels but none resolved to a URI in the SPARQL endpoint
+        // → fall back to the original SPARQL query on the raw user input
+        console.log(
+          `[isidore-api] Labels found by ISIDORE but no SPARQL match — falling back.`,
+        );
+        const fallback = await project.reconcileService.reconcileQueries(
+          { [key]: qobj },
+          includeTypes,
+        );
+        responsePayload[key] = fallback[key] ?? { result: [] };
+      } else if (allResults.length === 1) {
+        // Unambiguous: single URI found
+        responsePayload[key] = {
+          result: [{ ...allResults[0], score: 100, match: true }],
+        };
+      } else {
+        // Ambiguous: multiple URIs — return all with match:false so the LLM
+        // presents the options to the user and waits for their choice.
+        responsePayload[key] = {
+          result: allResults.map((r, i) => ({
+            ...r,
+            score: 90 - i,
+            match: false,
+          })),
+        };
+      }
+    }
+
+    return responsePayload;
   }
 }

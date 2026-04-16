@@ -1,5 +1,5 @@
-// MUST be the very first import: redirects console.log/info/warn to stderr
-// so stray log messages from other modules don't corrupt the JSON-RPC stdout stream.
+// guard to prevent accidental console.log calls that could break the MCP JSON-RPC communication over stdio
+// will be removed once using only http
 import "./stdoutGuard";
 
 import express from "express";
@@ -10,7 +10,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 
-import { registerResources } from "./resources/registerResources";
+// not used yet
+// import { registerResources } from "./resources/registerResources";
 import { registerPrompts } from "./prompts/registerPrompts";
 import { registerTools } from "./tools/registerTools";
 import {
@@ -31,27 +32,31 @@ export interface StartMcpServerOptions {
   port?: number;
 }
 
+// Factory to create a new McpServer instance with all prompts/tools/resources registered for a given project. In HTTP mode, a new server will be created for each session.
 function buildServer(
   projectId: string,
   projectConfigAdapter: ProjectConfigAdapter,
 ): McpServer {
+  // create a new MCP server instance for this session (HTTP) or the whole process (stdio)
   const server = new McpServer({
     name: `sparnatural-mcp-${projectId}`,
     version: "0.1.0",
   });
 
   registerTools(server, { projectConfigAdapter, projectId });
-  registerResources(server, { projectConfigAdapter, projectId });
+  //registerResources(server, { projectConfigAdapter, projectId });
   registerPrompts(server, { projectConfigAdapter, projectId });
 
   return server;
 }
 
+// start the MCP server with options resolved from CLI arguments or defaults
 export async function startMcpServer(
   options: StartMcpServerOptions,
 ): Promise<void> {
   const { projectId } = options;
 
+  // get project configuration
   const projectConfigAdapter =
     options.projectConfigAdapter ?? new ConfigBackedProjectConfigAdapter();
 
@@ -59,8 +64,8 @@ export async function startMcpServer(
   await projectConfigAdapter.getProjectConfig(projectId);
 
   if (options.transport === "http") {
-    const host = options.host ?? "127.0.0.1";
-    const port = options.port ?? 3333;
+    const host = options.host ?? "127.0.0.1"; // host
+    const port = options.port ?? 3333; // port for the HTTP server
 
     const app = express();
     app.disable("x-powered-by");
@@ -73,6 +78,7 @@ export async function startMcpServer(
 
     const sessions: Record<string, SessionEntry> = {};
 
+    // Endpoint to handle all MCP requests (initialization and subsequent calls)
     app.post("/mcp", async (req, res) => {
       try {
         console.error("POST /mcp headers:", req.headers);
@@ -85,14 +91,7 @@ export async function startMcpServer(
           const existing = sessions[sessionId];
 
           if (!existing) {
-            res.status(400).json({
-              jsonrpc: "2.0",
-              error: {
-                code: -32000,
-                message: "Bad Request: Invalid session ID",
-              },
-              id: req.body?.id ?? null,
-            });
+            res.status(400).send("Invalid or missing session ID");
             return;
           }
 
@@ -102,20 +101,13 @@ export async function startMcpServer(
 
         // New session must start with initialize
         if (!isInitializeRequest(req.body)) {
-          res.status(400).json({
-            jsonrpc: "2.0",
-            error: {
-              code: -32000,
-              message: "Bad Request: First request must be initialize",
-            },
-            id: req.body?.id ?? null,
-          });
+          res.status(400).send("Bad Request: First request must be initialize");
           return;
         }
 
         // IMPORTANT: create a fresh server per HTTP session
         const sessionServer = buildServer(projectId, projectConfigAdapter);
-
+        // Create a new transport for this session and connect it to the server
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           enableJsonResponse: true,
@@ -128,6 +120,7 @@ export async function startMcpServer(
           },
         });
 
+        // Clean up session on transport close (e.g. client disconnect)
         transport.onclose = async () => {
           const sid = transport.sessionId;
           if (sid && sessions[sid]) {
@@ -136,6 +129,7 @@ export async function startMcpServer(
           }
         };
 
+        // Connect the server to the transport and handle the incoming request
         await sessionServer.connect(transport);
         await transport.handleRequest(req, res, req.body);
       } catch (error) {
@@ -154,6 +148,7 @@ export async function startMcpServer(
       }
     });
 
+    // Also handle GET and DELETE for the same endpoint to allow the client to retrieve session-specific resources and signal session end
     const handleSessionRequest = async (
       req: express.Request,
       res: express.Response,
@@ -177,8 +172,9 @@ export async function startMcpServer(
         }
       }
     };
-
+    // get is used by the client to retrieve session-specific resources, so we route it to the transport handler as well
     app.get("/mcp", handleSessionRequest);
+    // delete is used by the client to signal session end, so we can clean up server resources
     app.delete("/mcp", handleSessionRequest);
 
     const httpServer = app.listen(port, host, () => {
@@ -201,6 +197,7 @@ export async function startMcpServer(
   );
 }
 
+// Helper functions to resolve CLI arguments for the standalone launcher
 function resolveProjectIdFromCli(): string {
   const arg = process.argv.find((a) => a.startsWith("--project="));
   if (arg) return arg.split("=")[1];
@@ -211,17 +208,20 @@ function resolveProjectIdFromCli(): string {
   );
 }
 
+// Default to stdio transport, but allow overriding to HTTP for easier debugging and integration with external tools
 function resolveTransportFromCli(): "stdio" | "http" {
   const arg = process.argv.find((a) => a.startsWith("--transport="));
   const value = arg?.split("=")[1];
   return value === "http" ? "http" : "stdio";
 }
 
+// Optional CLI arguments to override default host and port for HTTP transport
 function resolveHostFromCli(): string | undefined {
   const arg = process.argv.find((a) => a.startsWith("--host="));
   return arg?.split("=")[1];
 }
 
+// Optional CLI arguments to override default host and port for HTTP transport
 function resolvePortFromCli(): number | undefined {
   const arg = process.argv.find((a) => a.startsWith("--port="));
   if (!arg) return undefined;
@@ -231,6 +231,7 @@ function resolvePortFromCli(): number | undefined {
 }
 
 // Standalone launcher
+// will be removed
 if (process.argv.includes("--mcp")) {
   try {
     const projectId = resolveProjectIdFromCli();

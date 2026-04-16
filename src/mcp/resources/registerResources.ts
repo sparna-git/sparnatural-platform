@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ProjectConfigAdapter } from "../utils/projectConfigAdapter";
 
+// this file centralize all ressources that will be provided by the mcp server
 interface RegisterResourcesOptions {
   projectConfigAdapter: ProjectConfigAdapter;
   projectId: string;
@@ -12,6 +13,8 @@ export function registerResources(
 ): void {
   const { projectConfigAdapter, projectId } = options;
 
+  // expose the shacl file as resource to add it on the conversation context
+  /*
   server.registerResource(
     "raw-shacl",
     `shacl://${projectId}/raw`,
@@ -22,6 +25,7 @@ export function registerResources(
     },
     async (uri) => {
       try {
+        // projectConfigAdatpter
         const shacl = await projectConfigAdapter.readShacl(projectId);
         return {
           contents: [
@@ -45,5 +49,5 @@ export function registerResources(
         };
       }
     },
-  );
+  );*/
 }
