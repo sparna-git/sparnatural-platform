@@ -58,20 +58,20 @@ export function registerPrompts(
               You must follow this workflow strictly:
 
               Step 1 — Discover the relevant NodeShapes
-              Use discover_nodeshapes to retrieve the SHACL NodeShapes, their targets, and their declared properties. Organize and confirm the relevant classes, entry points, and candidate predicates related to the user request.
+              Use sparnatural_discover_nodeshapes to retrieve the SHACL NodeShapes, their targets, and their declared properties. Organize and confirm the relevant classes, entry points, and candidate predicates related to the user request.
 
               Step 2 — Resolve entities to IRIs if needed
-              If the user request contains named entities (persons, places, organizations, concepts, resources), use reconcile_entities to resolve them to IRIs. Pass the 'type' from the targetClass of the matching NodeShape discovered in step 1.
+              If the user request contains named entities (persons, places, organizations, concepts, resources), use sparnatural_reconcile_entities to resolve them to IRIs. Pass the 'type' from the targetClass of the matching NodeShape discovered in step 1.
 
               Step 3 — Build and execute the final SPARQL query
               Construct a valid SPARQL query using the schema structure, the confirmed NodeShapes, and the reconciled IRIs when needed.
-              Use execute_final_sparql only once the query is complete, valid, and aligned with the schema.
+              Use sparnatural_execute_sparql only once the query is complete, valid, and aligned with the schema.
 
               Important rules:
-              - You must start with discover_nodeshapes.
+              - You must start with sparnatural_discover_nodeshapes.
               - Do not guess classes, predicates, or graph paths without checking the schema.
-              - Do not use execute_final_sparql for trial-and-error.
-              - Use reconcile_entities only after discover_nodeshapes and only when named entities need to be resolved.
+              - Do not use sparnatural_execute_sparql for trial-and-error.
+              - Use sparnatural_reconcile_entities only after sparnatural_discover_nodeshapes and only when named entities need to be resolved.
 
               Your goal is to answer the user request with a schema-aware, well-structured, and valid SPARQL query process.`,
             },
