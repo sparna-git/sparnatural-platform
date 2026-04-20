@@ -1,0 +1,15 @@
+log:
+  directory: ./logs
+projects:
+  isidore:
+    shacl: ./config/isidore/isidore-shapes.ttl
+    sparqlEndpoint: https://isidore-ref.huma-num.fr/sparql
+    reconcileStrategy: isidore-api
+    domains:
+      - sparna-git.github.io
+    cache:
+      urilookup: ./cache/isidore/urilookup_cache.json
+    reconciliation:
+      implementation: SparqlReconcileService
+      cacheSize: 500
+      maxResults: 4
