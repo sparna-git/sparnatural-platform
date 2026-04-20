@@ -23,37 +23,6 @@ export interface PropertyShapeInfo {
 }
 
 /**
- * Parses @prefix declarations from a Turtle string and returns an inverted
- * map of [uri, prefix] pairs, sorted longest-URI first so that compact()
- * always matches the most specific prefix.
- */
-export function extractPrefixesFromTtl(ttl: string): [string, string][] {
-  const map: Record<string, string> = {};
-  const regex = /@prefix\s+([\w-]*:)\s*<([^>]+)>/g;
-  let m: RegExpExecArray | null;
-  while ((m = regex.exec(ttl)) !== null) {
-    map[m[2]] = m[1];
-  }
-  return Object.entries(map).sort(([a], [b]) => b.length - a.length);
-}
-
-/**
- * Replaces a full IRI with its prefixed form if one of the known prefixes
- * matches. Returns the original IRI unchanged when no prefix applies, and
- * undefined for a undefined input.
- */
-function compact(
-  iri: string | undefined,
-  prefixes: [string, string][],
-): string | undefined {
-  if (!iri) return undefined;
-  for (const [uri, prefix] of prefixes) {
-    if (iri.startsWith(uri)) return prefix + iri.slice(uri.length);
-  }
-  return iri;
-}
-
-/**
  * Tries the preferred language first, then iterates over every language
  * present in the model until a non-empty value is found.
  */
@@ -105,30 +74,21 @@ function getLabelWithFallback(
 /**
  * Extract a LLM-friendly JSON representation of all NodeShapes found in the
  * given ShaclModel. Uses rdf-shacl-commons to hide RDF/SHACL plumbing.
- *
- * When `prefixes` is provided (typically from extractPrefixesFromTtl), all
- * IRIs in the output are compacted to their prefixed form to reduce token
- * usage for LLM consumers. When omitted, full IRIs are returned.
  */
 export function extractNodeShapes(
   model: ShaclModel,
   lang = "fr",
-  prefixes: [string, string][] = [],
 ): NodeShapeInfo[] {
   // Discover every language present in this SHACL file at runtime.
   // No hard-coded "fr", "en", etc. — if the SHACL later adds "de" or "es"
   // the parser picks it up automatically.
   const allLangs = model.readAllLanguages();
 
-  // When no prefixes are given, `c` is an identity function: no compaction.
-  const c = (iri: string | undefined) =>
-    prefixes.length ? compact(iri, prefixes) : iri;
-
   return model.readAllNodeShapes().map((ns) => {
-    const shapeIri = c(ns.getResource().value)!;
+    const shapeIri = ns.getResource().value;
 
-    const targetClasses = ns.getTargetClasses().map((r) => c(r.value)!);
-    const targetSparql = ns.getShTarget().map((r) => c(r.value)!);
+    const targetClasses = ns.getTargetClasses().map((r) => r.value);
+    const targetSparql = ns.getShTarget().map((r) => r.value);
 
     const nsDescription = getTooltipWithFallback(ns, lang, allLangs);
     const nsAgentInstr = getAgentInstructionWithFallback(ns, lang, allLangs);
@@ -136,17 +96,17 @@ export function extractNodeShapes(
     const properties: PropertyShapeInfo[] = ns.getProperties().map((ps) => {
       const path = ps.getShPath();
 
-      const classes = ps.getShClass().map((r) => c(r.value)!);
-      const datatypes = ps.getShDatatype().map((d) => c(d.getUri().value)!);
+      const classes = ps.getShClass().map((r) => r.value);
+      const datatypes = ps.getShDatatype().map((d) => d.getUri().value);
 
       const shIn = ps.getShIn();
-      const values = shIn?.map((t) => c(t.value)!);
+      const values = shIn?.map((t) => t.value);
 
       const psDescription = getTooltipWithFallback(ps, lang, allLangs);
       const psAgentInstr = getAgentInstructionWithFallback(ps, lang, allLangs);
 
       const prop: PropertyShapeInfo = {
-        path: c(path?.value),
+        path: path?.value,
         name: getLabelWithFallback(ps, lang, allLangs),
       };
 

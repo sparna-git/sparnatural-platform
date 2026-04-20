@@ -2,8 +2,7 @@ import express from "express";
 import { randomUUID } from "node:crypto";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-// only http
-//import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 
@@ -138,4 +137,20 @@ export function createMcpRouter(
   router.delete("/", handleSessionRequest);
 
   return router;
+}
+
+/**
+ * Starts the MCP server in stdio mode for a single project.
+ */
+export async function startMcpStdio(
+  projectId: string,
+  projectConfigAdapter: ProjectConfigAdapter = new ConfigBackedProjectConfigAdapter(),
+): Promise<void> {
+  // Redirect console.log to stderr — stdout is the MCP wire protocol in stdio mode
+  console.log = console.error;
+
+  const server = buildServer(projectId, projectConfigAdapter);
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error(`MCP stdio server started for project '${projectId}'`);
 }

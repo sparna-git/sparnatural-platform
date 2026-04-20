@@ -1,7 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod/v3";
 import type { ProjectConfigAdapter } from "../utils/projectConfigAdapter";
-import { validateAndPrepareSparql } from "../utils/sparqlValidator";
 
 // This file centralizes registration of all MCP tools for the project.
 interface RegisterToolsOptions {
@@ -367,28 +366,10 @@ export function registerTools(
       },
     },
     async ({ query }) => {
-      // Validate and prepare the query before hitting the endpoint.
-      const validation = validateAndPrepareSparql(query);
-      if (!validation.ok) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text",
-              text: `execute_final_sparql rejected: ${validation.error}`,
-            },
-          ],
-          structuredContent: {
-            projectId,
-            error: validation.error,
-          },
-        };
-      }
-
       try {
         const result = await projectConfigAdapter.executeSparql(
           projectId,
-          validation.query!,
+          query,
         );
 
         return {
@@ -400,7 +381,7 @@ export function registerTools(
           ],
           structuredContent: {
             projectId,
-            executedQuery: validation.query,
+            executedQuery: query,
             result,
           },
         };
