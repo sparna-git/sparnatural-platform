@@ -18,6 +18,9 @@ import promptT2QRoute from "./routes/t2qPrompt";
 import promptQ2TRoute from "./routes/q2tPrompt";
 
 import { checkDomainMiddleware } from "./middleware/checkDomainMiddleware";
+import { createMcpRouter } from "./mcp/server";
+
+import { ConfigProvider } from "./config/ConfigProvider";
 
 dotenv.config();
 
@@ -87,6 +90,24 @@ app.use(
   "/api/v1/:projectKey/prompt-q2t",
   checkDomainMiddleware,
   promptQ2TRoute,
+);
+
+// mcp routes
+app.use(
+  "/mcp/:projectKey",
+  (req, res, next) => {
+    const projectKey = req.params.projectKey;
+    const project =
+      ConfigProvider.getInstance().getConfig().projects?.[projectKey];
+    if (!project)
+      return res.status(404).json({ error: `Unknown project: ${projectKey}` });
+    next();
+  },
+  createMcpRouter(),
+);
+// route exemple pour tester le serveur MCP
+console.log(
+  `✅ MCP server route example: http://localhost:${PORT}/mcp/isidore`,
 );
 
 // Swagger
