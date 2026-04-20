@@ -1,9 +1,7 @@
 import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { Mistral } from "@mistralai/mistralai";
-// need to be updated with the new schema
-import schema from "../../schemas/SparnaturalQuery.schema.json";
-import newSchema from "../../schemas/newSchema.schema.json";
+
 import strictSchema from "../../schemas/newSchema.strict.schema.json";
 import { inject, injectable } from "tsyringe";
 import { MistralText2QueryServiceConfig } from "../../config/ProjectConfig";
