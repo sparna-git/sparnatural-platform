@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod/v3";
 import type { ProjectConfigAdapter } from "../utils/projectConfigAdapter";
+import { validateAndPrepareSparql } from "../utils/sparqlValidator";
 
 // This file centralizes registration of all MCP tools for the project.
 interface RegisterToolsOptions {
@@ -20,25 +21,48 @@ export function registerTools(
     {
       title: "Healthcheck",
       description:
-        "Returns a basic MCP server status for monitoring and debugging.",
+        "Returns MCP server status plus SPARQL endpoint reachability and SHACL loading status for the project.",
       inputSchema: {},
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true, // pings external SPARQL endpoint
+      },
     },
     async () => {
+      // Check SPARQL reachability (2s timeout, returns false on any error)
+      const sparqlReachable =
+        await projectConfigAdapter.checkSparqlReachable(projectId);
+
+      // Check SHACL loading: try to parse the NodeShapes. If it throws, not loaded.
+      let shaclLoaded = false;
+      try {
+        const { shapes } =
+          await projectConfigAdapter.getShaclNodeShapes(projectId);
+        shaclLoaded = shapes.length > 0;
+      } catch {
+        shaclLoaded = false;
+      }
+
+      const ok = sparqlReachable && shaclLoaded;
+
+      const payload = {
+        ok,
+        server: "sparnatural-mcp",
+        projectId,
+        sparqlReachable,
+        shaclLoaded,
+      };
+
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(
-              { ok: true, server: "sparnatural-mcp" },
-              null,
-              2,
-            ),
+            text: JSON.stringify(payload, null, 2),
           },
         ],
-        structuredContent: {
-          ok: true,
-          server: "sparnatural-mcp",
-        },
+        structuredContent: payload,
       };
     },
   );
@@ -87,13 +111,27 @@ export function registerTools(
   );
   */
 
-  // The following tools require discover_nodeshapes to be called first to inspect the schema and identify relevant NodeShapes, classes, and properties. This is necessary to use them correctly and avoid imprecise results or errors.
+  // The following tools require sparnatural_discover_nodeshapes to be called first to inspect the schema and identify relevant NodeShapes, classes, and properties. This is necessary to use them correctly and avoid imprecise results or errors.
   server.registerTool(
-    "discover_nodeshapes",
+    "sparnatural_discover_nodeshapes",
     {
       title: "Discover NodeShapes",
-      description: `MANDATORY first step of the query workflow for project '${projectId}'. You MUST call this before reconcile_entities and execute_final_sparql. Returns the SHACL NodeShapes, their targets, and their declared properties.`,
-      inputSchema: {},
+      description: `MANDATORY first step of the query workflow for project '${projectId}'. You MUST call this before sparnatural_reconcile_entities and sparnatural_execute_sparql. Returns the SHACL NodeShapes, their targets, and their declared properties.`,
+      inputSchema: {
+        lang: z
+          .string()
+          .length(2)
+          .optional()
+          .describe(
+            "Optional 2-letter language code (e.g. 'fr', 'en', 'de') to select the preferred language for labels, descriptions, and agent instructions. Defaults to 'fr'. If the requested language is missing for a given shape/property, the parser falls back to any other language available in the SHACL file.",
+          ),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
       outputSchema: {
         projectId: z.string().describe("The project identifier."),
         nodeshapes: z
@@ -186,21 +224,27 @@ export function registerTools(
           .describe("The list of all NodeShapes in the schema."),
       },
     },
-    async () => {
+    async ({ lang }) => {
       try {
-        const nodeshapes =
-          await projectConfigAdapter.getShaclNodeShapes(projectId);
+        const { shapes, prefixes } =
+          await projectConfigAdapter.getShaclNodeShapes(projectId, lang);
+        let prefixBlock = "";
+        if (prefixes) {
+          prefixBlock = prefixes
+            .map(([uri, prefix]) => `PREFIX ${prefix} <${uri}>`)
+            .join("\n");
+        }
 
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(nodeshapes, null, 2),
+              text: prefixBlock + "\n\n" + JSON.stringify(shapes, null, 2),
             },
           ],
           structuredContent: {
             projectId,
-            nodeshapes,
+            nodeshapes: shapes,
           },
         };
       } catch (error) {
@@ -211,7 +255,7 @@ export function registerTools(
           content: [
             {
               type: "text",
-              text: `discover_nodeshapes failed: ${message}`,
+              text: `sparnatural_discover_nodeshapes failed: ${message}`,
             },
           ],
           structuredContent: {
@@ -223,12 +267,12 @@ export function registerTools(
     },
   );
 
-  // reconcile_entities tool used to resolve user-provided labels to IRIs from the knowledge graph.
+  // sparnatural_reconcile_entities tool used to resolve user-provided labels to IRIs from the knowledge graph.
   server.registerTool(
-    "reconcile_entities",
+    "sparnatural_reconcile_entities",
     {
       title: "Reconcile Entity Labels to IRIs",
-      description: `Step 2 of the query workflow for project '${projectId}'. REQUIRES discover_nodeshapes first — without it, the 'type' parameter cannot be set correctly and results will be imprecise or wrong. Reconciles user-provided entity labels to candidate IRIs from the project knowledge graph. The resolved IRI must then be injected directly into the SPARQL query produced in step 3 — do not match on rdfs:label once an entity has been reconciled.
+      description: `Step 2 of the query workflow for project '${projectId}'. REQUIRES sparnatural_discover_nodeshapes first — without it, the 'type' parameter cannot be set correctly and results will be imprecise or wrong. Reconciles user-provided entity labels to candidate IRIs from the project knowledge graph. The resolved IRI must then be injected directly into the SPARQL query produced in step 3 — do not match on rdfs:label once an entity has been reconciled.
 
       How to call it correctly:
         - For EACH entity label the user mentioned, add one entry to 'queries' with BOTH 'query' (the label) AND 'type' (the class IRI of the entity, taken from the targetClass of the matching NodeShape discovered in step 1). Passing 'type' improves precision and is expected whenever a class is known from the schema.
@@ -247,13 +291,19 @@ export function registerTools(
                 .string()
                 .optional()
                 .describe(
-                  "Class IRI used to constrain the reconciliation search to entities of that class. STRONGLY RECOMMENDED whenever the expected class is known: take it from the targetClass of the NodeShape identified via discover_nodeshapes. This is an INPUT filter on the search, not a flag to enrich the results.",
+                  "Class IRI used to constrain the reconciliation search to entities of that class. STRONGLY RECOMMENDED whenever the expected class is known: take it from the targetClass of the NodeShape identified via sparnatural_discover_nodeshapes. This is an INPUT filter on the search, not a flag to enrich the results.",
                 ),
             }),
           )
           .describe(
             "A map of reconciliation keys to { query, type? } objects. One entry per label to resolve. Keys are arbitrary identifiers (e.g. 'author', 'city') used to match results back in the response.",
           ),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
       },
     },
     async ({ queries }) => {
@@ -283,7 +333,7 @@ export function registerTools(
           content: [
             {
               type: "text",
-              text: `reconcile_entities failed: ${message}`,
+              text: `sparnatural_reconcile_entities failed: ${message}`,
             },
           ],
           structuredContent: {
@@ -295,12 +345,12 @@ export function registerTools(
     },
   );
 
-  // execute_final_sparql tool used to execute the finalized SPARQL query after schema inspection and entity reconciliation.
+  // sparnatural_execute_sparql tool used to execute the finalized SPARQL query after schema inspection and entity reconciliation.
   server.registerTool(
-    "execute_final_sparql",
+    "sparnatural_execute_sparql",
     {
       title: "Execute Final SPARQL",
-      description: `Step 3 of the query workflow for project '${projectId}'. REQUIRES discover_nodeshapes first — queries built without inspecting the schema will fail or return incorrect results because class URIs, predicates, and graph paths are not guessable. Executes a finalized SPARQL query against the configured endpoint. The query must be schema-aware and grounded in the SHACL structure: prefer explicit rdf:type constraints when they are known from the schema, use DISTINCT when needed to avoid duplicate rows or overcounting, and prefer grouping by resources rather than labels alone when labels may be ambiguous. If an entity has already been reconciled to a specific IRI, use that IRI directly and do not add redundant label-based regex or text filters for the same entity. Do not use this tool for schema exploration, property guessing, or trial-and-error query construction. Do not add FILTER(lang(...)) constraints unless the user explicitly requests a specific language. Always include a LIMIT clause in the query. Start with LIMIT 20 and present the results to the user. If the user wants more, increase progressively (e.g. 100, 500).`,
+      description: `Step 3 of the query workflow for project '${projectId}'. REQUIRES sparnatural_discover_nodeshapes first — queries built without inspecting the schema will fail or return incorrect results because class URIs, predicates, and graph paths are not guessable. Executes a finalized SPARQL query against the configured endpoint. The query must be schema-aware and grounded in the SHACL structure: prefer explicit rdf:type constraints when they are known from the schema, use DISTINCT when needed to avoid duplicate rows or overcounting, and prefer grouping by resources rather than labels alone when labels may be ambiguous. If an entity has already been reconciled to a specific IRI, use that IRI directly and do not add redundant label-based regex or text filters for the same entity. Do not use this tool for schema exploration, property guessing, or trial-and-error query construction. Do not add FILTER(lang(...)) constraints unless the user explicitly requests a specific language. Always include a LIMIT clause in the query. Start with LIMIT 20 and present the results to the user. If the user wants more, increase progressively (e.g. 100, 500).`,
       inputSchema: {
         query: z
           .string()
@@ -309,12 +359,36 @@ export function registerTools(
             "A finalized, schema-aware SPARQL query built after NodeShape discovery and entity reconciliation when needed. Prefer explicit rdf:type constraints from the schema, use DISTINCT when appropriate, and avoid redundant regex or label filters when a target entity has already been resolved to an exact IRI.",
           ),
       },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     },
     async ({ query }) => {
+      // Validate and prepare the query before hitting the endpoint.
+      const validation = validateAndPrepareSparql(query);
+      if (!validation.ok) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: `execute_final_sparql rejected: ${validation.error}`,
+            },
+          ],
+          structuredContent: {
+            projectId,
+            error: validation.error,
+          },
+        };
+      }
+
       try {
         const result = await projectConfigAdapter.executeSparql(
           projectId,
-          query,
+          validation.query!,
         );
 
         return {
@@ -326,6 +400,7 @@ export function registerTools(
           ],
           structuredContent: {
             projectId,
+            executedQuery: validation.query,
             result,
           },
         };

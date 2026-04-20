@@ -71,6 +71,39 @@ export async function startMcpServer(
     app.disable("x-powered-by");
     app.use(express.json());
 
+    // secure route
+    // === Protection DNS rebinding : on verifie d'ou vient la requete ===
+    const ALLOWED_ORIGINS = new Set<string>([
+      "http://localhost",
+      "http://127.0.0.1",
+    ]);
+
+    app.use("/mcp", (req, res, next) => {
+      const origin = req.headers.origin;
+
+      // Pas d'Origin = requete non-navigateur (Claude Desktop, curl...) => on laisse passer
+      if (!origin) return next();
+
+      // Origin present = requete navigateur => on verifie
+      let hostnameWithoutPort: string;
+      try {
+        hostnameWithoutPort = new URL(origin).origin.replace(/:\d+$/, "");
+      } catch {
+        res.status(400).send("Invalid Origin header");
+        return;
+      }
+
+      if (
+        ALLOWED_ORIGINS.has(hostnameWithoutPort) ||
+        ALLOWED_ORIGINS.has(origin)
+      ) {
+        return next();
+      }
+
+      console.error(`Rejected request from disallowed Origin: ${origin}`);
+      res.status(403).send("Forbidden: Origin not allowed");
+    });
+
     type SessionEntry = {
       server: McpServer;
       transport: StreamableHTTPServerTransport;

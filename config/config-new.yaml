@@ -4,6 +4,7 @@ projects:
   dbpedia-en:
     shacl: ./config/dbpedia-en/config.ttl
     sparqlEndpoint: https://dbpedia.org/sparql
+    reconcileStrategy: sparql-only
     domains:
       - sparna-git.github.io
     cache:
@@ -26,6 +27,7 @@ projects:
   demo-ep:
     shacl: ./config/demo-ep/config-1.ttl ./config/demo-ep/config-2.ttl
     sparqlEndpoint: http://graphdb.sparna.fr/repositories/endorse2025
+    reconcileStrategy: sparql-only
     domains:
       - sparna-git.github.io
     cache:
@@ -48,6 +50,7 @@ projects:
   ruim:
     shacl: ./config/ruim/sparnatural-config.ttl
     sparqlEndpoint: https://data.sparna.fr/graphdb/repositories/RUIM
+    reconcileStrategy: sparql-only
     domains:
       - sparna-git.github.io
     cache:
@@ -70,6 +73,7 @@ projects:
   isidore:
     shacl: ./config/isidore/isidore-shapes.ttl
     sparqlEndpoint: https://isidore-ref.huma-num.fr/sparql
+    reconcileStrategy: isidore-api
     domains:
       - sparna-git.github.io
     cache:

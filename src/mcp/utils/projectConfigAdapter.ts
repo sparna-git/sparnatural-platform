@@ -3,17 +3,24 @@ import { ConfigProvider } from "../../config/ConfigProvider";
 import { AppConfig } from "../../config/AppConfig";
 
 import { getSHACLConfig, loadShaclTtl } from "../../config/SCHACL";
-import { extractNodeShapes, type NodeShapeInfo } from "./shaclParser";
+import {
+  extractNodeShapes,
+  extractPrefixesFromTtl,
+  type NodeShapeInfo,
+} from "./shaclParser";
 import type {
   ReconcileInput,
   ReconcileOutput,
 } from "../../services/ReconcileServiceIfc";
 import { getIsidoreSuggestLabels } from "../../services/IsidoreApiReconcileService";
 
+export type ReconcileStrategy = "isidore-api" | "sparql-only";
+
 export interface ProjectConfig {
   projectId: string;
   sparqlEndpoint: string;
   shaclPath?: string;
+  reconcileStrategy: ReconcileStrategy;
 }
 
 /**
@@ -25,12 +32,13 @@ export interface ProjectConfigAdapter {
   getShaclNodeShapes(
     projectId: string,
     lang?: string,
-  ): Promise<NodeShapeInfo[]>;
+  ): Promise<{ shapes: NodeShapeInfo[]; prefixes?: [string, string][] }>;
   reconcileEntities(
     projectId: string,
     queries: ReconcileInput,
     includeTypes?: boolean,
   ): Promise<ReconcileOutput>;
+  checkSparqlReachable(projectId: string): Promise<boolean>;
 }
 
 /**
@@ -58,16 +66,21 @@ export class ConfigBackedProjectConfigAdapter implements ProjectConfigAdapter {
       projectId,
       sparqlEndpoint: projectConfig.sparqlEndpoint,
       shaclPath: projectConfig.shacl,
+      // Default to "sparql-only" when not specified for backward compatibility.
+      reconcileStrategy:
+        (projectConfig.reconcileStrategy as ReconcileStrategy) ?? "sparql-only",
     };
   }
 
   // For simplicity, this method directly executes the SPARQL query against the endpoint.
+  // in review "usr sparql route or not with creating a sheard service"
   async executeSparql(projectId: string, query: string): Promise<unknown> {
     const config = await this.getProjectConfig(projectId);
 
     const response = await axios({
       method: "POST",
       url: config.sparqlEndpoint,
+      timeout: 60_000, // 60 seconds timeout
       headers: {
         Accept: "application/sparql-results+json, application/json",
         "Content-Type": "application/x-www-form-urlencoded",
@@ -78,35 +91,67 @@ export class ConfigBackedProjectConfigAdapter implements ProjectConfigAdapter {
     return response.data;
   }
 
+  // Ping the SPARQL endpoint with a cheap ASK query, timeboxed to 2s.
+  // Returns true if the endpoint replied 2xx within the timeout, false otherwise.
+  async checkSparqlReachable(projectId: string): Promise<boolean> {
+    try {
+      const config = await this.getProjectConfig(projectId);
+      await axios({
+        method: "POST",
+        url: config.sparqlEndpoint,
+        timeout: 2000,
+        headers: {
+          Accept: "application/sparql-results+json, application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data: new URLSearchParams({ query: "ASK { ?s ?p ?o }" }),
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   // get NodeShapes from the SHACL file
   async getShaclNodeShapes(
     projectId: string,
     lang = "fr",
-  ): Promise<NodeShapeInfo[]> {
+  ): Promise<{ shapes: NodeShapeInfo[]; prefixes?: [string, string][] }> {
     // ensure project exists
     await this.getProjectConfig(projectId);
     const { model } = await getSHACLConfig(projectId);
-    return extractNodeShapes(model, lang);
+    const { ttl } = loadShaclTtl(projectId);
+    const prefixes = extractPrefixesFromTtl(ttl);
+    const shapes = extractNodeShapes(model, lang, prefixes);
+    return { shapes, prefixes };
   }
 
   // Reconcile entity labels to IRIs using the project's configured reconcile service.
+  // a voir avec thomas
   async reconcileEntities(
     projectId: string,
     queries: ReconcileInput,
     includeTypes = false,
   ): Promise<ReconcileOutput> {
-    // ensure project exists
-    await this.getProjectConfig(projectId);
+    const config = await this.getProjectConfig(projectId);
 
-    // For the isidore project, try the ISIDORE suggest API first (faster,
-    // handles accents/case). Fall back to SPARQL reconciliation per query
-    // if the API returns no candidates.
-    if (projectId === "isidore") {
-      return this._reconcileViaIsidoreApi(projectId, queries, includeTypes);
+    switch (config.reconcileStrategy) {
+      case "isidore-api":
+        return this._reconcileViaIsidoreApi(projectId, queries, includeTypes);
+      case "sparql-only": {
+        const project = AppConfig.getInstance().getProject(projectId);
+        return project.reconcileService.reconcileQueries(queries, includeTypes);
+      }
+      default: {
+        // Exhaustiveness check: TS will error here if a new strategy is added
+        // to the union type but not handled above.
+        const _exhaustive: never = config.reconcileStrategy;
+        throw new Error(
+          `Unknown reconcileStrategy: ${_exhaustive}. ` +
+            `Check the reconcileStrategy field in your project config.`,
+        );
+      }
     }
-
-    const project = AppConfig.getInstance().getProject(projectId);
-    return project.reconcileService.reconcileQueries(queries, includeTypes);
   }
 
   private async _reconcileViaIsidoreApi(
