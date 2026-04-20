@@ -275,6 +275,7 @@ export function registerTools(
 
       How to call it correctly:
         - For EACH entity label the user mentioned, add one entry to 'queries' with BOTH 'query' (the label) AND 'type' (the class IRI of the entity, taken from the targetClass of the matching NodeShape discovered in step 1). Passing 'type' improves precision and is expected whenever a class is known from the schema.
+        - The 'type' value MUST be a class IRI that exists in the SHACL schema returned by sparnatural_discover_nodeshapes (i.e. one of the targetClasses of a NodeShape). NEVER use a class IRI that was not returned by sparnatural_discover_nodeshapes — guessed or external class IRIs will produce wrong or empty results.
         - When all returned candidates have match: false, present the full list to the user (name + id) and ask them to choose. Only proceed to the SPARQL query once the user has confirmed their choice.`,
       inputSchema: {
         queries: z
@@ -290,7 +291,7 @@ export function registerTools(
                 .string()
                 .optional()
                 .describe(
-                  "Class IRI used to constrain the reconciliation search to entities of that class. STRONGLY RECOMMENDED whenever the expected class is known: take it from the targetClass of the NodeShape identified via sparnatural_discover_nodeshapes. This is an INPUT filter on the search, not a flag to enrich the results.",
+                  "Class IRI used to constrain the reconciliation search to entities of that class. MUST be taken from the targetClasses of a NodeShape returned by sparnatural_discover_nodeshapes — do NOT use external or guessed class IRIs. Without a valid type from the schema, reconciliation will fall back to a less precise SPARQL-only search.",
                 ),
             }),
           )
