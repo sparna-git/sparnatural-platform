@@ -1,0 +1,77 @@
+{
+  "type": "query",
+  "subType": "SELECT",
+  "variables": [
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Substance_1"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Text_4"
+    }
+  ],
+  "distinct": true,
+  "solutionModifiers": {},
+  "where": {
+    "type": "pattern",
+    "subType": "bgpSameSubject",
+    "subject": {
+      "type": "term",
+      "subType": "variable",
+      "value": "Substance_1",
+      "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Substance"
+    },
+    "predicateObjectPairs": [
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Substance_estSubstanceActiveDans"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "SpecialitePharmaceutique",
+            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
+          },
+          "filters": [],
+          "predicateObjectPairs": [
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_label"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "Text_4",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Text"
+                },
+                "filters": [
+                  {
+                    "type": "labelledFilter",
+                    "label": "humex rhume",
+                    "filter": {
+                      "type": "searchFilter",
+                      "search": "humex rhume"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

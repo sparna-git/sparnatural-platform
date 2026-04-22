@@ -34,6 +34,7 @@
   dct:created "2025-04-16T00:00:00.000Z"^^xsd:dateTime .
 
 shape:Presentation a sh:NodeShape;
+  sh:agentInstruction "Représente une spécialité pharmaceutique dans un certain packaging. Une présentation est identifiée par son code CIP13. Elle est liée à la spécialité présentée et à l’UCD contenue dans la présentation. Conceptuellement, la présentation “hérite” de toutes les caractéristiques de la spécialité dispensée (substances, type de conditionnement, forme manufacturée). Le nombre d'UCD (comme le nombre de comprimés dans la boite), le conditionnement et les éventuels dispositifs d'administration sont indiqués sur la Présentation. Les dates de commercialisation doivent être récupérées sur les Evenements de type \"début de commercilisation\" ou \"arrêt de commercialisation\" liés à la présentation."@fr ;
   sh:targetClass med:Presentation;
   sh:nodeKind sh:IRI;
   rdfs:label "Présentation"@fr;
@@ -45,6 +46,7 @@ shape:Presentation a sh:NodeShape;
     shape:Presentation_quantiteConditionnement, shape:Presentation_uniteQuantiteConditionnement .
 
 shape:UniteCommuneDeDispensation a sh:NodeShape;
+  sh:agentInstruction "Représente un comprimé, un flacon, une ampoule, etc. Une Unité Commune de dispensation est identifiée par son code UCD13. Elle est liée d’une part à sa spécialité pharmaceutique (une et une seule) et d’autre part aux présentations dans lesquelles elle se retrouve (une UCD peut se retrouver dans plusieurs présentations)."@fr ;
   sh:targetClass med:UniteCommuneDeDispensation;
   sh:nodeKind sh:IRI;
   rdfs:label "Unité de Dispensation"@fr;
@@ -55,6 +57,7 @@ shape:UniteCommuneDeDispensation a sh:NodeShape;
     shape:UniteCommuneDeDispensation_presenteDans .
 
 shape:SpecialitePharmaceutique a sh:NodeShape;
+  sh:agentInstruction "Une spécialité pharmaceutique représente un médicament autorisé, indépendamment de son packaging. C'est la classe principale. Elle est identifiée par son code CIS (code identifiant de spécialité). Elle porte des informations descriptives, comme son code ATC ou ses dates de validité. La classification ATC d’une Spécialité est indiquée dans l'attribut `classificationATC` qui donne une référence à l’entrée actuelle de la classification ATC sur laquelle est classée cette Spécialité. Chaque spécialité est catégorisée selon sa prescriptibilité en dénomination commune : prescriptible, non-prescriptible et prescriptible avec nom de marque. Le cas échéant la cause de l’exception à la prescription en DC est indiquée. La forme manufacturée de la Spécialité est indiquée. Cette forme peut être plus générique que la forme indiquée au niveau de chaque présentation de la spécialité, par exemple \"solution\" sur la spécialité, et \"solution en ampoule\" ou \"solution en flacon\" sur des présentations. A de rares exceptions, une seule forme manufacturée est indiquée. La voie d’administration de la Spécialité est également indiquée. Une spécialité est liée aux UCD qui dispensent cette spécialité et aux présentations qui contiennent cette spécialité. Elle se décompose également en Eléments contenus dans la spécialité (par exemple une poudre et un solvant). Le titulaire courant de la spécialité est indiqué. Ce titulaire peut évoluer dans le temps, mais seul le titulaire courant est indiqué. D’autres caractéristiques de la spécialité liées à son AMM et à son statut courant sont décrites dans la partie “Autorisations”."@fr ;
   sh:targetClass med:SpecialitePharmaceutique;
   sh:nodeKind sh:IRI;
   rdfs:label "Spécialité pharmaceutique"@fr;
@@ -81,6 +84,7 @@ shape:ATC a sh:NodeShape;
   sh:property shape:ATC_labelATC, shape:ATC_codeATC .
 
 shape:Evenement a sh:NodeShape;
+  sh:agentInstruction "Un événement qui concerne soit des Spécialités soit des Présentations. Les événéments qui concernent les Spécialités sont de type Autorisation, Changements de procédure, Suspension, etc. Les événements qui concernent les Présentations sont de type Début de commercialisation ou Arrêt de commercialisation."@fr ;
   sh:targetClass med:Evenement;
   sh:target shape:Evenement-target;
   sh:nodeKind sh:IRI;
@@ -98,6 +102,7 @@ WHERE {
 }""" .
 
 shape:Substance a sh:NodeShape;
+  sh:agentInstruction "Une substance dans un médicament, soit une substance de base, soit un sel ou un acide, etc. Les substances sont identifiées par un identifiant interne. Elles peuvent être associées à un code SMS quand un équivalent existe. Au moins un libellé en français est donné à la substance, avec potentiellement plusieurs synonymes."@fr ;
   sh:targetClass med:Substance;
   sh:nodeKind sh:IRI;
   rdfs:label "Substance"@fr;
@@ -108,6 +113,7 @@ shape:Substance a sh:NodeShape;
     shape:Substance_estSubstanceActiveDans, shape:Substance_exactMatch .
 
 shape:GroupeGenerique a sh:NodeShape;
+  sh:agentInstruction "Un groupe regroupant des spécialités équivalentes. Les groupes génériques regroupent les spécialités par des liens de différentes natures. Chaque groupe générique indique en général une spécialité de référence (mais pas toujours, certains groupes n’ont aucune spécialité de référence), et donne les spécialités génériques équivalentes et les autres spécialités substituables."@fr ;
   sh:targetClass med:GroupeGenerique;
   sh:nodeKind sh:IRI;
   rdfs:label "Groupe générique"@fr;
@@ -117,6 +123,7 @@ shape:GroupeGenerique a sh:NodeShape;
     shape:GroupeGenerique_specialiteGenerique, shape:GroupeGenerique_specialiteSubstituable .
 
 shape:Organisation a sh:NodeShape;
+  sh:agentInstruction "Un laboratoire pharmaceutique titulaire d'une autorisation de spécialité."@fr ;
   sh:targetClass med:Organisation;
   sh:nodeKind sh:IRI;
   rdfs:label "Organisation"@fr;
@@ -126,12 +133,8 @@ shape:Organisation a sh:NodeShape;
   sh:property shape:Organisation_notation, <https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Organisation_label   >,
     shape:Organisation_nomPays .
 
-shape:ElementPresentation a sh:NodeShape;
-  sh:targetClass med:ElementPresentation;
-  sh:nodeKind sh:IRI;
-  rdfs:label "Élément Présentation"@fr .
-
 shape:TypeEvenement a sh:NodeShape;
+  sh:agentInstruction "Le type d'un événement, Autorisation, Changements de procédure, Suspension, etc."@fr ;
   sh:targetClass med:TypeEvenement;
   sh:nodeKind sh:IRI;
   rdfs:label "Type d'événement"@fr;
@@ -141,6 +144,7 @@ shape:TypeEvenement a sh:NodeShape;
   sh:property shape:TypeEvenement_label .
 
 shape:TypeProcedure a sh:NodeShape;
+  sh:agentInstruction "Le type d'une procédure d'autorisation de Spécialité, comme \"Procédure nationale\", \"Procédure de reconnaissance mutuelle\", \"Procédure décentralisée\", \"Autorisation d'importation parallèle\", etc."@fr ;
   sh:targetClass med:TypeProcedure;
   sh:nodeKind sh:IRI;
   rdfs:label "Type de procédure"@fr;
@@ -150,6 +154,7 @@ shape:TypeProcedure a sh:NodeShape;
   sh:property shape:TypeProcedure_label .
 
 shape:StatutSpecialite a sh:NodeShape;
+  sh:agentInstruction "Le statut d'une Spécialité, qui peut être \"Actif\", \"Archivé\", \"Archivé administratif\", \"Retiré\" ou \"Suspension\""@fr ;
   sh:targetClass med:StatutSpecialite;
   sh:nodeKind sh:IRI;
   rdfs:label "Statut"@fr;
@@ -159,6 +164,7 @@ shape:StatutSpecialite a sh:NodeShape;
   sh:property shape:StatutSpecialite_label .
 
 shape:NiveauPrescriptibilite a sh:NodeShape;
+  sh:agentInstruction "Liste des catégories de spécialités selon la possibilité de les prescrire en dénomination commune : non prescriptible, prescriptible avec nom de marque, prescriptible. Cette liste est utilisée par coder la prescriptibilité en DC des spécialités."@fr ;
   sh:targetClass med:NiveauPrescriptibilite;
   sh:nodeKind sh:IRI;
   rdfs:label "Niveau de prescriptibilité"@fr;
@@ -168,6 +174,7 @@ shape:NiveauPrescriptibilite a sh:NodeShape;
   sh:property shape:NiveauPrescriptibilite_label .
 
 shape:JustificationNiveauPrescriptibilite a sh:NodeShape;
+  sh:agentInstruction "Liste contrôlée des justifications du niveau de prescriptiilité en dénomination commune (\"plus de trois substances\", \"gaz médicinal\", etc.), utilisée par la propriété de justification du niveau de prescriptibilité des spécialités"@fr ;
   sh:targetClass med:JustificationNiveauPrescriptibilite;
   sh:nodeKind sh:IRI;
   rdfs:label "Justification du niveau de prescriptibilité"@fr;
@@ -177,6 +184,7 @@ shape:JustificationNiveauPrescriptibilite a sh:NodeShape;
   sh:property shape:JustificationNiveauPrescriptibilite_label .
 
 shape:Voie a sh:NodeShape;
+  sh:agentInstruction "Une voie d'administration d'une spécialité, comme \"orale\", \"intra-veineuse\", \"injectable\", etc."@fr ;
   sh:targetClass med:Voie;
   sh:nodeKind sh:IRI;
   rdfs:label "Voie"@fr;
@@ -186,6 +194,7 @@ shape:Voie a sh:NodeShape;
   sh:property shape:Voie_label .
 
 shape:SubstanceSMS a sh:NodeShape;
+  sh:agentInstruction "Un identifiant de substance de l'EMA"@fr ;
   sh:targetClass <http://data.esante.gouv.fr/ema/sms>;
   sh:nodeKind sh:IRI;
   rdfs:label "Substance SMS"@fr;
@@ -195,43 +204,51 @@ shape:SubstanceSMS a sh:NodeShape;
   sh:property shape:SubstanceSMS_label .
 
 shape:Text a sh:NodeShape;
+  sh:agentInstruction "Un texte litéral"@fr ;
   sh:nodeKind sh:Literal;
   rdfs:label "Libellé"@fr;
   sh:order "10"^^xsd:integer;
   volipi:iconName "fa-thin fa-message" .
 
 shape:Date a sh:NodeShape;
+  sh:agentInstruction "Une date litérale"@fr ;
   sh:nodeKind sh:Literal;
   rdfs:label "Date"@fr;
   sh:order "18"^^xsd:integer;
   volipi:iconName "fa-thin fa-calendar-day" .
 
 shape:Code a sh:NodeShape;
+  sh:agentInstruction "Une valeur de code en texte"@fr ;
   sh:nodeKind sh:Literal;
   rdfs:label "Code"@fr;
   sh:order "17"^^xsd:integer;
   volipi:iconName "fa-thin fa-barcode" .
 
-shape:CodeUnité a sh:NodeShape .
+shape:CodeUnité a sh:NodeShape ;
+  sh:agentInstruction ""@fr ;
+.
 
 shape:NombreUnites a sh:NodeShape;
+  sh:agentInstruction "Un nombre d'unités en numérique"@fr ;
   sh:nodeKind sh:Literal;
   rdfs:label "Nombre d'unités de dispensation"@fr;
   volipi:iconName "fa-thin fa-cubes" .
 
 shape:TypeDispositif a sh:NodeShape;
+  sh:agentInstruction "Un type de dispositif d'administration, comme \"avec aiguilles\", \"avec gobelet doseur\", etc. C'est une chaine de caractères libre, pas une liste contrôlée."@fr ;
   sh:nodeKind sh:Literal;
   rdfs:label "Dispositif d'administration"@fr;
   volipi:iconName "fa-thin fa-syringe" .
 
 shape:Conditionnement a sh:NodeShape;
+  sh:agentInstruction "Utilisé comme range à la fois de la quantité de conditionnement et de l'unité."@fr ;
   sh:nodeKind sh:Literal;
   rdfs:label "Conditionnement"@fr;
   volipi:iconName "fa-thin fa-flask" .
 
 shape:Presentation_label sh:path rdfs:label;
   sh:name "libellé"@fr;
-  sh:description "Libellé de l'élément présentation"@fr;
+  sh:description "Libellé de la présentation"@fr;
   sh:nodeKind sh:Literal;
   sh:node shape:Text;
   dash:searchWidget config-core:SearchProperty;
@@ -239,14 +256,14 @@ shape:Presentation_label sh:path rdfs:label;
 
 shape:Presentation_altLabel sh:path skos:altLabel;
   sh:name "autre dénomination"@fr;
-  sh:description "Libellé court principal. Le dernier libellé court dans l'historique des libellés sera pris comme valeur."@fr;
+  sh:description "Libellé court de la présentation."@fr;
   sh:nodeKind sh:Literal;
   sh:node shape:Text;
   dash:searchWidget config-core:SearchProperty .
 
 shape:Presentation_CIP13 sh:path med:CIP13;
   sh:name "code CIP13"@fr;
-  sh:description "Code CIP13 (code principal)"@fr;
+  sh:description "Code CIP13 (code principal de la présentation)"@fr;
   sh:nodeKind sh:Literal;
   sh:node shape:Code;
   dash:searchWidget config-core:SearchProperty .
@@ -329,7 +346,7 @@ shape:UniteCommuneDeDispensation_codeUCD13 sh:path med:codeUCD13;
 
 shape:UniteCommuneDeDispensation_codeUCD7 sh:path med:codeUCD7;
   sh:name "code UCD 7"@fr;
-  sh:description "Code UCD7"@fr;
+  sh:description "Code UCD7 (identifiant historique)"@fr;
   sh:nodeKind sh:Literal;
   sh:datatype xsd:string;
   sh:node shape:Code;

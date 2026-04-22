@@ -56,7 +56,7 @@ app.use(
   checkDomainMiddleware,
   summarizeRoute,
 );
-app.use("/api/v1/:projectKey/text2query", checkDomainMiddleware, generateRoute);
+app.use("/api/v1/:projectKey/text2query", generateRoute);
 
 app.use(
   "/api/v1/:projectKey/reconciliation",

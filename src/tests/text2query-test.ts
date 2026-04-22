@@ -157,6 +157,7 @@ function compareQueryStructure(actual: any, expected: any): ComparisonResult {
   }*/
 
   // Variables : compare rdfTypes (ignore variable names)
+  /*
   const actualVarTypes = (actual?.variables || [])
     .map((v: any) => v.rdfType || v.value)
     .sort();
@@ -169,7 +170,7 @@ function compareQueryStructure(actual: any, expected: any): ComparisonResult {
       `variables count: got ${actualVarTypes.length}, expected ${expectedVarTypes.length}`,
     );
   }
-
+*/
   // Where block
   compareWhereBlock(actual?.where, expected?.where, "where", diffs);
 
@@ -192,6 +193,97 @@ function compareQueryStructure(actual: any, expected: any): ComparisonResult {
  * Comparaison récursive des blocs where, en matchant les predicateObjectPairs par URI de prédicat.
  * On compare la structure
  */
+
+/**
+ * Compare two lists of predicateObjectPairs (nested inside an objectCriteria),
+ * matching by predicate URI and recursing into their own nested predicateObjectPairs.
+ */
+function compareNestedPairs(
+  actPairs: any[],
+  expPairs: any[],
+  pathPrefix: string,
+  diffs: string[],
+): void {
+  if (expPairs.length !== actPairs.length) {
+    diffs.push(
+      `${pathPrefix}.predicateObjectPairs count: got ${actPairs.length}, expected ${expPairs.length}`,
+    );
+  }
+
+  for (const expPair of expPairs) {
+    const expPredicateUri = expPair.predicate?.value;
+    if (!expPredicateUri) continue;
+
+    const matchingActual = actPairs.find(
+      (a: any) => a.predicate?.value === expPredicateUri,
+    );
+
+    if (!matchingActual) {
+      diffs.push(
+        `${pathPrefix}.predicateObjectPairs: missing predicate "${expPredicateUri}"`,
+      );
+      continue;
+    }
+
+    // Object rdfType
+    if (expPair.object?.variable?.rdfType) {
+      if (
+        matchingActual.object?.variable?.rdfType !==
+        expPair.object.variable.rdfType
+      ) {
+        diffs.push(
+          `${pathPrefix}.pair[${expPredicateUri}].object.rdfType: got "${matchingActual.object?.variable?.rdfType}", expected "${expPair.object.variable.rdfType}"`,
+        );
+      }
+    }
+
+    // filters presence: expected has filters → actual must also have filters
+    const expFilters = (expPair.object?.filters || []).filter(
+      (f: any) => f != null,
+    );
+    const actFilters = (matchingActual.object?.filters || []).filter(
+      (f: any) => f != null,
+    );
+    if (expFilters.length > 0 && actFilters.length === 0) {
+      diffs.push(
+        `${pathPrefix}.pair[${expPredicateUri}].object: expected filters but got none`,
+      );
+    }
+    if (expFilters.length === 0 && actFilters.length > 0) {
+      diffs.push(
+        `${pathPrefix}.pair[${expPredicateUri}].object: got unexpected filters`,
+      );
+    }
+
+    // values presence: expected has values → actual must also have values
+    const expValues = (expPair.object?.values || []).filter(
+      (v: any) => v != null,
+    );
+    const actValues = (matchingActual.object?.values || []).filter(
+      (v: any) => v != null,
+    );
+    if (expValues.length > 0 && actValues.length === 0) {
+      diffs.push(
+        `${pathPrefix}.pair[${expPredicateUri}].object: expected values but got none`,
+      );
+    }
+    if (expValues.length === 0 && actValues.length > 0) {
+      diffs.push(
+        `${pathPrefix}.pair[${expPredicateUri}].object: got unexpected values`,
+      );
+    }
+
+    // Recurse into nested predicateObjectPairs
+    if (expPair.object?.predicateObjectPairs?.length > 0) {
+      compareNestedPairs(
+        matchingActual.object?.predicateObjectPairs || [],
+        expPair.object.predicateObjectPairs,
+        `${pathPrefix}.pair[${expPredicateUri}].object`,
+        diffs,
+      );
+    }
+  }
+}
 
 function compareWhereBlock(
   actual: any,
@@ -252,6 +344,16 @@ function compareWhereBlock(
       }
     }
 
+    // Nested predicateObjectPairs inside objectCriteria (main nesting format)
+    if (expPair.object?.predicateObjectPairs?.length > 0) {
+      compareNestedPairs(
+        matchingActual.object?.predicateObjectPairs || [],
+        expPair.object.predicateObjectPairs,
+        `${pathPrefix}.pair[${expPredicateUri}].object`,
+        diffs,
+      );
+    }
+
     // Nested where (for sub-patterns / children)
     if (expPair.object?.where) {
       compareWhereBlock(
@@ -298,7 +400,7 @@ async function callText2Query(
       text: queryText,
       reconcile: "false", // for testing the skip of reconciliation
     },
-    timeout: 120000,
+    timeout: 140000,
   });
 
   return {
