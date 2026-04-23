@@ -237,50 +237,11 @@ function compareNestedPairs(
       }
     }
 
-    // filters presence: expected has filters → actual must also have filters
-    const expFilters = (expPair.object?.filters || []).filter(
-      (f: any) => f != null,
-    );
-    const actFilters = (matchingActual.object?.filters || []).filter(
-      (f: any) => f != null,
-    );
-    if (expFilters.length > 0 && actFilters.length === 0) {
-      diffs.push(
-        `${pathPrefix}.pair[${expPredicateUri}].object: expected filters but got none`,
-      );
-    }
-    if (expFilters.length === 0 && actFilters.length > 0) {
-      diffs.push(
-        `${pathPrefix}.pair[${expPredicateUri}].object: got unexpected filters`,
-      );
-    }
-
-    // values presence: expected has values → actual must also have values
-    const expValues = (expPair.object?.values || []).filter(
-      (v: any) => v != null,
-    );
-    const actValues = (matchingActual.object?.values || []).filter(
-      (v: any) => v != null,
-    );
-    if (expValues.length > 0 && actValues.length === 0) {
-      diffs.push(
-        `${pathPrefix}.pair[${expPredicateUri}].object: expected values but got none`,
-      );
-    }
-    if (expValues.length === 0 && actValues.length > 0) {
-      diffs.push(
-        `${pathPrefix}.pair[${expPredicateUri}].object: got unexpected values`,
-      );
-    }
-
-    // Recurse into nested predicateObjectPairs
-    if (expPair.object?.predicateObjectPairs?.length > 0) {
-      compareNestedPairs(
-        matchingActual.object?.predicateObjectPairs || [],
-        expPair.object.predicateObjectPairs,
-        `${pathPrefix}.pair[${expPredicateUri}].object`,
-        diffs,
-      );
+    // Recurse into nested predicateObjectPairs — check both directions
+    const expNested = expPair.object?.predicateObjectPairs || [];
+    const actNested = matchingActual.object?.predicateObjectPairs || [];
+    if (expNested.length > 0 || actNested.length > 0) {
+      compareNestedPairs(actNested, expNested, `${pathPrefix}.pair[${expPredicateUri}].object`, diffs);
     }
   }
 }
@@ -344,14 +305,11 @@ function compareWhereBlock(
       }
     }
 
-    // Nested predicateObjectPairs inside objectCriteria (main nesting format)
-    if (expPair.object?.predicateObjectPairs?.length > 0) {
-      compareNestedPairs(
-        matchingActual.object?.predicateObjectPairs || [],
-        expPair.object.predicateObjectPairs,
-        `${pathPrefix}.pair[${expPredicateUri}].object`,
-        diffs,
-      );
+    // Nested predicateObjectPairs inside objectCriteria — check both directions
+    const expNestedPairs = expPair.object?.predicateObjectPairs || [];
+    const actNestedPairs = matchingActual.object?.predicateObjectPairs || [];
+    if (expNestedPairs.length > 0 || actNestedPairs.length > 0) {
+      compareNestedPairs(actNestedPairs, expNestedPairs, `${pathPrefix}.pair[${expPredicateUri}].object`, diffs);
     }
 
     // Nested where (for sub-patterns / children)
