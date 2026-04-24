@@ -1,0 +1,456 @@
+{
+  "type": "object",
+  "$defs": {
+    "LatLng": {
+      "type": "object",
+      "required": ["lat", "lng"],
+      "properties": {
+        "alt": {
+          "type": "number"
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TermIri": {
+      "type": "object",
+      "required": ["type", "subType", "value"],
+      "properties": {
+        "type": {
+          "enum": ["term"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "subType": {
+          "enum": ["namedNode"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Ordering": {
+      "type": "object",
+      "required": ["descending", "expression"],
+      "properties": {
+        "descending": {
+          "type": "boolean"
+        },
+        "expression": {
+          "$ref": "#/$defs/TermVariable"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GraphTerm": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TermIri"
+        },
+        {
+          "$ref": "#/$defs/TermLabelledIri"
+        },
+        {
+          "$ref": "#/$defs/TermLiteral"
+        }
+      ]
+    },
+    "MapFilter": {
+      "type": "object",
+      "required": ["type", "coordType", "coordinates"],
+      "properties": {
+        "type": {
+          "enum": ["mapFilter"]
+        },
+        "coordType": {
+          "enum": ["Polygon", "Rectangle"]
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/LatLng"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "DateFilter": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "stop": {
+          "type": "string"
+        },
+        "type": {
+          "enum": ["dateFilter"]
+        },
+        "start": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PatternBind": {
+      "type": "object",
+      "required": ["type", "subType", "expression", "variable"],
+      "properties": {
+        "type": {
+          "enum": ["pattern"]
+        },
+        "subType": {
+          "enum": ["bind"]
+        },
+        "variable": {
+          "$ref": "#/$defs/TermVariable"
+        },
+        "expression": {
+          "$ref": "#/$defs/ExpressionAggregate"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TermLiteral": {
+      "type": "object",
+      "required": ["type", "subType", "value"],
+      "properties": {
+        "type": {
+          "enum": ["term"]
+        },
+        "label": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "subType": {
+          "enum": ["literal"]
+        },
+        "langOrIri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/TermIri"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "NumberFilter": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        },
+        "type": {
+          "enum": ["numberFilter"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SearchFilter": {
+      "type": "object",
+      "required": ["type", "search"],
+      "properties": {
+        "type": {
+          "enum": ["searchFilter"]
+        },
+        "search": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TermVariable": {
+      "type": "object",
+      "required": ["type", "subType", "value"],
+      "properties": {
+        "type": {
+          "enum": ["term"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "subType": {
+          "enum": ["variable"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "LabelledFilter": {
+      "type": "object",
+      "required": ["type", "label", "filter"],
+      "properties": {
+        "type": {
+          "enum": ["labelledFilter"]
+        },
+        "label": {
+          "type": "string"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateFilter"
+            },
+            {
+              "$ref": "#/$defs/NumberFilter"
+            },
+            {
+              "$ref": "#/$defs/SearchFilter"
+            },
+            {
+              "$ref": "#/$defs/MapFilter"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ObjectCriteria": {
+      "type": "object",
+      "required": ["type", "variable"],
+      "properties": {
+        "type": {
+          "enum": ["objectCriteria"]
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphTerm"
+          }
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LabelledFilter"
+          }
+        },
+        "variable": {
+          "$ref": "#/$defs/TermTypedVariable"
+        },
+        "predicateObjectPairs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredicateObjectPair"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TermLabelledIri": {
+      "type": "object",
+      "required": ["type", "subType", "value", "label"],
+      "properties": {
+        "type": {
+          "enum": ["term"]
+        },
+        "label": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "subType": {
+          "enum": ["namedNode"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SolutionModifiers": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "$ref": "#/$defs/SolutionModifierOrder"
+        },
+        "limitOffset": {
+          "$ref": "#/$defs/SolutionModifierLimitOffset"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TermTypedVariable": {
+      "type": "object",
+      "required": ["type", "subType", "value", "rdfType"],
+      "properties": {
+        "type": {
+          "enum": ["term"]
+        },
+        "value": {
+          "type": "string"
+        },
+        "rdfType": {
+          "type": "string"
+        },
+        "subType": {
+          "enum": ["variable"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExpressionAggregate": {
+      "type": "object",
+      "required": ["type", "subType", "aggregation", "distinct", "expression"],
+      "properties": {
+        "type": {
+          "enum": ["expression"]
+        },
+        "subType": {
+          "enum": ["aggregate"]
+        },
+        "distinct": {
+          "type": "boolean"
+        },
+        "separator": {
+          "type": "string"
+        },
+        "expression": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TermVariable"
+          }
+        },
+        "aggregation": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PredicateObjectPair": {
+      "type": "object",
+      "required": ["type", "predicate", "object"],
+      "properties": {
+        "type": {
+          "enum": ["predicateObjectPair"]
+        },
+        "object": {
+          "$ref": "#/$defs/ObjectCriteria"
+        },
+        "subType": {
+          "enum": ["optional", "notExists"]
+        },
+        "predicate": {
+          "$ref": "#/$defs/TermIri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PatternBgpSameSubject": {
+      "type": "object",
+      "required": ["type", "subType", "subject", "predicateObjectPairs"],
+      "properties": {
+        "type": {
+          "enum": ["pattern"]
+        },
+        "subType": {
+          "enum": ["bgpSameSubject"]
+        },
+        "subject": {
+          "$ref": "#/$defs/TermTypedVariable"
+        },
+        "predicateObjectPairs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PredicateObjectPair"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SolutionModifierOrder": {
+      "type": "object",
+      "required": ["type", "subType", "orderDefs"],
+      "properties": {
+        "type": {
+          "enum": ["solutionModifier"]
+        },
+        "subType": {
+          "enum": ["order"]
+        },
+        "orderDefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ordering"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "SolutionModifierLimitOffset": {
+      "type": "object",
+      "required": ["type", "subType", "limit"],
+      "properties": {
+        "type": {
+          "enum": ["solutionModifier"]
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "subType": {
+          "enum": ["limitOffset"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["type", "subType", "variables", "solutionModifiers", "where"],
+  "properties": {
+    "type": {
+      "enum": ["query"]
+    },
+    "where": {
+      "$ref": "#/$defs/PatternBgpSameSubject"
+    },
+    "subType": {
+      "enum": ["SELECT"]
+    },
+    "distinct": {
+      "type": "boolean",
+      "description": ""
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "reasoning": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "explanation": {
+          "type": "string"
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/TermVariable"
+          },
+          {
+            "$ref": "#/$defs/PatternBind"
+          }
+        ]
+      }
+    },
+    "solutionModifiers": {
+      "$ref": "#/$defs/SolutionModifiers"
+    }
+  },
+  "description": "Root query object.",
+  "additionalProperties": false
+}

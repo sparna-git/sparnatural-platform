@@ -1,0 +1,107 @@
+{
+  "type": "query",
+  "subType": "SELECT",
+  "variables": [
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Presentation_1"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Substance_4"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "TypeProcedure_6"
+    }
+  ],
+  "distinct": true,
+  "solutionModifiers": {},
+  "where": {
+    "type": "pattern",
+    "subType": "bgpSameSubject",
+    "subject": {
+      "type": "term",
+      "subType": "variable",
+      "value": "Presentation_1",
+      "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Presentation"
+    },
+    "predicateObjectPairs": [
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Presentation_presente"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "SpecialitePharmaceutique",
+            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
+          },
+          "filters": [],
+          "predicateObjectPairs": [
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_substanceActive"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "Substance_4",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Substance"
+                },
+                "filters": [],
+                "values": [
+                  {
+                    "type": "term",
+                    "subType": "namedNode",
+                    "value": "http://data.esante.gouv.fr/ansm/medicament/Substance_73242",
+                    "label": "ézétimibe"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_typeProcedureCourante"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "TypeProcedure_6",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#TypeProcedure"
+                },
+                "filters": [],
+                "values": [
+                  {
+                    "type": "term",
+                    "subType": "namedNode",
+                    "value": "http://data.esante.gouv.fr/ansm/medicament/TypeProcedure_31",
+                    "label": "Autorisation d'importation parallèle d’une spécialité pharmaceutique en vue de la mise sur le marché en France (300)"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

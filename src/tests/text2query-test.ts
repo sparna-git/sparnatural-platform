@@ -116,6 +116,16 @@ function listTestCaseDirsRecursively(rootDir: string): string[] {
 
 // ─── Structure comparison ────────────────────────────────────────────
 
+/** Retourne la partie locale d'un URI (après # ou dernier /) pour des diffs lisibles */
+function shortUri(uri: string | undefined): string {
+  if (!uri) return String(uri);
+  const hashIdx = uri.lastIndexOf("#");
+  if (hashIdx !== -1) return uri.slice(hashIdx + 1);
+  const slashIdx = uri.lastIndexOf("/");
+  if (slashIdx !== -1) return uri.slice(slashIdx + 1);
+  return uri;
+}
+
 interface ComparisonResult {
   match: boolean;
   differences: string[];
@@ -125,14 +135,13 @@ interface ComparisonResult {
  * Compare la structure de la réponse API avec le expected.json.
  * On vérifie :
  *  - type, subType (query level)
- *  - !!! optional : variables : nombre, rdfType de chaque variable
  *  - where.subject.rdfType
- *  - predicateObjectPairs : nombre, predicate URIs, object rdfType
- *  - !!! optional : solutionModifiers structure
+ *  - predicateObjectPairs : prédicats présents/manquants dans les deux sens, object rdfType
  *
  * On ignore :
  *  - les noms de variables (Person_1 vs person_1)
  *  - metadata.explanation
+ *  - filtres et valeurs
  *  - l'ordre des predicateObjectPairs (on match par predicate URI)
  */
 function compareQueryStructure(actual: any, expected: any): ComparisonResult {
@@ -148,100 +157,75 @@ function compareQueryStructure(actual: any, expected: any): ComparisonResult {
     );
   }
 
-  // distinct
-  /*
-  if (actual?.distinct !== expected?.distinct) {
-    diffs.push(
-      `distinct: got ${actual?.distinct}, expected ${expected?.distinct}`,
-    );
-  }*/
-
-  // Variables : compare rdfTypes (ignore variable names)
-  /*
-  const actualVarTypes = (actual?.variables || [])
-    .map((v: any) => v.rdfType || v.value)
-    .sort();
-  const expectedVarTypes = (expected?.variables || [])
-    .map((v: any) => v.rdfType || v.value)
-    .sort();
-
-  if (actualVarTypes.length !== expectedVarTypes.length) {
-    diffs.push(
-      `variables count: got ${actualVarTypes.length}, expected ${expectedVarTypes.length}`,
-    );
-  }
-*/
-  // Where block
-  compareWhereBlock(actual?.where, expected?.where, "where", diffs);
-
-  // solutionModifiers
-  /*
-  if (expected?.solutionModifiers?.limitOffset) {
-    const expLimit = expected.solutionModifiers.limitOffset.limit;
-    const actLimit = actual?.solutionModifiers?.limitOffset?.limit;
-    if (expLimit !== undefined && actLimit !== expLimit) {
-      diffs.push(
-        `solutionModifiers.limit: got ${actLimit}, expected ${expLimit}`,
-      );
-    }
-  }*/
+  // Where block — chain vide = niveau racine
+  compareWhereBlock(actual?.where, expected?.where, [], diffs);
 
   return { match: diffs.length === 0, differences: diffs };
 }
 
-/**
- * Comparaison récursive des blocs where, en matchant les predicateObjectPairs par URI de prédicat.
- * On compare la structure
- */
+/** Formate une chaîne de prédicats : ["A", "B"] → "A > B" */
+function chainStr(chain: string[], pred?: string): string {
+  const parts = pred ? [...chain, pred] : chain;
+  return parts.join(" > ");
+}
 
 /**
- * Compare two lists of predicateObjectPairs (nested inside an objectCriteria),
- * matching by predicate URI and recursing into their own nested predicateObjectPairs.
+ * Compare deux listes de predicateObjectPairs de manière bidirectionnelle.
+ * `chain` contient les prédicats parcourus jusqu'ici pour afficher le chemin complet.
  */
 function compareNestedPairs(
   actPairs: any[],
   expPairs: any[],
-  pathPrefix: string,
+  chain: string[],
   diffs: string[],
 ): void {
-  if (expPairs.length !== actPairs.length) {
-    diffs.push(
-      `${pathPrefix}.predicateObjectPairs count: got ${actPairs.length}, expected ${expPairs.length}`,
-    );
-  }
-
+  // expected → actual : manquants
   for (const expPair of expPairs) {
-    const expPredicateUri = expPair.predicate?.value;
-    if (!expPredicateUri) continue;
+    const expUri = expPair.predicate?.value;
+    if (!expUri) continue;
+    const expShort = shortUri(expUri);
 
-    const matchingActual = actPairs.find(
-      (a: any) => a.predicate?.value === expPredicateUri,
-    );
+    const matchingActual = actPairs.find((a: any) => a.predicate?.value === expUri);
 
     if (!matchingActual) {
-      diffs.push(
-        `${pathPrefix}.predicateObjectPairs: missing predicate "${expPredicateUri}"`,
-      );
+      diffs.push(`MISSING: ${chainStr(chain, expShort)}`);
+      const expNested = expPair.object?.predicateObjectPairs || [];
+      if (expNested.length > 0) {
+        compareNestedPairs([], expNested, [...chain, expShort], diffs);
+      }
       continue;
     }
 
     // Object rdfType
-    if (expPair.object?.variable?.rdfType) {
-      if (
-        matchingActual.object?.variable?.rdfType !==
-        expPair.object.variable.rdfType
-      ) {
-        diffs.push(
-          `${pathPrefix}.pair[${expPredicateUri}].object.rdfType: got "${matchingActual.object?.variable?.rdfType}", expected "${expPair.object.variable.rdfType}"`,
-        );
-      }
+    if (expPair.object?.variable?.rdfType &&
+        matchingActual.object?.variable?.rdfType !== expPair.object.variable.rdfType) {
+      diffs.push(
+        `WRONG TYPE on ${chainStr(chain, expShort)}: got "${shortUri(matchingActual.object?.variable?.rdfType)}", expected "${shortUri(expPair.object.variable.rdfType)}"`,
+      );
     }
 
-    // Recurse into nested predicateObjectPairs — check both directions
+    // Récursion
     const expNested = expPair.object?.predicateObjectPairs || [];
     const actNested = matchingActual.object?.predicateObjectPairs || [];
     if (expNested.length > 0 || actNested.length > 0) {
-      compareNestedPairs(actNested, expNested, `${pathPrefix}.pair[${expPredicateUri}].object`, diffs);
+      compareNestedPairs(actNested, expNested, [...chain, expShort], diffs);
+    }
+  }
+
+  // actual → expected : extras
+  for (const actPair of actPairs) {
+    const actUri = actPair.predicate?.value;
+    if (!actUri) continue;
+    const actShort = shortUri(actUri);
+
+    const matchingExpected = expPairs.find((e: any) => e.predicate?.value === actUri);
+
+    if (!matchingExpected) {
+      diffs.push(`EXTRA:   ${chainStr(chain, actShort)}`);
+      const actNested = actPair.object?.predicateObjectPairs || [];
+      if (actNested.length > 0) {
+        compareNestedPairs(actNested, [], [...chain, actShort], diffs);
+      }
     }
   }
 }
@@ -249,87 +233,82 @@ function compareNestedPairs(
 function compareWhereBlock(
   actual: any,
   expected: any,
-  pathPrefix: string,
+  chain: string[],
   diffs: string[],
 ): void {
   if (!expected) return;
   if (!actual) {
-    diffs.push(`${pathPrefix}: missing in response`);
+    diffs.push(`MISSING: where block`);
     return;
   }
 
   // subject rdfType
-  if (expected.subject?.rdfType) {
-    if (actual.subject?.rdfType !== expected.subject.rdfType) {
-      diffs.push(
-        `${pathPrefix}.subject.rdfType: got "${actual.subject?.rdfType}", expected "${expected.subject.rdfType}"`,
-      );
-    }
+  if (expected.subject?.rdfType && actual.subject?.rdfType !== expected.subject.rdfType) {
+    diffs.push(
+      `WRONG SUBJECT: got "${shortUri(actual.subject?.rdfType)}", expected "${shortUri(expected.subject.rdfType)}"`,
+    );
   }
 
-  // predicateObjectPairs
   const expPairs = expected.predicateObjectPairs || [];
   const actPairs = actual.predicateObjectPairs || [];
 
-  if (expPairs.length !== actPairs.length) {
-    diffs.push(
-      `${pathPrefix}.predicateObjectPairs count: got ${actPairs.length}, expected ${expPairs.length}`,
-    );
-  }
-
-  // Match pairs by predicate URI
+  // expected → actual : manquants
   for (const expPair of expPairs) {
-    const expPredicateUri = expPair.predicate?.value;
-    if (!expPredicateUri) continue;
+    const expUri = expPair.predicate?.value;
+    if (!expUri) continue;
+    const expShort = shortUri(expUri);
 
-    const matchingActual = actPairs.find(
-      (a: any) => a.predicate?.value === expPredicateUri,
-    );
+    const matchingActual = actPairs.find((a: any) => a.predicate?.value === expUri);
 
     if (!matchingActual) {
-      diffs.push(
-        `${pathPrefix}.predicateObjectPairs: missing predicate "${expPredicateUri}"`,
-      );
+      diffs.push(`MISSING: ${chainStr(chain, expShort)}`);
+      const expNestedPairs = expPair.object?.predicateObjectPairs || [];
+      if (expNestedPairs.length > 0) {
+        compareNestedPairs([], expNestedPairs, [...chain, expShort], diffs);
+      }
       continue;
     }
 
     // Object rdfType
-    if (expPair.object?.variable?.rdfType) {
-      if (
-        matchingActual.object?.variable?.rdfType !==
-        expPair.object.variable.rdfType
-      ) {
-        diffs.push(
-          `${pathPrefix}.pair[${expPredicateUri}].object.rdfType: got "${matchingActual.object?.variable?.rdfType}", expected "${expPair.object.variable.rdfType}"`,
-        );
-      }
+    if (expPair.object?.variable?.rdfType &&
+        matchingActual.object?.variable?.rdfType !== expPair.object.variable.rdfType) {
+      diffs.push(
+        `WRONG TYPE on ${chainStr(chain, expShort)}: got "${shortUri(matchingActual.object?.variable?.rdfType)}", expected "${shortUri(expPair.object.variable.rdfType)}"`,
+      );
     }
 
-    // Nested predicateObjectPairs inside objectCriteria — check both directions
+    // Nested predicateObjectPairs
     const expNestedPairs = expPair.object?.predicateObjectPairs || [];
     const actNestedPairs = matchingActual.object?.predicateObjectPairs || [];
     if (expNestedPairs.length > 0 || actNestedPairs.length > 0) {
-      compareNestedPairs(actNestedPairs, expNestedPairs, `${pathPrefix}.pair[${expPredicateUri}].object`, diffs);
+      compareNestedPairs(actNestedPairs, expNestedPairs, [...chain, expShort], diffs);
     }
 
-    // Nested where (for sub-patterns / children)
+    // Nested where
     if (expPair.object?.where) {
-      compareWhereBlock(
-        matchingActual.object?.where,
-        expPair.object.where,
-        `${pathPrefix}.pair[${expPredicateUri}].object.where`,
-        diffs,
-      );
+      compareWhereBlock(matchingActual.object?.where, expPair.object.where, [...chain, expShort], diffs);
     }
 
-    // Children pattern (recursive)
+    // Children pattern
     if (expPair.object?.children) {
-      compareWhereBlock(
-        matchingActual.object?.children,
-        expPair.object.children,
-        `${pathPrefix}.pair[${expPredicateUri}].object.children`,
-        diffs,
-      );
+      compareWhereBlock(matchingActual.object?.children, expPair.object.children, [...chain, expShort], diffs);
+    }
+  }
+
+  // actual → expected : extras
+  for (const actPair of actPairs) {
+    const actUri = actPair.predicate?.value;
+    if (!actUri) continue;
+    const actShort = shortUri(actUri);
+
+    const matchingExpected = expPairs.find((e: any) => e.predicate?.value === actUri);
+
+    if (!matchingExpected) {
+      diffs.push(`EXTRA:   ${chainStr(chain, actShort)}`);
+      const actNestedPairs = actPair.object?.predicateObjectPairs || [];
+      if (actNestedPairs.length > 0) {
+        compareNestedPairs(actNestedPairs, [], [...chain, actShort], diffs);
+      }
     }
   }
 }

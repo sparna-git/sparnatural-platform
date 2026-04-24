@@ -2,7 +2,7 @@ import { Text2QueryServiceIfc } from "../interfaces/Text2QueryServiceIfc";
 import { ReconcileServiceIfc } from "../ReconcileServiceIfc";
 import { Mistral } from "@mistralai/mistralai";
 
-import strictSchema from "../../schemas/newSchema.strict.schema.json";
+import strictSchema from "../../schemas/newSchema.strict.v2.schema.json";
 import { inject, injectable } from "tsyringe";
 import { MistralText2QueryServiceConfig } from "../../config/ProjectConfig";
 @injectable({ token: "MistralText2QueryService" })
@@ -41,7 +41,7 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
         jsonSchema: {
           name: "SparnaturalQuery",
           schemaDefinition: strictSchema,
-          strict: true,
+          strict: false,
         },
       },
     });
@@ -57,6 +57,15 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
             responseFormat: {
         type: "json_object",
       },
+
+      responseFormat: {
+        type: "json_schema",
+        jsonSchema: {
+          name: "SparnaturalQuery",
+          schemaDefinition: strictSchema,
+          strict: true,
+        },
+      }
     */
     // Extraction contenu
     function normalizeContent(content: any): string {
@@ -71,12 +80,18 @@ export class MistralText2QueryService implements Text2QueryServiceIfc {
       result.choices?.[0]?.message?.content,
     );
     const raw = normalizeContent(result.choices?.[0]?.message?.content);
+    console.log("[text2query] Parsed JSON from Mistral:", raw);
+    console.log("[text2query] Length:", raw.length);
+    console.log("[text2query] Last 100 chars:", raw.slice(-100));
+    console.log(
+      "[text2query] Finish reason:",
+      result.choices?.[0]?.finishReason,
+    ); /**/
     if (!raw || raw.trim() === "") {
       throw new Error("Réponse vide de l'agent IA");
     }
     // JSON propre
     const parsed = JSON.parse(raw);
-    console.log("[text2query] Parsed JSON from Mistral:", raw);
 
     // Reconcile URI_NOT_FOUND labels via the reconciliation service
     // Skip si demandé (pour les tests de structure)

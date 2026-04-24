@@ -61,7 +61,7 @@ projects:
       maxResults: 2
     text2query:
       implementation: MistralText2QueryService
-      agentId: ag_019cdc315bb676548af2277441008ea9
+      agentId: ag_019dbabf106875a7a0a8904017d7e93f
     query2text:
       implementation: MistralQuery2TextService
       agentId: ag_019cdc2f1d59758e84c7ff1de49a15c6
