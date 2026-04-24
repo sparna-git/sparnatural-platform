@@ -56,7 +56,7 @@ projects:
     cache:
       urilookup: ./cache/ruim/urilookup_cache.json
     reconciliation:
-      implementation: LuceneReconcileService
+      implementation: SparqlReconcileServiceV13
       cacheSize: 1000
       maxResults: 2
     text2query:
