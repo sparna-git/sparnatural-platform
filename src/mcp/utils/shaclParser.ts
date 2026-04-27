@@ -72,23 +72,52 @@ function getLabelWithFallback(
 }
 
 /**
+ * Parses @prefix declarations from a Turtle string.
+ * Returns [uri, "prefix:"] pairs sorted longest-URI first so compact()
+ * always matches the most specific prefix.
+ */
+export function extractPrefixesFromTtl(ttl: string): [string, string][] {
+  const map: Record<string, string> = {};
+  const regex = /@prefix\s+([\w-]*:)\s*<([^>]+)>/g;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(ttl)) !== null) {
+    map[m[2]] = m[1];
+  }
+  return Object.entries(map).sort(([a], [b]) => b.length - a.length);
+}
+
+function compact(
+  iri: string | undefined,
+  prefixes: [string, string][],
+): string | undefined {
+  if (!iri) return undefined;
+  for (const [uri, prefix] of prefixes) {
+    if (iri.startsWith(uri)) return prefix + iri.slice(uri.length);
+  }
+  return iri;
+}
+
+/**
  * Extract a LLM-friendly JSON representation of all NodeShapes found in the
  * given ShaclModel. Uses rdf-shacl-commons to hide RDF/SHACL plumbing.
+ * When prefixes are provided, all IRIs are compacted to their prefixed form.
  */
 export function extractNodeShapes(
   model: ShaclModel,
   lang = "fr",
+  prefixes: [string, string][] = [],
 ): NodeShapeInfo[] {
+  const c = (iri: string | undefined) =>
+    prefixes.length ? compact(iri, prefixes) : iri;
+
   // Discover every language present in this SHACL file at runtime.
-  // No hard-coded "fr", "en", etc. — if the SHACL later adds "de" or "es"
-  // the parser picks it up automatically.
   const allLangs = model.readAllLanguages();
 
   return model.readAllNodeShapes().map((ns) => {
-    const shapeIri = ns.getResource().value;
+    const shapeIri = c(ns.getResource().value)!;
 
-    const targetClasses = ns.getTargetClasses().map((r) => r.value);
-    const targetSparql = ns.getShTarget().map((r) => r.value);
+    const targetClasses = ns.getTargetClasses().map((r) => c(r.value)!);
+    const targetSparql = ns.getShTarget().map((r) => c(r.value)!);
 
     const nsDescription = getTooltipWithFallback(ns, lang, allLangs);
     const nsAgentInstr = getAgentInstructionWithFallback(ns, lang, allLangs);
@@ -96,17 +125,17 @@ export function extractNodeShapes(
     const properties: PropertyShapeInfo[] = ns.getProperties().map((ps) => {
       const path = ps.getShPath();
 
-      const classes = ps.getShClass().map((r) => r.value);
-      const datatypes = ps.getShDatatype().map((d) => d.getUri().value);
+      const classes = ps.getShClass().map((r) => c(r.value)!);
+      const datatypes = ps.getShDatatype().map((d) => c(d.getUri().value)!);
 
       const shIn = ps.getShIn();
-      const values = shIn?.map((t) => t.value);
+      const values = shIn?.map((t) => c(t.value)!);
 
       const psDescription = getTooltipWithFallback(ps, lang, allLangs);
       const psAgentInstr = getAgentInstructionWithFallback(ps, lang, allLangs);
 
       const prop: PropertyShapeInfo = {
-        path: path?.value,
+        path: c(path?.value),
         name: getLabelWithFallback(ps, lang, allLangs),
       };
 

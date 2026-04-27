@@ -34,7 +34,6 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
 
   async generatePromptT2Q(projectKey: string, lang?: string): Promise<string> {
     const language = lang ?? this.config.language ?? "en";
-    // Utilise getSHACLConfig qui a le cache + skolemization
     const { model } = await getSHACLConfig(projectKey);
     const sparnaturalModel = new SparnaturalShaclModel(model);
     const additionalInstructions = await loadAdditionalInstructions(
@@ -49,30 +48,53 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       model,
       language,
     );
+    // additionalInstructions (few-shots) placed LAST so they are closest to the user query
+    // and are not diluted by the reference table and rules that follow them.
     return (
       T2Q_STATIC_PART_BEFORE +
-      additionalInstructions +
       referenceTable +
-      T2Q_STATIC_PART_AFTER
+      T2Q_STATIC_PART_AFTER +
+      additionalInstructions
     );
   }
 
+  /** Strip markdown syntax from a description before injecting into the prompt.
+   *  Accepts string, string[] (joined with space), or null/undefined. */
+  private static stripMarkdown(text: string | string[] | null | undefined): string {
+    const raw = Array.isArray(text) ? text.join(" ") : (text ?? "");
+    return raw
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // [text](url) → text
+      .replace(/`([^`]+)`/g, "$1")              // `code` → code
+      .replace(/\*\*([^*]+)\*\*/g, "$1")        // **bold** → bold
+      .replace(/\*([^*]+)\*/g, "$1")            // *italic* → italic
+      .trim();
+  }
+
   /**
-   * TODO: Implement the transformation from SHACL model to the reference table format.
-   * This will involve:
-   * 1) Identifying Category A classes (entry points) and their properties.
-   * 2) Identifying Category B classes (non-entry points but valid in traversal) and their properties.
-   * 3) Building the property reference table with usage instructions based on widget types.
-   * @param shaclModel
-   * @returns
+   * Find the longest common URI prefix (ending at the last # or /) shared by all provided URIs.
+   * Returns null if no meaningful common prefix exists.
    */
+  private computeShapePrefix(uris: string[]): string | null {
+    if (uris.length === 0) return null;
+    let prefix = uris[0];
+    for (const uri of uris.slice(1)) {
+      while (prefix.length > 0 && !uri.startsWith(prefix)) {
+        prefix = prefix.slice(0, prefix.length - 1);
+      }
+    }
+    const lastHash = prefix.lastIndexOf("#");
+    const lastSlash = prefix.lastIndexOf("/");
+    const boundary = Math.max(lastHash, lastSlash);
+    if (boundary < 10) return null;
+    return prefix.slice(0, boundary + 1);
+  }
 
   private buildReferenceTable(
     sparnaturalModel: SparnaturalShaclModel,
     shaclModel: ShaclModel,
     language: string,
   ): string {
-    // Step 1: Get Category A from the DAG (non-disabled nodes)
+    // Step 1: Category A from the DAG (non-disabled nodes)
     const entryPoints = sparnaturalModel.getEntryPointsNodeShapes(language);
     const entryPointIds = new Set<string>();
     entryPoints.traverseBreadthFirst(
@@ -82,16 +104,11 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
         }
       },
     );
-    console.log("Entry point NodeShapes (Category A):", entryPointIds);
 
-    // Step 2: Get ALL NodeShapes, then subtract Cat A → Cat B
+    // Step 2: All NodeShapes → subtract Cat A → Cat B
     const allNodeShapes = shaclModel
       .readAllNodeShapes()
       .map((ns) => new SparnaturalNodeShape(ns));
-    console.log(
-      "All NodeShapes in the model:",
-      allNodeShapes.map((sns) => sns.getId()),
-    );
 
     const categoryAShapes: SparnaturalNodeShape[] = [];
     entryPoints.traverseBreadthFirst(
@@ -107,37 +124,65 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     );
 
     // Build category arrays
+    // description = what the class is (shown in Category A/B listing)
+    // agentInstruction = how to navigate/use it (shown in property table header)
     const categoryA = categoryAShapes.map((sns) => ({
       id: sns.getId(),
       label: sns.getNodeShape().getLabel(language) ?? sns.getId(),
-      tooltip:
-        sns.getNodeShape().getShAgentInstruction(language) ??
-        sns.getNodeShape().getTooltip(language) ??
-        "",
+      description: T2QPromptGenerator.stripMarkdown(
+        sns.getNodeShape().getTooltip(language) ?? "",
+      ),
+      agentInstruction: T2QPromptGenerator.stripMarkdown(
+        sns.getNodeShape().getShAgentInstruction(language) ?? "",
+      ),
       sparnaturalNodeShape: sns,
     }));
 
     const categoryB = categoryBShapes.map((sns) => ({
       id: sns.getId(),
       label: sns.getNodeShape().getLabel(language) ?? sns.getId(),
-      tooltip:
-        sns.getNodeShape().getShAgentInstruction(language) ??
-        sns.getNodeShape().getTooltip(language) ??
-        "",
+      description: T2QPromptGenerator.stripMarkdown(
+        sns.getNodeShape().getTooltip(language) ?? "",
+      ),
+      agentInstruction: T2QPromptGenerator.stripMarkdown(
+        sns.getNodeShape().getShAgentInstruction(language) ?? "",
+      ),
       sparnaturalNodeShape: sns,
     }));
 
+    // Compute a common shape: prefix to shorten all URIs in the table
+    const allUris = [
+      ...categoryA.map((c) => c.id),
+      ...categoryB.map((c) => c.id),
+      ...[...categoryA, ...categoryB].flatMap((cls) =>
+        cls.sparnaturalNodeShape
+          .getValidProperties()
+          .map((p: PropertyShape) => p.resource.value),
+      ),
+    ];
+    const shapePrefix = this.computeShapePrefix(allUris);
+    const abbrev = (uri: string): string =>
+      shapePrefix ? uri.replace(shapePrefix, "shape:") : uri;
+
     // Build the reference table
     let finalModel = "\n\n## 8d. SHACL-Derived Reference Table\n\n";
+
+    // Declare the shape: prefix if one was found
+    if (shapePrefix) {
+      finalModel += `PREFIX shape: <${shapePrefix}>\n`;
+      finalModel += `IMPORTANT: In this table all URIs are abbreviated with the prefix above.\n`;
+      finalModel += `When writing JSON output, always expand "shape:X" to its full form: "${shapePrefix}X".\n\n`;
+    }
 
     // Category A
     finalModel +=
       '### CATEGORY A — ROOT SUBJECT classes (can be the root "subject" of the query AND can appear as object variables):\n\n';
     categoryA.forEach((cls) => {
-      finalModel += `- ${cls.id} (${cls.label}) described as "${cls.tooltip}"\n`;
+      const desc = cls.description ? ` described as "${cls.description}"` : "";
+      finalModel += `- ${abbrev(cls.id)} (${cls.label})${desc}\n`;
     });
 
-    // Category B — only those with valid properties
+    // Category B
     finalModel +=
       '\n### CATEGORY B — NON-ROOT classes (cannot be the root "subject" of the query, but can appear as object variables in traversal paths):\n\n';
     finalModel +=
@@ -148,7 +193,8 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       "when the traversal path leads to them through a property declared in the SHACL model.\n\n";
 
     categoryB.forEach((cls) => {
-      finalModel += `- ${cls.id} (${cls.label}) described as "${cls.tooltip}".\n`;
+      const desc = cls.description ? ` described as "${cls.description}"` : "";
+      finalModel += `- ${abbrev(cls.id)} (${cls.label})${desc}\n`;
     });
 
     // Property Reference Table
@@ -183,35 +229,37 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       const validProps = cls.sparnaturalNodeShape.getValidProperties();
       if (validProps.length === 0) return;
 
-      finalModel += `\n**${cls.id}** (${cls.label}) described as "${cls.tooltip}"\n`;
+      finalModel += `\n**${abbrev(cls.id)}** (${cls.label})\n`;
+      if (cls.agentInstruction) {
+        finalModel += `> ${cls.agentInstruction}\n`;
+      }
       finalModel += this.buildPropertyTable(
         cls.sparnaturalNodeShape,
         entryPointIds,
         language,
+        abbrev,
       );
     });
 
     return finalModel;
   }
 
-  /**
-   * Build the detailed property table for a SparnaturalNodeShape
-   */
+  /** Build the detailed property table for a SparnaturalNodeShape. */
   private buildPropertyTable(
     sns: SparnaturalNodeShape,
     entryPointIds: Set<string>,
     language: string,
+    abbrev: (uri: string) => string,
   ): string {
     const validProperties: PropertyShape[] = sns.getValidProperties();
     let table = "";
 
     validProperties.forEach((propShape: PropertyShape) => {
-      const propUri = propShape.resource.value;
+      const propUri = abbrev(propShape.resource.value);
       const label = propShape.getLabel(language) ?? "unknown";
-      const tooltip =
-        propShape.getShAgentInstruction(language) ??
-        propShape.getTooltip(language) ??
-        "";
+      const tooltip = T2QPromptGenerator.stripMarkdown(
+        propShape.getTooltip(language),
+      );
 
       const spps = new SparnaturalPropertyShape(propShape);
       const rangeShapes: NodeShape[] = spps.getRangeShapes();
@@ -220,35 +268,31 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       const usages: string[] = [];
 
       if (rangeShapes.length > 1) {
-        rangeType = ""; // multiple ranges
+        rangeType = "";
         usages.push("[values]");
       } else if (rangeShapes.length === 1 && rangeShapes[0]) {
         const rangeNS = rangeShapes[0];
         const rangeId = rangeNS.resource.value;
-        const rangeLabel = rangeNS.getLabel(language) ?? rangeId;
+        const rangeLabel = rangeNS.getLabel(language) ?? abbrev(rangeId);
         const category = entryPointIds.has(rangeId) ? "Cat.A" : "Cat.B";
         rangeType = `${rangeLabel} (${category})`;
 
-        // 1) If the range has navigable properties → predicateObjectPairs
         const rangeSnS = new SparnaturalNodeShape(rangeNS);
         if (rangeSnS.getValidProperties().length > 0) {
           usages.push("[predicateObjectPairs]");
         }
 
-        // 2) Check widget → can also offer values/filter
         const widgetUsage = this.getWidgetUsage(propShape, rangeNS.resource);
         if (widgetUsage) {
           usages.push(widgetUsage);
         }
       } else {
-        // No range → literal property, use widget
         const widgetUsage = this.getWidgetUsage(propShape, undefined);
         if (widgetUsage) {
           usages.push(widgetUsage);
         }
       }
 
-      // Fallback if no usage found
       if (usages.length === 0) {
         usages.push("");
       }
@@ -260,9 +304,7 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     return table;
   }
 
-  /**
-   * Returns the widget-based usage string, or null if NON_SELECTABLE
-   */
+  /** Returns the widget-based usage string, or null if NON_SELECTABLE. */
   private getWidgetUsage(
     propShape: PropertyShape,
     rangeResource: Resource | undefined,
@@ -270,12 +312,6 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
     const searchWidget: SearchWidgetIfc =
       propShape.getSearchWidgetForRange(rangeResource);
     const widgetUri = searchWidget.getResource().value;
-    /**   console.log(
-      `Checking widget for property ${propShape.resource.value} with range ${rangeResource?.value}:`,
-      {
-        widgetUri,
-      },
-    );*/
     if (widgetUri === SPARNATURAL.NON_SELECTABLE_PROPERTY.value) {
       return null;
     } else if (
@@ -292,8 +328,6 @@ export class T2QPromptGenerator implements T2QPromptGeneratorIfc {
       return "[filter:Number]";
     } else if (widgetUri === SPARNATURAL.MAP_PROPERTY.value) {
       return "[filter:Map]";
-    } else if (widgetUri === SPARNATURAL.STRING_EQUALS_PROPERTY.value) {
-      return "[values]";
     } else {
       return "[values]";
     }

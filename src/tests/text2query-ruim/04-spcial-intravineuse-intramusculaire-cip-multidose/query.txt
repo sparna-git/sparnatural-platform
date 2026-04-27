@@ -1,1 +1,1 @@
-Toutes les spécialités dont la voie est "intraveineuse" ou "intramusculaire" et dont le libellé CIP contient "multidose"
+Toutes les présentation dont la voie est "intraveineuse" ou "intramusculaire" et dont le libellé CIP contient "multidose"

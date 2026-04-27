@@ -188,7 +188,11 @@ function compareNestedPairs(
     const matchingActual = actPairs.find((a: any) => a.predicate?.value === expUri);
 
     if (!matchingActual) {
-      diffs.push(`MISSING: ${chainStr(chain, expShort)}`);
+      if (chain.length === 0) {
+        diffs.push(`MISSING: ${expShort}`);
+      } else {
+        diffs.push(`MISSING nested (inside ${chain.join(" > ")}): ${expShort}`);
+      }
       const expNested = expPair.object?.predicateObjectPairs || [];
       if (expNested.length > 0) {
         compareNestedPairs([], expNested, [...chain, expShort], diffs);
@@ -204,11 +208,13 @@ function compareNestedPairs(
       );
     }
 
-    // Récursion
+    // Récursion — le chain porte le type de l'objet courant pour des messages lisibles
     const expNested = expPair.object?.predicateObjectPairs || [];
     const actNested = matchingActual.object?.predicateObjectPairs || [];
     if (expNested.length > 0 || actNested.length > 0) {
-      compareNestedPairs(actNested, expNested, [...chain, expShort], diffs);
+      const objType =
+        shortUri(expPair.object?.variable?.rdfType) || expShort;
+      compareNestedPairs(actNested, expNested, [...chain, objType], diffs);
     }
   }
 
@@ -221,7 +227,11 @@ function compareNestedPairs(
     const matchingExpected = expPairs.find((e: any) => e.predicate?.value === actUri);
 
     if (!matchingExpected) {
-      diffs.push(`EXTRA:   ${chainStr(chain, actShort)}`);
+      if (chain.length === 0) {
+        diffs.push(`EXTRA:   ${actShort}`);
+      } else {
+        diffs.push(`EXTRA nested (inside ${chain.join(" > ")}): ${actShort}`);
+      }
       const actNested = actPair.object?.predicateObjectPairs || [];
       if (actNested.length > 0) {
         compareNestedPairs(actNested, [], [...chain, actShort], diffs);
@@ -261,7 +271,11 @@ function compareWhereBlock(
     const matchingActual = actPairs.find((a: any) => a.predicate?.value === expUri);
 
     if (!matchingActual) {
-      diffs.push(`MISSING: ${chainStr(chain, expShort)}`);
+      if (chain.length === 0) {
+        diffs.push(`MISSING: ${expShort}`);
+      } else {
+        diffs.push(`MISSING nested (inside ${chain.join(" > ")}): ${expShort}`);
+      }
       const expNestedPairs = expPair.object?.predicateObjectPairs || [];
       if (expNestedPairs.length > 0) {
         compareNestedPairs([], expNestedPairs, [...chain, expShort], diffs);
@@ -277,11 +291,13 @@ function compareWhereBlock(
       );
     }
 
-    // Nested predicateObjectPairs
+    // Nested predicateObjectPairs — le chain porte le type de l'objet courant
     const expNestedPairs = expPair.object?.predicateObjectPairs || [];
     const actNestedPairs = matchingActual.object?.predicateObjectPairs || [];
     if (expNestedPairs.length > 0 || actNestedPairs.length > 0) {
-      compareNestedPairs(actNestedPairs, expNestedPairs, [...chain, expShort], diffs);
+      const objType =
+        shortUri(expPair.object?.variable?.rdfType) || expShort;
+      compareNestedPairs(actNestedPairs, expNestedPairs, [...chain, objType], diffs);
     }
 
     // Nested where
@@ -304,7 +320,11 @@ function compareWhereBlock(
     const matchingExpected = expPairs.find((e: any) => e.predicate?.value === actUri);
 
     if (!matchingExpected) {
-      diffs.push(`EXTRA:   ${chainStr(chain, actShort)}`);
+      if (chain.length === 0) {
+        diffs.push(`EXTRA:   ${actShort}`);
+      } else {
+        diffs.push(`EXTRA nested (inside ${chain.join(" > ")}): ${actShort}`);
+      }
       const actNestedPairs = actPair.object?.predicateObjectPairs || [];
       if (actNestedPairs.length > 0) {
         compareNestedPairs(actNestedPairs, [], [...chain, actShort], diffs);

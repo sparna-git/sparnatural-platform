@@ -133,6 +133,11 @@ export function registerTools(
       },
       outputSchema: {
         projectId: z.string().describe("The project identifier."),
+        prefixes: z
+          .record(z.string(), z.string())
+          .describe(
+            "Prefix declarations from the SHACL file. Keys are prefix names (e.g. 'med'), values are namespace URIs. All IRIs in nodeshapes are already compacted using these prefixes.",
+          ),
         nodeshapes: z
           .array(
             z.object({
@@ -227,22 +232,21 @@ export function registerTools(
       try {
         const { shapes, prefixes } =
           await projectConfigAdapter.getShaclNodeShapes(projectId, lang);
-        let prefixBlock = "";
-        if (prefixes) {
-          prefixBlock = prefixes
-            .map(([uri, prefix]) => `PREFIX ${prefix} <${uri}>`)
-            .join("\n");
-        }
+
+        const prefixesRecord = Object.fromEntries(
+          prefixes.map(([uri, p]) => [p.slice(0, -1), uri]),
+        );
 
         return {
           content: [
             {
               type: "text",
-              text: prefixBlock + "\n\n" + JSON.stringify(shapes, null, 2),
+              text: JSON.stringify({ prefixes: prefixesRecord, shapes }, null, 2),
             },
           ],
           structuredContent: {
             projectId,
+            prefixes: prefixesRecord,
             nodeshapes: shapes,
           },
         };
