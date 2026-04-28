@@ -1,56 +1,135 @@
-{
-  "type": "query",
-  "subType": "SELECT",
-  "variables": [
-    {
-      "type": "term",
-      "subType": "variable",
-      "value": "Evenement_1"
-    },
-    {
-      "type": "term",
-      "subType": "variable",
-      "value": "SpecialitePharmaceutique_2"
-    }
-  ],
-  "distinct": true,
-  "solutionModifiers": {},
-  "where": {
-    "type": "pattern",
-    "subType": "bgpSameSubject",
-    "subject": {
-      "type": "term",
-      "subType": "variable",
-      "value": "Evenement_1",
-      "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Evenement"
-    },
-    "predicateObjectPairs": [
+[
+  {
+    "type": "query",
+    "subType": "SELECT",
+    "variables": [
       {
-        "type": "predicateObjectPair",
-        "predicate": {
-          "type": "term",
-          "subType": "namedNode",
-          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Evenement_concerne"
-        },
-        "object": {
-          "type": "objectCriteria",
-          "variable": {
-            "type": "term",
-            "subType": "variable",
-            "value": "SpecialitePharmaceutique_2",
-            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
-          },
-          "filters": [],
-          "values": [
-            {
-              "type": "term",
-              "subType": "namedNode",
-              "value": "http://data.esante.gouv.fr/ansm/medicament/SpecialitePharmaceutique_69443806",
-              "label": "FORTUM 2 g, poudre pour solution injectable (IV) ou pour perfusion"
-            }
-          ]
-        }
+        "type": "term",
+        "subType": "variable",
+        "value": "Evenement_1"
+      },
+      {
+        "type": "term",
+        "subType": "variable",
+        "value": "SpecialitePharmaceutique_2"
       }
-    ]
+    ],
+    "distinct": true,
+    "solutionModifiers": {},
+    "where": {
+      "type": "pattern",
+      "subType": "bgpSameSubject",
+      "subject": {
+        "type": "term",
+        "subType": "variable",
+        "value": "Evenement_1",
+        "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Evenement"
+      },
+      "predicateObjectPairs": [
+        {
+          "type": "predicateObjectPair",
+          "predicate": {
+            "type": "term",
+            "subType": "namedNode",
+            "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Evenement_concerne"
+          },
+          "object": {
+            "type": "objectCriteria",
+            "variable": {
+              "type": "term",
+              "subType": "variable",
+              "value": "SpecialitePharmaceutique_2",
+              "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
+            },
+            "filters": [],
+            "values": [
+              {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "http://data.esante.gouv.fr/ansm/medicament/SpecialitePharmaceutique_69443806",
+                "label": "FORTUM 2 g, poudre pour solution injectable (IV) ou pour perfusion"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "query",
+    "subType": "SELECT",
+    "variables": [
+      {
+        "type": "term",
+        "subType": "variable",
+        "value": "Evenement"
+      },
+      {
+        "type": "term",
+        "subType": "variable",
+        "value": "SpecialitePharmaceutique"
+      }
+    ],
+    "distinct": true,
+    "solutionModifiers": {},
+    "where": {
+      "type": "pattern",
+      "subType": "bgpSameSubject",
+      "subject": {
+        "type": "term",
+        "subType": "variable",
+        "value": "Evenement",
+        "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Evenement"
+      },
+      "predicateObjectPairs": [
+        {
+          "type": "predicateObjectPair",
+          "predicate": {
+            "type": "term",
+            "subType": "namedNode",
+            "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Evenement_concerne"
+          },
+          "object": {
+            "type": "objectCriteria",
+            "variable": {
+              "type": "term",
+              "subType": "variable",
+              "value": "SpecialitePharmaceutique",
+              "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
+            },
+            "filters": [],
+            "predicateObjectPairs": [
+              {
+                "type": "predicateObjectPair",
+                "predicate": {
+                  "type": "term",
+                  "subType": "namedNode",
+                  "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_label"
+                },
+                "object": {
+                  "type": "objectCriteria",
+                  "variable": {
+                    "type": "term",
+                    "subType": "variable",
+                    "value": "Text",
+                    "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Text"
+                  },
+                  "filters": [
+                    {
+                      "type": "labelledFilter",
+                      "label": "Spécialité pharmaceutique",
+                      "filter": {
+                        "type": "searchFilter",
+                        "search": "FORTUM 2 g"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
   }
-}
+]

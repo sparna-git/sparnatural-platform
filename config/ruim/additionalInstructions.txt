@@ -1,0 +1,256 @@
+Few-Shots :
+1st dew-shot:
+input user : "Toutes les correspondances CIP UCD de Spécialités contenant CEFUROXIME (J01DC02)"
+output must be :
+"
+{
+  "type": "query",
+  "subType": "SELECT",
+  "variables": [
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "SpecialitePharmaceutique_1"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Code_12"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Code_6"
+    }
+  ],
+  "distinct": true,
+  "solutionModifiers": {},
+  "where": {
+    "type": "pattern",
+    "subType": "bgpSameSubject",
+    "subject": {
+      "type": "term",
+      "subType": "variable",
+      "value": "SpecialitePharmaceutique_1",
+      "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
+    },
+    "predicateObjectPairs": [
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_classificationATC"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "ATC",
+            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#ATC"
+          },
+          "filters": [],
+          "values": [
+            {
+              "type": "term",
+              "subType": "namedNode",
+              "value": "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND",
+              "label": "J01DC02 - céfuroxime"
+            }
+          ]
+        }
+      },
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_aPourPresentation"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "Presentation",
+            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Presentation"
+          },
+          "filters": [],
+          "predicateObjectPairs": [
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Presentation_CIP13"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "Code_6",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Code"
+                },
+                "filters": []
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_aPourUniteDeDispensation"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "UniteCommuneDeDispensation",
+            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#UniteCommuneDeDispensation"
+          },
+          "filters": [],
+          "predicateObjectPairs": [
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#UniteCommuneDeDispensation_codeUCD13"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "Code_12",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Code"
+                },
+                "filters": []
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+"
+2nd few-shot:
+input user : "Toutes les présentations commercialisées à ce jour de médicaments contenant de l'EZETIMIBE ayant eu une autorisation d'importation parallèle"
+output must be :
+"
+{
+  "type": "query",
+  "subType": "SELECT",
+  "variables": [
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Presentation_1"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "Substance_4"
+    },
+    {
+      "type": "term",
+      "subType": "variable",
+      "value": "TypeProcedure_6"
+    }
+  ],
+  "distinct": true,
+  "solutionModifiers": {},
+  "where": {
+    "type": "pattern",
+    "subType": "bgpSameSubject",
+    "subject": {
+      "type": "term",
+      "subType": "variable",
+      "value": "Presentation_1",
+      "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Presentation"
+    },
+    "predicateObjectPairs": [
+      {
+        "type": "predicateObjectPair",
+        "predicate": {
+          "type": "term",
+          "subType": "namedNode",
+          "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Presentation_presente"
+        },
+        "object": {
+          "type": "objectCriteria",
+          "variable": {
+            "type": "term",
+            "subType": "variable",
+            "value": "SpecialitePharmaceutique",
+            "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique"
+          },
+          "filters": [],
+          "predicateObjectPairs": [
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_substanceActive"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "Substance_4",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#Substance"
+                },
+                "filters": [],
+                "values": [
+                  {
+                    "type": "term",
+                    "subType": "namedNode",
+                    "value": "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND",
+                    "label": "ézétimibe"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "predicateObjectPair",
+              "predicate": {
+                "type": "term",
+                "subType": "namedNode",
+                "value": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#SpecialitePharmaceutique_typeProcedureCourante"
+              },
+              "object": {
+                "type": "objectCriteria",
+                "variable": {
+                  "type": "term",
+                  "subType": "variable",
+                  "value": "TypeProcedure_6",
+                  "rdfType": "https://sparna-git.github.io/referentiel-medicaments/configs/sparnatural-config.ttl#TypeProcedure"
+                },
+                "filters": [],
+                "values": [
+                  {
+                    "type": "term",
+                    "subType": "namedNode",
+                    "value": "https://services.sparnatural.eu/api/v1/URI_NOT_FOUND",
+                    "label": "Autorisation d'importation parallèle d’une spécialité pharmaceutique en vue de la mise sur le marché en France (300)"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+"
