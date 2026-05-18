@@ -105,10 +105,10 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
       const configTypeUri = qobj.type as string | undefined;
 
       console.log(
-        `\n[lucene-recon] ═══ Réconciliation : "${name}" | type: ${configTypeUri ?? "aucun"} ═══`,
+        `\n[graphdb-recon] ═══ Réconciliation : "${name}" | type: ${configTypeUri ?? "aucun"} ═══`,
       );
       console.log(
-        `[lucene-recon] Recherche Lucene (index: ${this.luceneIndexName})`,
+        `[graphdb-recon] Recherche Lucene (index: ${this.luceneIndexName})`,
       );
 
       const searchResults: SearchResult[] = await this.searchLucene(
@@ -118,7 +118,7 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
       const source = "lucene";
 
       console.log(
-        `[lucene-recon] Lucene → ${searchResults.length} résultat(s) :`,
+        `[graphdb-recon] Lucene → ${searchResults.length} résultat(s) :`,
         searchResults.map((r) => `"${r.label}" (${r.uri.split("/").pop()})`),
       );
 
@@ -137,12 +137,12 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
     const labelsToResolve = collectUnresolvedLabels(parsedQuery);
 
     if (Object.keys(labelsToResolve).length === 0) {
-      console.log("[lucene-recon] No URI_NOT_FOUND to resolve.");
+      console.log("[graphdb-recon] No URI_NOT_FOUND to resolve.");
       return parsedQuery;
     }
 
     console.log(
-      `[lucene-recon] Resolving ${Object.keys(labelsToResolve).length} label(s):`,
+      `[graphdb-recon] Resolving ${Object.keys(labelsToResolve).length} label(s):`,
       Object.values(labelsToResolve).map((l) => l.query),
     );
 
@@ -231,17 +231,17 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
       try {
         const { postProcessor } = await getSHACLConfig(this.projectId);
         sparql = postProcessor.expandSparql(sparql, {});
-        console.log(`[lucene-recon] Lucene SPARQL après expand:\n${sparql}`);
+        console.log(`[graphdb-recon] Lucene SPARQL après expand:\n${sparql}`);
       } catch (_err) {
         console.log(
-          `[lucene-recon] SHACL non configuré → requête Lucene avec configTypeUri tel quel`,
+          `[graphdb-recon] SHACL non configuré → requête Lucene avec configTypeUri tel quel`,
         );
-        console.log(`[lucene-recon] Lucene SPARQL (sans expand):\n${sparql}`);
+        console.log(`[graphdb-recon] Lucene SPARQL (sans expand):\n${sparql}`);
       }
     } else {
       // Sans type : requête Lucene simple
       console.log(
-        `[lucene-recon] Aucun type fourni → requête Lucene sans filtre de type`,
+        `[graphdb-recon] Aucun type fourni → requête Lucene sans filtre de type`,
       );
       sparql = `
         PREFIX : <http://www.ontotext.com/connectors/lucene#>
@@ -284,7 +284,7 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
         ORDER BY ?minLen
         LIMIT ${this.maxResults}
       `;
-      console.log(`[lucene-recon] Lucene SPARQL (sans type):\n${sparql}`);
+      console.log(`[graphdb-recon] Lucene SPARQL (sans type):\n${sparql}`);
     }
 
     try {
@@ -297,7 +297,7 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
         label: b.label?.value || name,
       }));
     } catch (err) {
-      console.error(`[lucene-recon] Lucene error for "${name}":`, err);
+      console.error(`[graphdb-recon] Lucene error for "${name}":`, err);
       return [];
     }
   }
@@ -362,8 +362,8 @@ export class LuceneGraphDBReconcileService implements ReconcileServiceIfc {
   ): void {
     console.log(
       results.length > 0
-        ? `[lucene-recon] "${name}" → "${results[0].id}" label:"${results[0].name}" (${source})`
-        : `[lucene-recon] "${name}" → aucun résultat (${source})`,
+        ? `[graphdb-recon] "${name}" → "${results[0].id}" label:"${results[0].name}" (${source})`
+        : `[graphdb-recon] "${name}" → aucun résultat (${source})`,
     );
   }
 

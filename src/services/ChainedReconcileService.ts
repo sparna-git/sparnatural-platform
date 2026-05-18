@@ -21,7 +21,7 @@ import {
  * If all services return empty for a given key, an empty result is returned for that key.
  */
 export class ChainedReconcileService implements ReconcileServiceIfc {
-  constructor(private readonly services: ReconcileServiceIfc[]) {}
+  constructor(public readonly services: ReconcileServiceIfc[]) {}
 
   async reconcileQueries(
     queries: ReconcileInput,

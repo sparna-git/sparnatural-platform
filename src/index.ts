@@ -22,6 +22,7 @@ import { createMcpRouter } from "./mcp/server";
 
 import { ConfigProvider } from "./config/ConfigProvider";
 import { LunrReconcileService } from "./services/LunrReconcileService";
+import { ChainedReconcileService } from "./services/ChainedReconcileService";
 
 dotenv.config();
 
@@ -132,12 +133,23 @@ if (!process.env.MISTRAL_API_KEY) {
 app.listen(PORT, () => {
   console.log(`✅ Sparnatural service API listening on port ${PORT}`);
 
-  // Pre-warm Lunr indexes for all projects that use LunrReconcileService
+  // Pre-warm Lunr indexes for all projects that use LunrReconcileService (direct or chained)
   for (const projectKey of AppConfig.getInstance().listProjects()) {
     const project = AppConfig.getInstance().getProject(projectKey);
-    if (project.reconcileService instanceof LunrReconcileService) {
+    const service = project.reconcileService;
+
+    const lunrServices: LunrReconcileService[] = [];
+    if (service instanceof LunrReconcileService) {
+      lunrServices.push(service);
+    } else if (service instanceof ChainedReconcileService) {
+      for (const s of service.services) {
+        if (s instanceof LunrReconcileService) lunrServices.push(s);
+      }
+    }
+
+    for (const lunr of lunrServices) {
       console.log(`[lunr] Warming up index for project "${projectKey}"…`);
-      project.reconcileService.warmUp().catch((err) => {
+      lunr.warmUp().catch((err) => {
         console.error(`[lunr] Index warm-up failed for project "${projectKey}":`, err);
       });
     }
